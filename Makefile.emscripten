@@ -1,0 +1,38 @@
+# Adapted from Makefile for Dingux by Rikku2000
+
+TARGET = sdlpal.html
+
+HOST =
+
+ADPLUG_FILES = adplug/rix.o adplug/player.o adplug/binio.o \
+	adplug/fprovide.o adplug/binfile.o adplug/dosbox_opl.o \
+	adplug/fmopl.o adplug/dbopl.o adplug/surroundopl.o \
+	adplug/emuopl.o adplug/demuopl.o adplug/dbemuopl.o
+
+FILES = battle.o ending.o fight.o font.o game.o getopt.o global.o input.o \
+    itemmenu.o magicmenu.o main.o map.o palcommon.o \
+	palette.o play.o res.o resampler.o rixplay.o rngplay.o scene.o script.o \
+	sound.o text.o ui.o uibattle.o uigame.o util.o video.o yj1.o 
+
+FILES += $(ADPLUG_FILES)
+#FILES += $(LIBMAD_FILES)
+#FILES += $(LIBOGGVORBIS_FILES)
+
+CFLAGS = -I/Users/palxex/gst/toolchain/emscripten/include/SDL2 -g -Wall -O2 -fno-strict-aliasing
+LDFLAGS = -L/Users/palxex/gst/toolchain/emscripten/lib -lSDL2 -lm -lstdc++ --preload-file data -s TOTAL_MEMORY=134217728 -s TOTAL_STACK=5242880 --emrun -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s 'EMTERPRETIFY_FILE="sdlpal.bc"'
+
+.c.o:
+	emcc -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+.cpp.o:
+	em++ -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+	
+$(TARGET):$(FILES)
+	emcc $(CFLAGS) -o $(TARGET) $(FILES) $(LDFLAGS)
+
+clean:
+	rm -f $(FILES)
+	rm -f $(TARGET)
+
+repackage:
+	rm -f $(TARGET)
+	emcc $(CFLAGS) -o $(TARGET) $(FILES) $(LDFLAGS)
