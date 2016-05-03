@@ -23,6 +23,7 @@
 #define _COMMON_H
 
 #define PAL_CLASSIC        1
+#define __CARDBOARD__      1
 
 #ifdef __cplusplus
 extern "C"
@@ -226,6 +227,7 @@ extern "C"
 # define PAL_PLATFORM         "Android"
 # define PAL_CREDIT           "Rikku2000"
 # define PAL_PORTYEAR         "2013"
+#define PAL_HAS_JOYSTICKS     1
 
 #elif defined (__WINPHONE__)
 

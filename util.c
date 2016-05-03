@@ -581,3 +581,25 @@ UTIL_WriteLog(
 }
 
 #endif
+
+#ifdef __ANDROID__
+BOOL UTIL_GetScreenSize(DWORD *pWidth, DWORD *pHeight){
+    int           i;
+    SDL_DisplayMode current;
+    for(i = 0; i < SDL_GetNumVideoDisplays(); ++i){
+        int should_be_zero = SDL_GetCurrentDisplayMode(i, &current);
+        
+        if(should_be_zero != 0)
+            // In case of error...
+            SDL_Log("Could not get display mode for video display #%d: %s", i, SDL_GetError());
+        else {
+            // On success, print the current display mode.
+            //SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz. \n", i, current.w, current.h, current.refresh_rate);
+            *pWidth = current.w;
+            *pHeight = current.h;
+            return 1;
+        }
+    }
+    return 0;
+}
+#endif

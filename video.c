@@ -53,9 +53,36 @@ volatile BOOL g_bRenderPaused = FALSE;
 static WORD               g_wShakeTime       = 0;
 static WORD               g_wShakeLevel      = 0;
 
+#ifdef __CARDBOARD__
+
+#define CARDBOARD_RATIO 3.0/4
+//define padding/gap for cardboard's view; only center can be view most clear. Tweak it if you're using Oculus or other VR solution
+#define CARDBOARD_PADDING 50
+#define CARDBOARD_GAP 25
+#endif
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 #define SDL_SoftStretch SDL_UpperBlit
 #endif
+
+VOID commitTexture()
+{
+   short           cbSingleEyeWidth,cbSingleEyeHeight;
+   SDL_Rect        dstrect;
+#ifdef __CARDBOARD__
+   cbSingleEyeWidth     = (gConfig.dwScreenWidth / 2 - CARDBOARD_PADDING - CARDBOARD_GAP);
+   cbSingleEyeHeight    = cbSingleEyeWidth * CARDBOARD_RATIO;
+   dstrect.x=CARDBOARD_PADDING;
+   dstrect.y=(gConfig.dwScreenHeight-cbSingleEyeHeight)/2;
+   dstrect.w=cbSingleEyeWidth;
+   dstrect.h=cbSingleEyeHeight;
+   SDL_RenderCopy(gpRenderer, gpTexture, NULL, &dstrect);
+   dstrect.x=gConfig.dwScreenWidth / 2 + CARDBOARD_GAP;
+   SDL_RenderCopy(gpRenderer, gpTexture, NULL, &dstrect);
+#else
+   SDL_RenderCopy(gpRenderer, gpTexture, NULL, gpRenderRect);
+#endif
+}
 
 INT
 VIDEO_Startup(
@@ -160,6 +187,7 @@ VIDEO_Startup(
    // Create texture for overlay.
    //
 #if PAL_HAS_TOUCH
+#ifndef __CARDBOARD__
    overlay = SDL_LoadBMP(va("%s%s", PAL_PREFIX, "overlay.bmp"));
    if (overlay != NULL)
    {
@@ -168,6 +196,7 @@ VIDEO_Startup(
       SDL_SetTextureAlphaMod(gpTouchOverlay, 120);
       SDL_FreeSurface(overlay);
    }
+#endif
 #endif
 
    //
@@ -339,7 +368,7 @@ VIDEO_RenderCopy(
 )
 {
    SDL_UpdateTexture(gpTexture, NULL, gpScreenReal->pixels, gpScreenReal->pitch);
-   SDL_RenderCopy(gpRenderer, gpTexture, NULL, gpRenderRect);
+   commitTexture();
 #if PAL_HAS_TOUCH
    if (gpTouchOverlay)
    {
@@ -379,6 +408,7 @@ VIDEO_UpdateScreen(
    {
 	   return;
    }
+   SDL_RenderClear(gpRenderer); //must clear for erase flicking
 #endif
 
    //

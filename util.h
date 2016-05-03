@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-//#define ENABLE_LOG 1
+#define ENABLE_LOG 1
 
 #ifdef __cplusplus
 extern "C"
@@ -121,6 +121,10 @@ UTIL_GetScreenSize(
    DWORD *pdwScreenHeight
 );
 
+#endif
+    
+#ifdef __ANDROID__
+    BOOL UTIL_GetScreenSize(DWORD *pWidth, DWORD *pHeight);
 #endif
 
 #define _PATH_LOG           PAL_PREFIX "log.txt"

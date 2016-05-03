@@ -337,10 +337,10 @@ PAL_InitGlobals(
    gConfig.dwExtraItemDescLines = dwExtraItemDescLines;
    gConfig.wAudioBufferSize = (WORD)iAudioBufferSize;
    gConfig.iVolume = SDL_MIX_MAXVOLUME * iVolume / 100;
-#if defined(NDS) || defined(__SYMBIAN32__) || defined(GEKKO) || defined(PSP) || defined(GEKKO) || defined(GPH) || defined(DINGOO) || defined(__ANDROID__)
+#if defined(NDS) || defined(__SYMBIAN32__) || defined(GEKKO) || defined(PSP) || defined(GEKKO) || defined(GPH) || defined(DINGOO)
    gConfig.dwScreenWidth = PAL_DEFAULT_WINDOW_WIDTH;
    gConfig.dwScreenHeight = PAL_DEFAULT_WINDOW_HEIGHT;
-#elif defined(__WINPHONE__) || defined(__IOS__)
+#elif defined(__WINPHONE__) || defined(__IOS__) || defined(__ANDROID__)
    if (UTIL_GetScreenSize(&dwScreenWidth, &dwScreenHeight))
    {
       gConfig.dwScreenWidth = dwScreenWidth;

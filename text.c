@@ -255,7 +255,7 @@ PAL_ReadMessageFile(
 					{
 						// Just ignore invalid lines
 #ifdef ENABLE_LOG
-						UTIL_WriteLog(LOG_ERR, "PAL_ReadMessageFile(): encounter invalid line '%s'!\n", line);
+						UTIL_WriteLog(LOG_ERR, "PAL_ReadMessageFile(): encounter invalid line '%s'!\n", buffer);
 #endif
 					}
 				}
