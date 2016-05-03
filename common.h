@@ -276,8 +276,8 @@ extern "C"
 # define PAL_HAS_SDLCD         1
 #endif
 
-#define PAL_PREFIX            "./"
-#define PAL_SAVE_PREFIX       "./"
+#define PAL_PREFIX            "/Users/palxex/Downloads/sdlpal/"
+#define PAL_SAVE_PREFIX       "/Users/palxex/Downloads/sdlpal/"
 
 #define PAL_DEFAULT_WINDOW_WIDTH   640
 #define PAL_DEFAULT_WINDOW_HEIGHT  400
