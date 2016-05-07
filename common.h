@@ -280,6 +280,8 @@ extern "C"
 
 #define PAL_PREFIX            "/Users/palxex/Downloads/sdlpal/"
 #define PAL_SAVE_PREFIX       "/Users/palxex/Downloads/sdlpal/"
+//#define PAL_PREFIX            "/Users/palxex/gst/pal/"
+//#define PAL_SAVE_PREFIX       "/Users/palxex/gst/pal/"
 
 #define PAL_DEFAULT_WINDOW_WIDTH   640
 #define PAL_DEFAULT_WINDOW_HEIGHT  400
