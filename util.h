@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-#define ENABLE_LOG 1
+//#define ENABLE_LOG 1
 
 #ifdef __cplusplus
 extern "C"

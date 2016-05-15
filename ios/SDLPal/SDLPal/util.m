@@ -55,8 +55,12 @@ UTIL_GetScreenSize(
    if (!pdwScreenWidth || !pdwScreenHeight) return FALSE;
     
    CGRect rect = [UIScreen mainScreen].nativeBounds;
-   *pdwScreenWidth = rect.size.height;
-   *pdwScreenHeight = rect.size.width;
+   float scale = 1.0f;
+#if SDL_VERSION_ATLEAST(2,0,4)
+   scale = [UIScreen mainScreen].nativeScale;
+#endif
+   *pdwScreenWidth = rect.size.height/scale;
+   *pdwScreenHeight = rect.size.width/scale;
     
    return TRUE;
 }
