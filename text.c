@@ -1074,25 +1074,26 @@ PAL_UnescapeText(
 
 VOID
 PAL_DrawText(
-   LPCWSTR    lpszText,
-   PAL_POS    pos,
-   BYTE       bColor,
-   BOOL       fShadow,
-   BOOL       fUpdate,
-   BOOL       fUse8x8Font
+LPCWSTR    lpszText,
+PAL_POS    pos,
+BYTE       bColor,
+BOOL       fShadow,
+BOOL       fUpdate,
+BOOL       fUse8x8Font
 )
 {
-    PAL_DrawTextUnescape(lpszText, pos, bColor, fShadow, fUpdate, fUse8x8Font, TRUE);
+   PAL_DrawTextOnSurfaceUnescape( lpszText, pos, bColor, fShadow, fUpdate, fUse8x8Font, gpScreen, TRUE);
 }
 
 VOID
-PAL_DrawTextUnescape(
+PAL_DrawTextOnSurfaceUnescape(
    LPCWSTR    lpszText,
    PAL_POS    pos,
    BYTE       bColor,
    BOOL       fShadow,
    BOOL       fUpdate,
    BOOL       fUse8x8Font,
+   SDL_Surface *pSurface,
    BOOL       fUnescape
 )
 /*++
@@ -1113,6 +1114,8 @@ PAL_DrawTextUnescape(
     [IN]  fUpdate - TRUE if update the screen area.
 
     [IN]  fUse8x8Font - TRUE if use 8x8 font.
+
+    [IN]  pSurface - the surface that blitting to.
 
     [IN]  fUnescape - TRUE if unescaping needed.
  
@@ -1144,10 +1147,10 @@ PAL_DrawTextUnescape(
 
       if (fShadow)
       {
-		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
-		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y), 0, fUse8x8Font);
+		  PAL_DrawCharOnSurface(*lpszText, pSurface, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
+		  PAL_DrawCharOnSurface(*lpszText, pSurface, PAL_XY(rect.x + 1, rect.y), 0, fUse8x8Font);
       }
-	  PAL_DrawCharOnSurface(*lpszText++, gpScreen, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
+	  PAL_DrawCharOnSurface(*lpszText++, pSurface, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
 	  rect.x += char_width; urect.w += char_width;
    }
 
@@ -1574,7 +1577,7 @@ TEXT_DisplayText(
             if( isNumber )
                PAL_DrawNumber(text[0]-'0', 1, PAL_XY(x, y+4), kNumColorYellow, kNumAlignLeft);
             else
-               PAL_DrawTextUnescape(text, PAL_XY(x, y), color, !isDialog, !isDialog && !g_TextLib.fUserSkip, FALSE, FALSE);
+               PAL_DrawTextOnSurfaceUnescape(text, PAL_XY(x, y), color, !isDialog, !isDialog && !g_TextLib.fUserSkip, FALSE, gpScreen, FALSE);
             x += PAL_CharWidth(text[0]);
             
             if (!isDialog && !g_TextLib.fUserSkip)
@@ -2459,7 +2462,7 @@ PAL_swprintf(
 
 				// Convert or copy string (char) into output buffer
 				if (*format == 's' && !wide)
-					PAL_MultiByteToWideChar((LPCSTR)buf, -1, buffer, precision);
+					PAL_MultiByteToWideChar((LPCSTR)buf, len, buffer, precision);
 				else
 					wcsncpy(buffer, buf, precision);
 				buffer += precision; count += precision;

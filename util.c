@@ -35,6 +35,9 @@
 static char internal_buffer[PAL_MAX_GLOBAL_BUFFERS + 1][PAL_GLOBAL_BUFFER_SIZE];
 #define INTERNAL_BUFFER_SIZE_ARGS internal_buffer[PAL_MAX_GLOBAL_BUFFERS], PAL_GLOBAL_BUFFER_SIZE
 
+wchar_t __util_swprintf_buf[PAL_GLOBAL_BUFFER_SIZE];
+int __vaw_len;
+
 void UTIL_MsgBox(char *string)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)

@@ -48,6 +48,7 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_ENABLEAVIPLAY,
     PALCFG_ENABLEGLSL,
     PALCFG_ENABLEHDR,
+    PALCFG_ENABLEDEBUGLAYER,
 	/* Booleans */
 	PALCFG_BOOLEAN_MAX,
 
@@ -212,6 +213,7 @@ typedef struct tagCONFIGURATION
 	BOOL             fEnableAviPlay;
 	BOOL             fEnableGLSL;
     BOOL             fEnableHDR;
+    BOOL             fEnableDebugLayer;
 #if USE_RIX_EXTRA_INIT
 	uint32_t        *pExtraFMRegs;
 	uint8_t         *pExtraFMVals;

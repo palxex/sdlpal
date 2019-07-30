@@ -43,6 +43,7 @@ extern volatile BOOL g_bRenderPaused;
 void Filter_StepParamSlot(int step);
 void Filter_StepCurrentParam(int step);
 #endif
+void VIDEO_ToggleDebugLayer();
 
 INT
 VIDEO_Startup(
@@ -57,6 +58,11 @@ VIDEO_Shutdown(
 VOID
 VIDEO_UpdateScreen(
    const SDL_Rect  *lpRect
+);
+
+VOID
+VIDEO_DrawFrame(
+   VOID
 );
 
 VOID
@@ -150,6 +156,8 @@ VIDEO_SetupTouchArea(
     int draw_w,
     int draw_h
 );
+
+void DEBUG_AddEntry(wchar_t *str, PAL_POS pos, int frames);
 
 PAL_C_LINKAGE_END
 

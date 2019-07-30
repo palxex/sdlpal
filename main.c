@@ -117,7 +117,12 @@ PAL_Init(
 #else
 	   ""
 #endif
-       ,(gConfig.fEnableGLSL && gConfig.pszShader ? gConfig.pszShader : "")
+       ,
+#if PAL_HAS_GLSL
+       (gConfig.fEnableGLSL && gConfig.pszShader ? gConfig.pszShader : "")
+#else
+       ""
+#endif
    ));
 }
 
@@ -185,9 +190,10 @@ PAL_TrademarkScreen(
 
 --*/
 {
+   PAL_SetPalette(3, FALSE);
+   
    if (PAL_PlayAVI("1.avi")) return;
 
-   PAL_SetPalette(3, FALSE);
    PAL_RNGPlay(6, 0, -1, 25);
    UTIL_Delay(1000);
    PAL_FadeOut(1);

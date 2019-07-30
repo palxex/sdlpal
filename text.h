@@ -113,6 +113,17 @@ PAL_UnescapeText(
 );
 
 VOID
+PAL_DrawTextOnSurface(
+   LPCWSTR    lpszText,
+   PAL_POS    pos,
+   BYTE       bColor,
+   BOOL       fShadow,
+   BOOL       fUpdate,
+   BOOL       fUse8x8Font,
+   SDL_Surface *pSurface
+);
+
+VOID
 PAL_DrawText(
    LPCWSTR    lpszText,
    PAL_POS    pos,
@@ -123,13 +134,14 @@ PAL_DrawText(
 );
 
 VOID
-PAL_DrawTextUnescape(
+PAL_DrawTextOnSurfaceUnescape(
    LPCWSTR    lpszText,
    PAL_POS    pos,
    BYTE       bColor,
    BOOL       fShadow,
    BOOL       fUpdate,
    BOOL       fUse8x8Font,
+   SDL_Surface *pSurface,
    BOOL       fUnescape
 );
 

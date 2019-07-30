@@ -311,6 +311,11 @@ PAL_KeyboardEventFilter(
       {
          VIDEO_SaveScreenshot();
       }
+#if SDL_VERSION_ATLEAST(2,0,0)
+      else if (lpEvent->key.keysym.sym == SDLK_BACKQUOTE)
+      {
+         VIDEO_ToggleDebugLayer();
+      }
 #if PAL_HAS_GLSL
       else if (lpEvent->key.keysym.sym == SDLK_z)
       {
@@ -328,6 +333,7 @@ PAL_KeyboardEventFilter(
       {
          Filter_StepCurrentParam(-1);
       }
+#endif
 #endif
    }
 }
@@ -716,6 +722,7 @@ VOID
 #define  TOUCH_BUTTON2 6
 #define  TOUCH_BUTTON3 7
 #define  TOUCH_BUTTON4 8
+#define  TOUCH_DBG     9
 
 static float gfTouchXMin = 0.0f;
 static float gfTouchXMax = 1.0f;
@@ -746,7 +753,7 @@ PAL_GetTouchArea(
    float Y
 )
 {
-   if (X < gfTouchXMin || X > gfTouchXMax || Y < 0.5f || Y > gfTouchYMax)
+   if (X < gfTouchXMin || X > gfTouchXMax || Y < gfTouchYMin || Y > gfTouchYMax)
    {
       //
       // Upper area or cropped area
@@ -759,6 +766,11 @@ PAL_GetTouchArea(
 	  Y = (Y - gfTouchYMin) / (gfTouchYMax - gfTouchYMin);
    }
 
+   if (Y < 1.0f / 3)
+   {
+      if (X < 1.0f / 3)
+         return TOUCH_DBG;
+   }else{
    if (X < 1.0f / 3)
    {
       if (Y - 0.5f < (1.0f / 6 - fabsf(X - 1.0f / 3 / 2)) * (0.5f / (1.0f / 3)))
@@ -806,6 +818,7 @@ PAL_GetTouchArea(
    else 
    {
       return TOUCH_NONE;
+   }
    }
 }
 
@@ -858,7 +871,7 @@ PAL_SetTouchAction(
    case TOUCH_BUTTON4:
       g_InputState.dwKeyPress |= kKeySearch;
       break;
-   }
+  }
 }
 
 static VOID
@@ -874,6 +887,12 @@ PAL_UnsetTouchAction(
    case TOUCH_RIGHT:
       g_InputState.dir = kDirUnknown;
       break;
+         
+#if SDL_VERSION_ATLEAST(2,0,0)
+   case TOUCH_DBG:
+      VIDEO_ToggleDebugLayer();
+      break;
+#endif
    }
 }
 
@@ -1214,6 +1233,10 @@ PAL_ProcessEvent(
    g_InputState.joystickNeedUpdate = FALSE;
 #endif
    while (PAL_PollEvent(NULL));
+   
+#if SDL_VERSION_ATLEAST(2,0,0)
+   VIDEO_DrawFrame();
+#endif
 
    PAL_UpdateKeyboardState();
 #if PAL_HAS_JOYSTICKS

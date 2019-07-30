@@ -31,6 +31,10 @@ SDL_Surface              *gpScreenBak        = NULL;
 // The global palette
 static SDL_Palette       *gpPalette          = NULL;
 
+bool mutex_rendering = false;
+// Debug layer buffer
+SDL_Surface              *gpDebugLayer		   = NULL;
+
 #if SDL_VERSION_ATLEAST(2,0,0)
 SDL_Window               *gpWindow           = NULL;
 SDL_Renderer      *gpRenderer         = NULL;
@@ -38,6 +42,8 @@ SDL_Texture       *gpTexture          = NULL;
 SDL_Texture       *gpTouchOverlay     = NULL;
 SDL_Rect           gOverlayRect;
 SDL_Rect           gTextureRect;
+
+SDL_Texture              *gpDebugOverlay		= NULL;
 
 static struct RenderBackend {
     void (*Init)();
@@ -212,6 +218,10 @@ VIDEO_Startup(
    gpScreenReal = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 200, 32,
                                        0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 
+   gpDebugLayer = SDL_CreateRGBSurface(SDL_SWSURFACE, gConfig.dwTextureWidth, gConfig.dwTextureHeight, 8, 0, 0, 0, 0);
+	gpDebugOverlay = SDL_CreateTexture(gpRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, gConfig.dwTextureWidth, gConfig.dwTextureHeight);
+	SDL_SetTextureBlendMode( gpDebugOverlay, SDL_BLENDMODE_ADD );
+
    //
    // Create texture for screen.
    //
@@ -377,6 +387,12 @@ VIDEO_Shutdown(
    }
    gpScreenBak = NULL;
 
+	if (gpDebugLayer != NULL)
+	{
+		SDL_FreeSurface(gpDebugLayer);
+	}
+	gpDebugLayer = NULL;
+
 #if SDL_VERSION_ATLEAST(2,0,0)
 
    if (gpTouchOverlay)
@@ -384,6 +400,12 @@ VIDEO_Shutdown(
       SDL_DestroyTexture(gpTouchOverlay);
    }
    gpTouchOverlay = NULL;
+
+	if (gpDebugOverlay != NULL)
+	{
+		SDL_DestroyTexture(gpDebugOverlay);
+	}
+	gpDebugOverlay = NULL;
 
    if (gpTexture)
    {
@@ -446,6 +468,10 @@ VIDEO_RenderCopy(
 	if (gConfig.fUseTouchOverlay)
 	{
 		SDL_RenderCopy(gpRenderer, gpTouchOverlay, NULL, &gOverlayRect);
+	}
+	if (gConfig.fEnableDebugLayer)
+	{
+		SDL_RenderCopy(gpRenderer, gpDebugOverlay, NULL, NULL);
 	}
 	SDL_RenderPresent(gpRenderer);
 }
@@ -569,7 +595,7 @@ VIDEO_UpdateScreen(
    }
 
 #if SDL_VERSION_ATLEAST(2,0,0)
-   gRenderBackend.RenderCopy();
+//   gRenderBackend.RenderCopy();
 #else
    SDL_UpdateRect(gpScreenReal, dstrect.x, dstrect.y, dstrect.w, dstrect.h);
 #endif
@@ -579,6 +605,123 @@ VIDEO_UpdateScreen(
 	   SDL_UnlockSurface(gpScreenReal);
    }
 }
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+#define PAL_MAX_DEBUG 20
+#define PAL_MIN_FPS_SCHEDULE 0.5f
+
+struct DebugEntry {
+	wchar_t content[PAL_MAX_PATH];
+	PAL_POS pos;
+	int leaving_frames;
+};
+static struct DebugEntry DebugEntries[PAL_MAX_DEBUG];
+static int debugEntryCount;
+
+void DEBUG_AddEntry(wchar_t *str, PAL_POS pos, int frames) {
+	struct DebugEntry x = { L"", pos, frames };
+	wcscpy(x.content, str);
+	int loc = -1;
+	for( int i = 0; i < debugEntryCount; i++)
+		if(DebugEntries[i].pos == pos)
+			loc = i;
+	if( loc == -1 )
+		DebugEntries[debugEntryCount++] = x;
+	else
+		DebugEntries[loc] = x;
+	assert(debugEntryCount<PAL_MAX_DEBUG);
+}
+static void DEBUG_Compact() {
+	int valids[20],total=0,step=0;
+	memset(valids,0,sizeof(valids));
+	for( int i = 0; i < debugEntryCount; i++)
+		if(DebugEntries[i].leaving_frames>0)
+			valids[i]=1,total++;
+	for( int i = 0; i < total; i++)
+		if(valids[i]==0) {
+			int j = i;
+			for(; j < debugEntryCount; j++)
+				if(valids[j]==1) {
+					DebugEntries[i]=DebugEntries[j];
+					break;
+				}
+		}
+	debugEntryCount = total;
+}
+void VIDEO_ToggleDebugLayer() {
+    gConfig.fEnableDebugLayer = !gConfig.fEnableDebugLayer;
+}
+static void DEBUG_Flush() {
+	if(!gConfig.fEnableDebugLayer)
+		return;
+	
+	SDL_FillRect(gpDebugLayer, NULL, 0xFF);
+	for( int i = 0; i < debugEntryCount; i++) {
+		PAL_DrawTextOnSurfaceUnescape(DebugEntries[i].content, DebugEntries[i].pos, 0x0F, 0, 0, 1, gpDebugLayer, TRUE);
+		DebugEntries[i].leaving_frames--;
+	}
+	DEBUG_Compact();
+
+	if (SDL_MUSTLOCK(gpDebugLayer))
+		SDL_LockSurface(gpDebugLayer);
+	void *texture_pixels;
+	int texture_pitch;
+	SDL_LockTexture(gpDebugOverlay, NULL, &texture_pixels, &texture_pitch);
+	memset(texture_pixels, 0, gpDebugLayer->h * texture_pitch);
+	uint8_t *pixels = (uint8_t *)texture_pixels;
+	uint8_t *src = (uint8_t *)gpDebugLayer->pixels;
+	int right_pitch = texture_pitch - (gpDebugLayer->w << 2);
+	for (int y = 0; y < gpDebugLayer->h; y++, src += gpDebugLayer->pitch)
+	{
+		for( int i = 0; i < gpDebugLayer->w; i++ ) {
+			int colorIndex = src[ i ];
+			if( colorIndex == 0xFF ) {
+				continue;
+			}
+			SDL_Color color = gpPalette->colors[ colorIndex ];
+			pixels[i*4+0] = color.r;
+			pixels[i*4+1] = color.g;
+			pixels[i*4+2] = color.b;
+			pixels[i*4+3] = 255;
+		}
+		pixels += (gpDebugLayer->w << 2);
+		memset(pixels, 0, right_pitch); pixels += right_pitch;
+	}
+	SDL_UnlockTexture(gpDebugOverlay);
+	if (SDL_MUSTLOCK(gpDebugLayer))
+		SDL_LockSurface(gpDebugLayer);
+}
+
+VOID VIDEO_DrawFrame() {
+	static int frames = 0;
+	static uint64_t lastFrameTime = 0;
+	uint64_t before = SDL_GetPerformanceCounter();
+	if( lastFrameTime == 0 )
+		lastFrameTime = before;
+	if( before - lastFrameTime > SDL_GetPerformanceFrequency()*PAL_MIN_FPS_SCHEDULE ) {
+		double fps = 1.0f*SDL_GetPerformanceFrequency()/(before-lastFrameTime)*frames;
+		DEBUG_AddEntry(PAL_vaw(0, "%5.1fFPS",fps), PAL_XY(0, 0), 2*PAL_MIN_FPS_SCHEDULE*fps);
+		lastFrameTime = before;
+		frames = 0;
+	}
+
+	if( mutex_rendering == true )
+		return;
+
+	frames++;
+
+	DEBUG_Flush();
+	uint64_t after = SDL_GetPerformanceCounter();
+	uint64_t frameEstimateTime;
+	frameEstimateTime = after-before;
+	DEBUG_AddEntry(PAL_vaw(0, "debug_flush cost:%d ms\n", frameEstimateTime*1000/SDL_GetPerformanceFrequency()), PAL_XY(0, 8), 1);
+	
+	gRenderBackend.RenderCopy();
+	uint64_t after2 = SDL_GetPerformanceCounter();
+	frameEstimateTime = after2-after;
+	DEBUG_AddEntry(PAL_vaw(0, "rendercopy cost:%d ms\n", frameEstimateTime*1000/SDL_GetPerformanceFrequency()), PAL_XY(0, 16), 1);
+}
+#endif
 
 VOID
 VIDEO_SetPalette(
@@ -606,6 +749,8 @@ VIDEO_SetPalette(
 
    SDL_SetSurfacePalette(gpScreen, gpPalette);
    SDL_SetSurfacePalette(gpScreenBak, gpPalette);
+
+	SDL_SetSurfacePalette(gpDebugLayer, gpPalette);
 
    //
    // HACKHACK: need to invalidate gpScreen->map otherwise the palette
@@ -1050,7 +1195,7 @@ VIDEO_SwitchScreen(
 
       SDL_SoftStretch(gpScreenBak, NULL, gpScreenReal, &dstrect);
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-      gRenderBackend.RenderCopy();
+//      gRenderBackend.RenderCopy();
 #else
       SDL_UpdateRect(gpScreenReal, 0, 0, gpScreenReal->w, gpScreenReal->h);
 #endif
@@ -1193,7 +1338,7 @@ VIDEO_FadeScreen(
 
             SDL_FillRect(gpScreenReal, &dstrect, 0);
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-            gRenderBackend.RenderCopy();
+//            gRenderBackend.RenderCopy();
 #else
 			SDL_UpdateRect(gpScreenReal, 0, 0, gpScreenReal->w, gpScreenReal->h);
 #endif
@@ -1208,7 +1353,7 @@ VIDEO_FadeScreen(
 
             SDL_SoftStretch(gpScreenBak, NULL, gpScreenReal, &dstrect);
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-            gRenderBackend.RenderCopy();
+//            gRenderBackend.RenderCopy();
 #else
             SDL_UpdateRect(gpScreenReal, 0, 0, gpScreenReal->w, gpScreenReal->h);
 #endif
@@ -1388,7 +1533,7 @@ VIDEO_DrawSurfaceToScreen(
       return;
    }
    SDL_BlitScaled(pSurface, NULL, gpScreenReal, NULL);
-   gRenderBackend.RenderCopy();
+//   gRenderBackend.RenderCopy();
 #else
    SDL_Surface   *pCompatSurface;
    SDL_Rect       rect;
