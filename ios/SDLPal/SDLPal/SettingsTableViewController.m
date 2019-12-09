@@ -295,7 +295,11 @@ typedef void(^SelectedBlock)(NSString *selected);
 }
 
 - (void)readConfigs {
+#if TARGET_OS_MACCATALYST
+    gConfig.fFullScreen = NO; // catalyst not support fullscreen
+#else
     gConfig.fFullScreen = YES; //iOS specific; need this to make sure statusbar hidden in game completely
+#endif
     
     lblLanguageFile.text    = [NSString stringWithUTF8String:gConfig.pszMsgFile  ? gConfig.pszMsgFile  : ""];
     lblFontFile.text        = [NSString stringWithUTF8String:gConfig.pszFontFile ? gConfig.pszFontFile : ""];

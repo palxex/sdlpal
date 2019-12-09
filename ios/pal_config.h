@@ -70,6 +70,4 @@ PAL_C_LINKAGE_END
 
 #include <sys/time.h>
 
-#define PAL_HAS_GLSL 1
-
 #endif
