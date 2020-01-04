@@ -532,7 +532,6 @@
 		C629A565208643D20015C93C /* nuked_opl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nuked_opl.c; sourceTree = "<group>"; };
 		C629A568208643D20015C93C /* convertopl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convertopl.h; sourceTree = "<group>"; };
 		C629A569208643D20015C93C /* nuked_opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nuked_opl.h; sourceTree = "<group>"; };
-		C635056A1EA6570300186049 /* midi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = midi.h; path = ../../../midi.h; sourceTree = "<group>"; };
 		C635056B1EA6570300186049 /* midi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midi.c; path = ../../../midi.c; sourceTree = "<group>"; };
 		C635057A1EA6578700186049 /* native_midi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = native_midi.h; sourceTree = "<group>"; };
 		C635057B1EA6578700186049 /* native_midi_common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = native_midi_common.c; sourceTree = "<group>"; };
@@ -1133,7 +1132,6 @@
 			children = (
 				C67162F422EB2E0D0093995B /* defines.h */,
 				71DCB6951ED9CBB000F120DB /* aviplay.h */,
-				C635056A1EA6570300186049 /* midi.h */,
 				57FB015A1B7A50E0005FCF4C /* codepage.h */,
 				57FB015B1B7A50E0005FCF4C /* fontglyph.h */,
 				57FB015E1B7A50E0005FCF4C /* players.h */,

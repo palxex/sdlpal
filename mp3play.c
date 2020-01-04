@@ -83,6 +83,25 @@ MP3_Shutdown(
 }
 
 static BOOL
+MP3_Stop(
+    VOID       *object,
+    FLOAT       flFadeTime
+    )
+{
+    LPMP3PLAYER player = (LPMP3PLAYER)object;
+
+    //
+    // Check for NULL pointer.
+    //
+    if (player == NULL)
+    {
+        return FALSE;
+    }
+
+    MP3_Close(player);
+}
+
+static BOOL
 MP3_Play(
 	VOID       *object,
 	INT         iNum,
@@ -90,7 +109,9 @@ MP3_Play(
 	FLOAT       flFadeTime
 	)
 {
-	LPMP3PLAYER player = (LPMP3PLAYER)object;
+    assert(iNum > 0);
+
+    LPMP3PLAYER player = (LPMP3PLAYER)object;
 
 	//
 	// Check for NULL pointer.
@@ -102,33 +123,19 @@ MP3_Play(
 
 	player->fLoop = fLoop;
 
-	if (iNum == player->iMusic)
-	{
-		return TRUE;
-	}
+    MP3_Stop(object, flFadeTime);
 
-	MP3_Close(player);
+	player->pMP3 = mad_openFile(UTIL_GetFullPathName(PAL_BUFFER_SIZE_ARGS(0), gConfig.pszGamePath, PAL_va(1, "mp3%s%.2d.mp3", PAL_NATIVE_PATH_SEPARATOR, iNum)), AUDIO_GetDeviceSpec(), gConfig.iResampleQuality);
 
-	player->iMusic = iNum;
-
-	if (iNum > 0)
-	{
-		player->pMP3 = mad_openFile(UTIL_GetFullPathName(PAL_BUFFER_SIZE_ARGS(0), gConfig.pszGamePath, PAL_va(1, "mp3%s%.2d.mp3", PAL_NATIVE_PATH_SEPARATOR, iNum)), AUDIO_GetDeviceSpec(), gConfig.iResampleQuality);
-
-		if (player->pMP3)
-		{
-			mad_start(player->pMP3);
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
-	else
-	{
-		return TRUE;
-	}
+    if (player->pMP3)
+    {
+        mad_start(player->pMP3);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }
 
 LPAUDIOPLAYER
@@ -140,11 +147,11 @@ MP3_Init(
 	if ((player = (LPMP3PLAYER)malloc(sizeof(MP3PLAYER))) != NULL)
 	{
 		player->FillBuffer = MP3_FillBuffer;
-		player->Play = MP3_Play;
+        player->Play = MP3_Play;
+        player->Stop = MP3_Stop;
 		player->Shutdown = MP3_Shutdown;
 
 		player->pMP3 = NULL;
-		player->iMusic = -1;
 		player->fLoop = FALSE;
 	}
 	return (LPAUDIOPLAYER)player;

@@ -397,6 +397,33 @@ OGG_FillBuffer(
 }
 
 static BOOL
+OGG_Stop(
+    VOID       *object,
+    FLOAT       flFadeTime
+    )
+{
+    LPOGGPLAYER player = (LPOGGPLAYER)object;
+
+    //
+    // Check for NULL pointer.
+    //
+    if (player == NULL)
+    {
+        return FALSE;
+    }
+
+    player->fReady = FALSE;
+    OGG_Cleanup(player);
+    if (player->fp)
+    {
+        UTIL_CloseFile(player->fp);
+        player->fp = NULL;
+    }
+
+    return TRUE;
+}
+
+static BOOL
 OGG_Play(
 	VOID       *object,
 	INT         iNum,
@@ -404,7 +431,9 @@ OGG_Play(
 	FLOAT       flFadeTime
 	)
 {
-	LPOGGPLAYER player = (LPOGGPLAYER)object;
+    assert(iNum > 0);
+
+    LPOGGPLAYER player = (LPOGGPLAYER)object;
 
 	//
 	// Check for NULL pointer.
@@ -416,25 +445,7 @@ OGG_Play(
 
 	player->fLoop = fLoop;
 
-	if (iNum == player->iMusic)
-	{
-		return TRUE;
-	}
-
-	player->fReady = FALSE;
-	OGG_Cleanup(player);
-	if (player->fp)
-	{
-		UTIL_CloseFile(player->fp);
-		player->fp = NULL;
-	}
-
-    player->iMusic = iNum;
-
-	if (iNum == -1)
-	{
-		return TRUE;
-	}
+    OGG_Stop(object, flFadeTime);
 
 	player->fp = UTIL_OpenFile(PAL_va(0, "ogg%s%.2d.ogg", PAL_NATIVE_PATH_SEPARATOR, iNum));
 	if (player->fp == NULL)
@@ -479,11 +490,11 @@ OGG_Init(
 		memset(player, 0, sizeof(OGGPLAYER));
 
 		player->FillBuffer = OGG_FillBuffer;
-		player->Play = OGG_Play;
+        player->Play = OGG_Play;
+        player->Stop = OGG_Stop;
 		player->Shutdown = OGG_Shutdown;
 
 		player->fp = NULL;
-		player->iMusic = -1;
 		player->iFlags = 0;
 		player->iStage = 0;
 		player->fLoop = FALSE;

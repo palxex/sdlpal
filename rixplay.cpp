@@ -41,6 +41,7 @@ typedef struct tagRIXPLAYER :
    void                      *resampler[2];
    BYTE                       buf[(PAL_MAX_SAMPLERATE + 69) / 70 * sizeof(short) * 2];
    LPBYTE                     pos;
+   INT                        iMusic;
    INT                        iNextMusic; // the next music number to switch to
    DWORD                      dwStartFadeTime;
    INT                        iTotalFadeOutSamples;
@@ -295,6 +296,63 @@ RIX_Shutdown(
 }
 
 static BOOL
+RIX_Stop(
+    VOID     *object,
+    FLOAT     flFadeTime
+)
+/*++
+    Purpose:
+
+    Stop playing the specified music.
+
+    Parameters:
+
+    [IN]  flFadeTime - the fade out time when switching music.
+
+    Return value:
+
+    None.
+
+--*/
+{
+    LPRIXPLAYER pRixPlayer = (LPRIXPLAYER)object;
+
+    //
+    // Check for NULL pointer.
+    //
+    if (pRixPlayer == NULL)
+    {
+        return FALSE;
+    }
+
+    if (pRixPlayer->FadeType != RIXPLAYER::FADE_OUT)
+    {
+        if (pRixPlayer->FadeType == RIXPLAYER::FADE_IN && pRixPlayer->iTotalFadeInSamples > 0 && pRixPlayer->iRemainingFadeSamples > 0)
+        {
+            pRixPlayer->dwStartFadeTime = SDL_GetTicks() - (int)((float)pRixPlayer->iRemainingFadeSamples / pRixPlayer->iTotalFadeInSamples * flFadeTime * (1000 / 2));
+        }
+        else
+        {
+            pRixPlayer->dwStartFadeTime = SDL_GetTicks();
+        }
+        pRixPlayer->iTotalFadeOutSamples = (int)round(flFadeTime / 2.0f * gConfig.iSampleRate) * gConfig.iAudioChannels;
+        pRixPlayer->iRemainingFadeSamples = pRixPlayer->iTotalFadeOutSamples;
+        pRixPlayer->iTotalFadeInSamples = pRixPlayer->iTotalFadeOutSamples;
+    }
+    else
+    {
+        pRixPlayer->iTotalFadeInSamples = (int)round(flFadeTime / 2.0f * gConfig.iSampleRate) * gConfig.iAudioChannels;
+    }
+
+    pRixPlayer->iNextMusic = 0;
+    pRixPlayer->FadeType = RIXPLAYER::FADE_OUT;
+    pRixPlayer->fNextLoop = FALSE;
+    pRixPlayer->fReady = TRUE;
+
+    return TRUE;
+}
+
+static BOOL
 RIX_Play(
 	VOID     *object,
 	INT       iNumRIX,
@@ -312,7 +370,7 @@ RIX_Play(
 
 	[IN]  fLoop - Whether the music should be looped or not.
 
-	[IN]  flFadeTime - the fade in/out time when switching music.
+	[IN]  flFadeTime - the fade in time when switching music.
 
 	Return value:
 
@@ -320,6 +378,8 @@ RIX_Play(
 
 --*/
 {
+    assert( iNumRIX > 0 );
+
 	LPRIXPLAYER pRixPlayer = (LPRIXPLAYER)object;
 
 	//
@@ -338,24 +398,7 @@ RIX_Play(
 		return TRUE;
 	}
 
-	if (pRixPlayer->FadeType != RIXPLAYER::FADE_OUT)
-	{
-		if (pRixPlayer->FadeType == RIXPLAYER::FADE_IN && pRixPlayer->iTotalFadeInSamples > 0 && pRixPlayer->iRemainingFadeSamples > 0)
-		{
-			pRixPlayer->dwStartFadeTime = SDL_GetTicks() - (int)((float)pRixPlayer->iRemainingFadeSamples / pRixPlayer->iTotalFadeInSamples * flFadeTime * (1000 / 2));
-		}
-		else
-		{
-			pRixPlayer->dwStartFadeTime = SDL_GetTicks();
-		}
-		pRixPlayer->iTotalFadeOutSamples = (int)round(flFadeTime / 2.0f * gConfig.iSampleRate) * gConfig.iAudioChannels;
-		pRixPlayer->iRemainingFadeSamples = pRixPlayer->iTotalFadeOutSamples;
-		pRixPlayer->iTotalFadeInSamples = pRixPlayer->iTotalFadeOutSamples;
-	}
-	else
-	{
-		pRixPlayer->iTotalFadeInSamples = (int)round(flFadeTime / 2.0f * gConfig.iSampleRate) * gConfig.iAudioChannels;
-	}
+    RIX_Stop( object, flFadeTime );
 
 	pRixPlayer->iNextMusic = iNumRIX;
 	pRixPlayer->FadeType = RIXPLAYER::FADE_OUT;
@@ -395,7 +438,8 @@ RIX_Init(
 		memset(pRixPlayer, 0, sizeof(RIXPLAYER));
 		pRixPlayer->FillBuffer = RIX_FillBuffer;
 		pRixPlayer->Shutdown = RIX_Shutdown;
-		pRixPlayer->Play = RIX_Play;
+        pRixPlayer->Play = RIX_Play;
+        pRixPlayer->Stop = RIX_Stop;
 	}
 
 	auto chip = (Copl::ChipType)gConfig.eOPLChip;

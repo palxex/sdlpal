@@ -31,11 +31,12 @@
 typedef struct tagAUDIOPLAYER
 {
 #define AUDIOPLAYER_COMMONS \
-    INT                        iMusic;  \
     BOOL                       fLoop; \
 	VOID (*Shutdown)(VOID*); \
-	BOOL (*Play)(VOID*, INT, BOOL, FLOAT); \
-	VOID (*FillBuffer)(VOID*, LPBYTE, INT)
+    BOOL (*Play)(VOID*, INT, BOOL, FLOAT); \
+    BOOL (*Stop)(VOID*, FLOAT); \
+    VOID (*FillBuffer)(VOID*, LPBYTE, INT); \
+    VOID (*SetVolume)(VOID*, INT)
 
 	AUDIOPLAYER_COMMONS;
 } AUDIOPLAYER, *LPAUDIOPLAYER;
@@ -68,6 +69,13 @@ OPUS_Init(
 LPAUDIOPLAYER
 MP3_Init(
 	VOID
+);
+
+/* MIDI */
+
+LPAUDIOPLAYER
+MIDI_Init(
+    VOID
 );
 
 LPAUDIOPLAYER

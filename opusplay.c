@@ -86,7 +86,10 @@ PAL_FORCE_INLINE void OPUS_FillResample(LPOPUSPLAYER player, opus_int16* stream,
 static void OPUS_Cleanup(LPOPUSPLAYER player)
 {
     int i;
-    for (i = 0; i < gConfig.iAudioChannels; i++) resampler_clear(player->resampler[0]);
+    if( player->fUseResampler )
+        for (i = 0; i < gConfig.iAudioChannels; i++)
+            if (player->resampler[i])
+                resampler_clear(player->resampler[i]);
     player->iBufPos = player->iBufLen = 0;
     player->iLink = -1;
     player->fReady = FALSE;
@@ -99,7 +102,6 @@ static BOOL OPUS_Rewind(LPOPUSPLAYER player)
     OPUS_Cleanup(player);
     op_raw_seek(player->fp, 0);
     player->iLink = op_current_link(player->fp);
-    player->fUseResampler = 48000 != gConfig.iSampleRate;
     if (player->fUseResampler) {
         int i;
         double factor = 48000. / (double)gConfig.iSampleRate;
@@ -209,28 +211,16 @@ OPUS_FillBuffer(
 }
 
 static BOOL
-OPUS_Play(
+OPUS_Stop_internal(
     VOID       *object,
-    INT         iNum,
-    BOOL        fLoop,
     FLOAT       flFadeTime
 )
 {
     LPOPUSPLAYER player = (LPOPUSPLAYER)object;
-    static char internal_buffer[PAL_GLOBAL_BUFFER_SIZE];
-
-    int ret;
 
     if (player == NULL)
     {
         return FALSE;
-    }
-
-    player->fLoop = fLoop;
-
-    if (iNum == player->iMusic)
-    {
-        return TRUE;
     }
 
     player->fReady = FALSE;
@@ -241,19 +231,46 @@ OPUS_Play(
         player->fp = NULL;
     }
 
-    player->iMusic = iNum;
+    return TRUE;
+}
 
-    if (iNum == -1)
-    {
-        return TRUE;
-    }
+static BOOL
+OPUS_Stop(
+    VOID       *object,
+    FLOAT       flFadeTime
+)
+{
+    return OPUS_Stop_internal(object, flFadeTime);
+}
 
-    if (iNum == 0)
+static BOOL
+OPUS_Play(
+    VOID       *object,
+    INT         iNum,
+    BOOL        fLoop,
+    FLOAT       flFadeTime
+)
+{
+    assert(iNum > 0);
+    
+    LPOPUSPLAYER player = (LPOPUSPLAYER)object;
+
+    int ret;
+
+    if (player == NULL)
     {
         return FALSE;
     }
 
-    player->fp = op_open_file(UTIL_GetFullPathName(internal_buffer, PAL_GLOBAL_BUFFER_SIZE, gConfig.pszGamePath, PAL_va(0, "opus%s%.2d.opus", PAL_NATIVE_PATH_SEPARATOR, iNum)), &ret);
+    player->fLoop = fLoop;
+
+    OPUS_Stop_internal(object, flFadeTime);
+
+    //
+    // op_open_file cannot accept NULL ( msvc will crash on strlen(NULL) )
+    // so we'd better not use UTIL_GetFullPathName since it will return NULL when file not exist
+    //
+    player->fp = op_open_file(UTIL_CombinePath(PAL_BUFFER_SIZE_ARGS(1), 2, gConfig.pszGamePath, PAL_va(0, "opus%s%.2d.opus", PAL_NATIVE_PATH_SEPARATOR, iNum)), &ret);
     if (player->fp == NULL)
     {
         return FALSE;
@@ -278,8 +295,10 @@ OPUS_Shutdown(
     {
         LPOPUSPLAYER player = (LPOPUSPLAYER)object;
         OPUS_Cleanup(player);
-        resampler_delete(player->resampler[0]);
-        resampler_delete(player->resampler[1]);
+        if( player->fUseResampler )
+            for (int i = 0; i < gConfig.iAudioChannels; i++)
+                if (player->resampler[i])
+                    resampler_delete(player->resampler[i]);
         op_free(player->fp);
         free(player);
     }
@@ -297,20 +316,19 @@ OPUS_Init(
 
         player->FillBuffer = OPUS_FillBuffer;
         player->Play = OPUS_Play;
+        player->Stop = OPUS_Stop;
         player->Shutdown = OPUS_Shutdown;
 
         player->iLink = -1;
-        player->iMusic = -1;
 
-        player->resampler[0] = resampler_create();
-        if (player->resampler[0])
+        player->resampler[0] = NULL;
+        player->resampler[1] = NULL;
+        player->fUseResampler = 48000 != gConfig.iSampleRate;
+
+        if (player->fUseResampler)
         {
+            player->resampler[0] = resampler_create();
             player->resampler[1] = resampler_create();
-            if (player->resampler[1] == NULL)
-            {
-                resampler_delete(player->resampler[0]);
-                player->resampler[0] = NULL;
-            }
         }
     }
     return (LPAUDIOPLAYER)player;

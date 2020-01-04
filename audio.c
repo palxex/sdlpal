@@ -27,7 +27,6 @@
 #include "players.h"
 #include "util.h"
 #include "resampler.h"
-#include "midi.h"
 #include "aviplay.h"
 #include <math.h>
 
@@ -187,6 +186,18 @@ AUDIO_CD_Available(
    return gConfig.eCDType != CD_NONE;
 }
 
+static VOID
+AUDIO_SetMusicVolume(
+   INT iMusicVolume
+)
+{
+   gAudioDevice.iMusicVolume = iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
+   if( gAudioDevice.pMusPlayer && gAudioDevice.pMusPlayer->SetVolume )
+      gAudioDevice.pMusPlayer->SetVolume(gAudioDevice.pMusPlayer, gConfig.iMusicVolume);
+   if( gAudioDevice.pCDPlayer && gAudioDevice.pCDPlayer->SetVolume )
+      gAudioDevice.pCDPlayer->SetVolume(gAudioDevice.pCDPlayer, gConfig.iMusicVolume);
+}
+
 INT
 AUDIO_OpenDevice(
    VOID
@@ -219,9 +230,8 @@ AUDIO_OpenDevice(
    gAudioDevice.fOpened = FALSE;
    gAudioDevice.fMusicEnabled = TRUE;
    gAudioDevice.fSoundEnabled = TRUE;
-   gAudioDevice.iMusicVolume = gConfig.iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
+   AUDIO_SetMusicVolume(gConfig.iMusicVolume);
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
-   MIDI_SetVolume(gConfig.iMusicVolume);
 
    //
    // Initialize the resampler module
@@ -298,7 +308,7 @@ AUDIO_OpenDevice(
 	   gAudioDevice.pMusPlayer = OPUS_Init();
 	   break;
    case MUSIC_MIDI:
-	   gAudioDevice.pMusPlayer = NULL;
+	   gAudioDevice.pMusPlayer = MIDI_Init();
 	   break;
    default:
 	   break;
@@ -399,7 +409,7 @@ AUDIO_CloseDevice(
 #if PAL_HAS_SDLCD
    if (gAudioDevice.pCD != NULL)
    {
-      AUDIO_PlayCDTrack(-1);
+      AUDIO_StopCDTrack();
       SDL_CDClose(gAudioDevice.pCD);
    }
 #endif
@@ -408,11 +418,6 @@ AUDIO_CloseDevice(
    {
       free(gAudioDevice.pSoundBuffer);
 	  gAudioDevice.pSoundBuffer = NULL;
-   }
-
-   if (gConfig.eMusicType == MUSIC_MIDI)
-   {
-      MIDI_Play(0, FALSE);
    }
 
    gAudioDevice.fOpened = FALSE;
@@ -461,9 +466,8 @@ AUDIO_IncreaseVolume(
 {
    AUDIO_ChangeVolumeByValue(&gConfig.iMusicVolume, 3);
    AUDIO_ChangeVolumeByValue(&gConfig.iSoundVolume, 3);
-   gAudioDevice.iMusicVolume = gConfig.iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
+   AUDIO_SetMusicVolume(gConfig.iMusicVolume);
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
-   MIDI_SetVolume(gConfig.iMusicVolume);
 }
 
 VOID
@@ -487,9 +491,8 @@ AUDIO_DecreaseVolume(
 {
    AUDIO_ChangeVolumeByValue(&gConfig.iMusicVolume, -3);
    AUDIO_ChangeVolumeByValue(&gConfig.iSoundVolume, -3);
-   gAudioDevice.iMusicVolume = gConfig.iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
+   AUDIO_SetMusicVolume(gConfig.iMusicVolume);
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
-   MIDI_SetVolume(gConfig.iMusicVolume);
 }
 
 VOID
@@ -528,24 +531,35 @@ AUDIO_PlayMusic(
    FLOAT     flFadeTime
 )
 {
-	if (iNumRIX > 0)
-	{
-		//
-		// Stop the current CD music.
-		//
-		AUDIO_PlayCDTrack(-1);
-	}
+   assert(iNumRIX > 0);
 
-   if (gConfig.eMusicType == MUSIC_MIDI)
-   {
-      MIDI_Play(iNumRIX, fLoop);
-      return;
-   }
+   //
+   // Stop the current CD music.
+   //
+   if( gpGlobals->wNumCD > 0)
+      AUDIO_StopCDTrack();
 
    AUDIO_Lock();
    if (gAudioDevice.pMusPlayer)
    {
       gAudioDevice.pMusPlayer->Play(gAudioDevice.pMusPlayer, iNumRIX, fLoop, flFadeTime);
+   }
+   AUDIO_Unlock();
+}
+
+VOID
+AUDIO_StopMusic(
+   FLOAT     flFadeTime
+)
+{
+   AUDIO_Lock();
+   if (gAudioDevice.pMusPlayer)
+   {
+      gAudioDevice.pMusPlayer->Stop(gAudioDevice.pMusPlayer, flFadeTime);
+   }
+   if (gAudioDevice.pCDPlayer)
+   {
+      gAudioDevice.pCDPlayer->Stop(gAudioDevice.pCDPlayer, flFadeTime);
    }
    AUDIO_Unlock();
 }
@@ -562,7 +576,7 @@ AUDIO_PlayCDTrack(
   Parameters:
 
     [IN]  iNumTrack - number of the CD Audio Track.
-                      special case: -2: do NOTHING
+                      special case: -1: do NOTHING
 
   Return value:
 
@@ -571,14 +585,17 @@ AUDIO_PlayCDTrack(
 --*/
 {
 	BOOL ret = FALSE;
-	if (iNumTrack > 0)
-	{
-		AUDIO_PlayMusic(-1, FALSE, 0);
-	}
-   if (iNumTrack == -2 && gAudioDevice.pCDPlayer->iMusic > PAL_CDTRACK_BASE )
+
+   if (iNumTrack == -1)
    {
-       return TRUE;
+       return gpGlobals->wNumCD > 0;
    }
+
+   assert(iNumTrack > 0);
+
+   if( gpGlobals->wNumMusic > 0 )
+      AUDIO_StopMusic(0);
+
 #if PAL_HAS_SDLCD
    if (gAudioDevice.pCD != NULL)
    {
@@ -599,18 +616,50 @@ AUDIO_PlayCDTrack(
    AUDIO_Lock();
    if (gAudioDevice.pCDPlayer)
    {
-	   if (iNumTrack != -1)
-	   {
-		   ret = gAudioDevice.pCDPlayer->Play(gAudioDevice.pCDPlayer, PAL_CDTRACK_BASE + iNumTrack, TRUE, 0);
-	   }
-	   else
-	   {
-		   ret = gAudioDevice.pCDPlayer->Play(gAudioDevice.pCDPlayer, -1, FALSE, 0);
-	   }
+      ret = gAudioDevice.pCDPlayer->Play(gAudioDevice.pCDPlayer, PAL_CDTRACK_BASE + iNumTrack, TRUE, 0);
+      if( ret )
+         gpGlobals->wNumCD = iNumTrack;
    }
    AUDIO_Unlock();
 
    return ret;
+}
+
+VOID
+AUDIO_StopCDTrack(
+   VOID
+)
+/*++
+  Purpose:
+
+    Stop a CD Audio Track.
+
+  Parameters:
+
+    None
+
+  Return value:
+
+    None
+
+--*/
+{
+   gpGlobals->wNumCD = 0;
+#if PAL_HAS_SDLCD
+   if (gAudioDevice.pCD != NULL)
+   {
+      if (CD_INDRIVE(SDL_CDStatus(gAudioDevice.pCD)))
+      {
+         SDL_CDStop(gAudioDevice.pCD);
+      }
+   }
+#endif
+   AUDIO_Lock();
+   if (gAudioDevice.pCDPlayer)
+   {
+      gAudioDevice.pCDPlayer->Stop(gAudioDevice.pCDPlayer, 0);
+   }
+   AUDIO_Unlock();
 }
 
 VOID

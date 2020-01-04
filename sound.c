@@ -27,7 +27,6 @@
 #include "players.h"
 #include "util.h"
 #include "resampler.h"
-#include "midi.h"
 #include "riff.h"
 #include <math.h>
 

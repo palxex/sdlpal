@@ -21,57 +21,104 @@
 //
 
 #include "main.h"
+#include "audio.h"
 
-static int  g_iMidiCurrent = -1;
-static NativeMidiSong *g_pMidi = NULL;
-static int  g_iMidiVolume = PAL_MAX_VOLUME;
+#if PAL_HAS_NATIVEMIDI
+#include "native_midi/native_midi.h"
+#endif
 
-void
+typedef struct tagMIDIPLAYER
+{
+    AUDIOPLAYER_COMMONS;
+    
+    BOOL                        fReady;
+#if PAL_HAS_NATIVEMIDI
+    NativeMidiSong             *pMidi;
+#endif
+    int                         iVolume;
+} MIDIPLAYER, *LPMIDIPLAYER;
+
+static void
 MIDI_SetVolume(
+    void      *object,
 	int       iVolume
 )
 {
 #if PAL_HAS_NATIVEMIDI
-	g_iMidiVolume = iVolume;
-	if (g_pMidi)
-	{
-		native_midi_setvolume(g_pMidi, iVolume * 127 / PAL_MAX_VOLUME);
-	}
+    LPMIDIPLAYER player = (LPMIDIPLAYER)object;
+    if(!player)
+        return;
+	player->iVolume = iVolume;
+	native_midi_setvolume(player->pMidi, iVolume * 127 / PAL_MAX_VOLUME);
 #endif
 }
 
-void
-MIDI_Play(
-	int       iNumRIX,
-	BOOL      fLoop
+static VOID
+MIDI_FillBuffer(
+    VOID       *object,
+    LPBYTE      stream,
+    INT         len
+    )
+{
+    return;
+}
+
+static BOOL
+MIDI_Stop(
+    void      *object,
+    FLOAT fFadeTime
 )
 {
 #if PAL_HAS_NATIVEMIDI
-	if (!native_midi_detect())
-		return;
+    LPMIDIPLAYER player = (LPMIDIPLAYER)object;
+    if(!player)
+        return FALSE;
 
-	if (native_midi_active(g_pMidi) && iNumRIX == g_iMidiCurrent)
+    native_midi_stop(player->pMidi);
+    native_midi_freesong(player->pMidi);
+    player->pMidi = NULL;
+    player->iVolume = -1;
+#endif
+    return TRUE;
+}
+
+static VOID MIDI_Shutdown(
+    VOID *object
+)
+{
+#if PAL_HAS_NATIVEMIDI
+    MIDI_Stop(object, 0);
+#endif
+}
+
+static BOOL
+MIDI_Play(
+    void      *object,
+	int       iNumRIX,
+	BOOL      fLoop,
+    FLOAT fFadeTime
+)
+{
+#if PAL_HAS_NATIVEMIDI
+    assert(iNumRIX > 0);
+
+    LPMIDIPLAYER player = (LPMIDIPLAYER)object;
+    if(!player)
+        return FALSE;
+
+	if (native_midi_active(player->pMidi) && iNumRIX == player->iVolume)
 	{
-		return;
+		return TRUE;
 	}
 
-	native_midi_stop(g_pMidi);
-	native_midi_freesong(g_pMidi);
-	g_pMidi = NULL;
-	g_iMidiCurrent = -1;
-
-	if (!AUDIO_MusicEnabled() || iNumRIX <= 0)
-	{
-		return;
-	}
+    MIDI_Stop(object, fFadeTime);
 
 	if (gConfig.fIsWIN95)
 	{
-		g_pMidi = native_midi_loadsong(UTIL_GetFullPathName(PAL_BUFFER_SIZE_ARGS(0), gConfig.pszGamePath, PAL_va(1, "Musics%s%.3d.mid", PAL_NATIVE_PATH_SEPARATOR, iNumRIX)));
-	}
-
-	if (!g_pMidi)
-	{
+		player->pMidi = native_midi_loadsong(UTIL_GetFullPathName(PAL_BUFFER_SIZE_ARGS(0), gConfig.pszGamePath, PAL_va(1, "Musics%s%.3d.mid", PAL_NATIVE_PATH_SEPARATOR, iNumRIX)));
+    }
+    else
+    {
 		FILE    *fp  = NULL;
 		uint8_t *buf = NULL;
 		int      size;
@@ -89,17 +136,44 @@ MIDI_Play(
 		if (buf)
 		{
 			SDL_RWops *rw = SDL_RWFromConstMem(buf, size);
-			g_pMidi = native_midi_loadsong_RW(rw);
+			player->pMidi = native_midi_loadsong_RW(rw);
 			SDL_RWclose(rw);
 			free(buf);
 		}
 	}
 
-	if (g_pMidi)
+	if (player->pMidi)
 	{
-		MIDI_SetVolume(g_iMidiVolume);
-		native_midi_start(g_pMidi, fLoop);
-		g_iMidiCurrent = iNumRIX;
+		MIDI_SetVolume(player, player->iVolume);
+		native_midi_start(player->pMidi, fLoop);
+		player->iVolume = iNumRIX;
 	}
+#endif
+    return TRUE;
+}
+
+LPAUDIOPLAYER
+MIDI_Init(
+    VOID
+)
+{
+#if PAL_HAS_NATIVEMIDI
+    LPMIDIPLAYER player;
+    if ((player = (LPMIDIPLAYER)malloc(sizeof(MIDIPLAYER))) != NULL)
+    {
+        memset(player, 0, sizeof(MIDIPLAYER));
+
+        player->FillBuffer = MIDI_FillBuffer;
+        player->Play = MIDI_Play;
+        player->Stop = MIDI_Stop;
+        player->Shutdown = MIDI_Shutdown;
+        player->SetVolume = MIDI_SetVolume;
+        
+        player->pMidi = NULL;
+        player->iVolume = PAL_MAX_VOLUME;
+    }
+    return (LPAUDIOPLAYER)player;
+#else
+    return NULL;
 #endif
 }

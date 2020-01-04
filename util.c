@@ -26,7 +26,6 @@
 #include "palcfg.h"
 #include <errno.h>
 
-#include "midi.h"
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 #include "SDL_video.h"
 #include "SDL_messagebox.h"

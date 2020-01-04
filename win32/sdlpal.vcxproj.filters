@@ -818,7 +818,6 @@
     <ClInclude Include="..\map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\midi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\palcommon.h">
