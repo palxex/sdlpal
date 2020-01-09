@@ -1606,8 +1606,11 @@ PAL_InterpretInstruction(
          WORD wNextMusic = pScript->rgwOperand[0];
          BOOL bLoop = pScript->rgwOperand[1] != 1;
          FLOAT fFadeTime = (pScript->rgwOperand[1] == 3) ? 3.0f : 0.0f;
-         if( wNextMusic > 0 && gpGlobals->wNumMusic != wNextMusic)
-            AUDIO_PlayMusic(wNextMusic, bLoop, fFadeTime);
+         if( wNextMusic > 0 ) {
+            if(gpGlobals->wNumMusic != wNextMusic)
+               AUDIO_PlayMusic(wNextMusic, bLoop, fFadeTime);
+         }else
+            AUDIO_StopMusic(fFadeTime);
          gpGlobals->wNumMusic = wNextMusic;
       }
       break;
