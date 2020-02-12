@@ -327,10 +327,11 @@ before_deploy:
     fi
   - DATE=$($date -d $(git show -s --format=%cI) "+%F")
   - COMMIT=$(git rev-parse --short HEAD)
+  - VERSION=v$DATE-g$COMMIT
   - set -f
   - |
     $sed -i "
-    s/@VERSION@/v$DATE-g$COMMIT/g
+    s/@VERSION@/$VERSION/g
     s/@DESC@/$(echo -n $TRAVIS_COMMIT_MESSAGE|tr '\r' '\\r'|tr '\n' '\\n'|sed -e 's@[\\"]@\\&@g;s@[/&\$]@\\&@g')/g
     s/@RELEASE_DATE@/$(git show -s --format=%cI)/g
     s/@VCS_TAG@/$(git describe --tags)/g
@@ -366,12 +367,17 @@ deploy:
       all_branches: true
       tags: true
   - provider: bintray
-    user: palxex
-    key: $BINTRAY_TOKEN
+    user: $BINTRAY_USER
+    key: $BINTRAY_KEY
     file: bintray.json
     skip_cleanup: true
     on:
       all_branches: true
+
+after_deploy:
+  - FILE=$(ls deploy)
+  - sleep 10
+  - curl -sS -u "$BINTRAY_USER:$BINTRAY_KEY" -X PUT "https://api.bintray.com/file_metadata/sdlpal/nightly/$VERSION/$FILE" -H "Content-Type:application/json" -d '{"list_in_downloads":true}'
 
 notifications:
   webhooks:
