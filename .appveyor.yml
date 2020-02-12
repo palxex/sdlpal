@@ -25,8 +25,7 @@ after_build:
     for /d %%d in ("winrt\SDLPal.UWP\AppPackages\*") do ( cd %%d & del /q *.appxsym & 7z a ..\..\..\..\sdlpal-uwp.zip * & cd ..\..\..\..\ )
   - ps: >-
       if([string]::IsNullOrEmpty($env:APPVEYOR_PULL_REQUEST_NUMBER)) {
-              python -m pip install --upgrade pip pytz
-              $COMMIT_DATE=((python -c "import time;import os;from datetime import datetime;import pytz;print(datetime.utcfromtimestamp(int(os.popen('git show -s --format=%ct').readlines()[0])).replace(tzinfo=pytz.utc).strftime('%Y-%m-%d'));")|out-string).trim()
+              $COMMIT_DATE=((git show -s --format=%cs)|out-string).trim()
               $COMMIT_ID=((git rev-parse --short HEAD)|out-string).trim()
               $VERSION="v$COMMIT_DATE-g$COMMIT_ID"
               $BINTRAY_USER="palxex"
