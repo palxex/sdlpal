@@ -117,7 +117,7 @@ PAL_ReadOneLine(
 {
 	if (fgets(temp, limit, fp))
 	{
-		int n = strlen(temp);
+		size_t n = strlen(temp);
 		if (n == limit - 1 && temp[n - 1] != '\n' && !feof(fp))
 		{
 			// Line too long, try to read it as a whole
@@ -1694,7 +1694,7 @@ PAL_ShowDialogText(
    }
    else
    {
-      int len = wcslen(lpszText);
+      size_t len = wcslen(lpszText);
       if (g_TextLib.nCurrentDialogLine == 0 &&
           g_TextLib.bDialogPosition != kDialogCenter &&
 		  (lpszText[len - 1] == 0xff1a ||
@@ -1880,7 +1880,7 @@ PAL_SetCodePage(
 CODEPAGE
 PAL_DetectCodePageForString(
 	const char *   text,
-	int            text_len,
+	size_t         text_len,
 	CODEPAGE       default_cp,
 	int *          probability
 )
@@ -1947,9 +1947,9 @@ INT
 PAL_MultiByteToWideCharCP(
    CODEPAGE      cp,
    LPCSTR        mbs,
-   int           mbslength,
+   size_t        mbslength,
    LPWSTR        wcs,
-   int           wcslength
+   size_t        wcslength
 )
 /*++
   Purpose:

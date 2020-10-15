@@ -218,6 +218,10 @@ PAL_LoadUserFont(
    BYTE bFontGlyph[32] = {0};
    int iCurHeight = 0;
    int bbw = 0, bbh = 0, bbox, bboy;
+   int swidth_x = 0, swidth_y;
+   int got_size;
+   int font_w;
+   int size_x, size_y;
 
    FILE *fp = UTIL_OpenFileForMode(pszBdfFileName, "r");
 
@@ -262,22 +266,29 @@ PAL_LoadUserFont(
          else if (strncmp(buf, "SIZE", 3) == 0)
          {
             int bytes_consumed = 0, bytes_now;
-            int got_size;
             BOOL got_expected = FALSE;
             char size[10];
             sscanf(buf + bytes_consumed, "%s%n", size, &bytes_now);
             bytes_consumed += bytes_now;
-            while (sscanf(buf + bytes_consumed, "%d%n", &got_size, &bytes_now))
-            {
-               bytes_consumed += bytes_now;
+            sscanf(buf + bytes_consumed, "%d%n", &got_size, &bytes_now); bytes_consumed += bytes_now;
+            sscanf(buf + bytes_consumed, "%d%n", &size_x, &bytes_now); bytes_consumed += bytes_now;
+            sscanf(buf + bytes_consumed, "%d%n", &size_y, &bytes_now); bytes_consumed += bytes_now;
                if (got_size == 16 || got_size == 15)
                {
                   _font_height = got_size;
                   got_expected = TRUE;
                }
-            }
             if (!got_expected)
                TerminateOnError("%s not contains expected font size 15/16!", pszBdfFileName);
+         }
+         else if (strncmp(buf, "SWIDTH", 6) == 0)
+         {
+             int bytes_consumed = 0, bytes_now;
+             char swidth[10];
+             sscanf(buf + bytes_consumed, "%s%n", swidth, &bytes_now); bytes_consumed += bytes_now;
+             sscanf(buf + bytes_consumed, "%d%n", &swidth_x, &bytes_now); bytes_consumed += bytes_now;
+             sscanf(buf + bytes_consumed, "%d%n", &swidth_y, &bytes_now); bytes_consumed += bytes_now;
+             font_w = (int)ceil(swidth_x / 1000.0 * (size_x / 72) * got_size / 2) << 1;
          }
          else if (strncmp(buf, "BBX", 3) == 0)
          {
@@ -293,10 +304,6 @@ PAL_LoadUserFont(
          {
             state = 1;
             iCurHeight = 0;
-            for(iCurHeight=0;iCurHeight<bboy;iCurHeight++){
-               bFontGlyph[iCurHeight * 2] = 0;
-               bFontGlyph[iCurHeight * 2 + 1] = 0;
-            }
             memset(bFontGlyph, 0, sizeof(bFontGlyph));
          }
       }
@@ -326,6 +333,13 @@ PAL_LoadUserFont(
                if (w < sizeof(unicode_font) / sizeof(unicode_font[0]))
                {
                   memcpy(unicode_font[w], bFontGlyph, sizeof(bFontGlyph));
+                  font_width[w] = font_w << 1;
+                  font_offset_x[w] = bbox;
+                  font_offset_y[w] = bboy;
+               }
+               else
+               {
+                   UTIL_LogOutput(LOGLEVEL_DEBUG, "this user font has much code than unifont! ignoring %d\n", w);
                }
             }
 
@@ -336,7 +350,7 @@ PAL_LoadUserFont(
             if (iCurHeight < bbh )
             {
                WORD wCode = strtoul(buf, NULL, 16);
-               if(bbw <= 8)
+               if(font_w <= 8)
                {
                   switch(fstate)
                   {
@@ -383,6 +397,10 @@ PAL_InitFont(
       } \
       _font_height = height; \
    }
+
+    size_t fonts = sizeof(font_width);
+    font_offset_x = calloc(1, fonts);
+    font_offset_y = calloc(1, fonts);
 
    if (!cfg->pszMsgFile)
    {
@@ -444,6 +462,8 @@ PAL_FreeFont(
 	void
 )
 {
+    free(font_offset_x);
+    free(font_offset_y);
 }
 
 void
@@ -478,7 +498,7 @@ PAL_DrawCharOnSurface(
 	//
 	// Draw the character to the surface.
 	//
-	LPBYTE dest = (LPBYTE)lpSurface->pixels + y * lpSurface->pitch + x;
+	LPBYTE dest = (LPBYTE)lpSurface->pixels + (y + font_offset_y[wChar]) * lpSurface->pitch + x;
 	LPBYTE top = (LPBYTE)lpSurface->pixels + lpSurface->h * lpSurface->pitch;
 	if (fUse8x8Font)
 	{
@@ -503,14 +523,14 @@ PAL_DrawCharOnSurface(
 				{
 					if (unicode_font[wChar][i] & (1 << (7 - j)))
 					{
-						dest[j] = bColor;
+						dest[j + font_offset_x[wChar]] = bColor;
 					}
 				}
 				for (j = 0; j < 8 && x + j + 8 < lpSurface->w; j++)
 				{
 					if (unicode_font[wChar][i + 1] & (1 << (7 - j)))
 					{
-						dest[j + 8] = bColor;
+						dest[j + 8 + font_offset_x[wChar]] = bColor;
 					}
 				}
 			}
@@ -523,7 +543,7 @@ PAL_DrawCharOnSurface(
 				{
 					if (unicode_font[wChar][i] & (1 << (7 - j)))
 					{
-						dest[j] = bColor;
+						dest[j + font_offset_x[wChar]] = bColor;
 					}
 				}
 			}
