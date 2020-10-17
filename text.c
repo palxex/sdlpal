@@ -1145,7 +1145,6 @@ PAL_DrawTextUnescape(
       if (fShadow)
       {
 		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
-		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y), 0, fUse8x8Font);
       }
 	  PAL_DrawCharOnSurface(*lpszText++, gpScreen, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
 	  rect.x += char_width; urect.w += char_width;
@@ -1157,6 +1156,11 @@ PAL_DrawTextUnescape(
    if (fUpdate && urect.w > 0)
    {
       if (fShadow) urect.w++;
+#define PROT_OFFSET 10 //consider offset in custom font
+	  urect.x -= PROT_OFFSET;
+	  urect.w += 2 * PROT_OFFSET;
+	  urect.y -= PROT_OFFSET;
+	  urect.h += 2*PROT_OFFSET;
       if (urect.x + urect.w > 320)
       {
          urect.w = 320 - urect.x;

@@ -365,8 +365,13 @@ PAL_LoadUserFont(
                         break;
                   }
                }else{
-                  bFontGlyph[iCurHeight * 2] = (wCode >> 8);
-                  bFontGlyph[iCurHeight * 2 + 1] = (wCode & 0xFF);
+                  if(strnlen(buf,sizeof(buf))<=3){
+                     bFontGlyph[iCurHeight * 2] = wCode;
+                     bFontGlyph[iCurHeight * 2 + 1] = 0;
+                  } else {
+                     bFontGlyph[iCurHeight * 2] = (wCode >> 8);
+                     bFontGlyph[iCurHeight * 2 + 1] = (wCode & 0xFF);
+                  }
                   iCurHeight++;
                }
             }
