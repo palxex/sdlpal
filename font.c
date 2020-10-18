@@ -528,7 +528,7 @@ PAL_DrawCharOnSurface(
 	{
 		for (i = 0; i < 8 && dest < top; i++, dest += lpSurface->pitch)
 		{
-			for (j = 0; j < 8 && x + j < lpSurface->w; j++)
+			for (j = 0; j < 8 && x + j + font_offset_x[wChar] < lpSurface->w; j++)
 			{
 				if (iso_font_8x8[wChar][i] & (1 << j))
 				{
@@ -563,7 +563,7 @@ PAL_DrawCharOnSurface(
 		{
 			for (i = 0; i < _font_height && dest < top; i++, dest += lpSurface->pitch)
 			{
-				for (j = 0; j < 8 && x + j < lpSurface->w; j++)
+				for (j = 0; j < 8 && x + j + font_offset_x[wChar] < lpSurface->w; j++)
 				{
 					if (unicode_font[wChar][i] & (1 << (7 - j)))
 					{
