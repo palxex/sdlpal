@@ -543,14 +543,14 @@ PAL_DrawCharOnSurface(
 		{
 			for (i = 0; i < _font_height * 2 && dest < top; i += 2, dest += lpSurface->pitch)
 			{
-				for (j = 0; j < 8 && x + j < lpSurface->w; j++)
+				for (j = 0; j < 8 && x + j + font_offset_x[wChar] < lpSurface->w; j++)
 				{
 					if (unicode_font[wChar][i] & (1 << (7 - j)))
 					{
 						dest[j + font_offset_x[wChar]] = bColor;
 					}
 				}
-				for (j = 0; j < 8 && x + j + 8 < lpSurface->w; j++)
+				for (j = 0; j < 8 && x + j + 8 + font_offset_x[wChar] < lpSurface->w; j++)
 				{
 					if (unicode_font[wChar][i + 1] & (1 << (7 - j)))
 					{
