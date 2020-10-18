@@ -300,6 +300,8 @@ PAL_LoadUserFont(
              sscanf(buf + bytes_consumed, "%d%n", &swidth_x, &bytes_now); bytes_consumed += bytes_now;
              sscanf(buf + bytes_consumed, "%d%n", &swidth_y, &bytes_now); bytes_consumed += bytes_now;
              font_w = (int)ceil(swidth_x / 1000.0 * (size_x / 72) * got_size / 2) << 1;
+             if( font_w > 8 && font_w <= 16 )
+                font_w = 16;
              if( !cstate ) {
                  swidth_x_global = swidth_x;
                  swidth_y_global = swidth_y;
