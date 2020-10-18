@@ -34,6 +34,9 @@
 
 static int _font_height = 16;
 
+char *font_offset_x;
+char *font_offset_y;
+
 static uint8_t reverseBits(uint8_t x) {
     uint8_t y = 0;
     for (int i = 0 ; i < 8; i++){
@@ -218,10 +221,11 @@ PAL_LoadUserFont(
    BYTE bFontGlyph[32] = {0};
    int iCurHeight = 0;
    int bbw = 0, bbh = 0, bbox, bboy;
-   int swidth_x = 0, swidth_y;
    int got_size;
-   int font_w;
    int size_x, size_y;
+   int cstate = 0;
+   int swidth_x_global, swidth_y_global, font_w_global;
+   int swidth_x, swidth_y, font_w;
 
    FILE *fp = UTIL_OpenFileForMode(pszBdfFileName, "r");
 
@@ -259,6 +263,13 @@ PAL_LoadUserFont(
                TerminateOnError("Charset of %s is %s, which is not a supported yet.",pszBdfFileName,buf);
             }
          }
+         else if (strncmp(buf, "STARTCHAR", 9) == 0)
+         {
+            cstate = 1;
+            swidth_x = swidth_x_global;
+            swidth_y = swidth_y_global;
+            font_w = font_w_global;
+         }
          else if (strncmp(buf, "ENCODING", 8) == 0)
          {
             dwEncoding = atoi(buf + 8);
@@ -289,6 +300,11 @@ PAL_LoadUserFont(
              sscanf(buf + bytes_consumed, "%d%n", &swidth_x, &bytes_now); bytes_consumed += bytes_now;
              sscanf(buf + bytes_consumed, "%d%n", &swidth_y, &bytes_now); bytes_consumed += bytes_now;
              font_w = (int)ceil(swidth_x / 1000.0 * (size_x / 72) * got_size / 2) << 1;
+             if( !cstate ) {
+                 swidth_x_global = swidth_x;
+                 swidth_y_global = swidth_y;
+                 font_w_global = font_w;
+             }
          }
          else if (strncmp(buf, "BBX", 3) == 0)
          {
@@ -344,6 +360,7 @@ PAL_LoadUserFont(
             }
 
             state = 0;
+            cstate = 0;
          }
          else
          {
