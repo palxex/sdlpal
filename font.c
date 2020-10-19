@@ -501,6 +501,7 @@ PAL_DrawCharOnSurface(
 {
 	int       i, j;
 	int       x = PAL_X(pos), y = PAL_Y(pos);
+    int       x_offset, y_offset;
 
 	//
 	// Check for NULL pointer & invalid char code.
@@ -519,16 +520,19 @@ PAL_DrawCharOnSurface(
 		wChar -= (unicode_upper_base - unicode_lower_top);
 	}
 
+    x_offset = font_offset_x[wChar];
+    y_offset = font_offset_y[wChar];
+
 	//
 	// Draw the character to the surface.
 	//
-	LPBYTE dest = (LPBYTE)lpSurface->pixels + (y + font_offset_y[wChar]) * lpSurface->pitch + x;
+	LPBYTE dest = (LPBYTE)lpSurface->pixels + (int)max(y + y_offset, 0) * lpSurface->pitch + x;
 	LPBYTE top = (LPBYTE)lpSurface->pixels + lpSurface->h * lpSurface->pitch;
 	if (fUse8x8Font)
 	{
 		for (i = 0; i < 8 && dest < top; i++, dest += lpSurface->pitch)
 		{
-			for (j = 0; j < 8 && x + j + font_offset_x[wChar] < lpSurface->w; j++)
+			for (j = 0; j < 8 && x + j < lpSurface->w; j++)
 			{
 				if (iso_font_8x8[wChar][i] & (1 << j))
 				{
@@ -543,18 +547,18 @@ PAL_DrawCharOnSurface(
 		{
 			for (i = 0; i < _font_height * 2 && dest < top; i += 2, dest += lpSurface->pitch)
 			{
-				for (j = 0; j < 8 && x + j + font_offset_x[wChar] < lpSurface->w; j++)
+				for (j = 0; j < 8 && x + j + x_offset < lpSurface->w && x + j + x_offset >= 0; j++)
 				{
 					if (unicode_font[wChar][i] & (1 << (7 - j)))
 					{
-						dest[j + font_offset_x[wChar]] = bColor;
+						dest[j + x_offset] = bColor;
 					}
 				}
-				for (j = 0; j < 8 && x + j + 8 + font_offset_x[wChar] < lpSurface->w; j++)
+				for (j = 0; j < 8 && x + j + 8 + x_offset < lpSurface->w && x + j + 8 + x_offset >= 0; j++)
 				{
 					if (unicode_font[wChar][i + 1] & (1 << (7 - j)))
 					{
-						dest[j + 8 + font_offset_x[wChar]] = bColor;
+						dest[j + 8 + x_offset] = bColor;
 					}
 				}
 			}
@@ -563,11 +567,11 @@ PAL_DrawCharOnSurface(
 		{
 			for (i = 0; i < _font_height && dest < top; i++, dest += lpSurface->pitch)
 			{
-				for (j = 0; j < 8 && x + j + font_offset_x[wChar] < lpSurface->w; j++)
+				for (j = 0; j < 8 && x + j + x_offset < lpSurface->w && x + j + x_offset >= 0; j++)
 				{
 					if (unicode_font[wChar][i] & (1 << (7 - j)))
 					{
-						dest[j + font_offset_x[wChar]] = bColor;
+						dest[j + x_offset] = bColor;
 					}
 				}
 			}
