@@ -351,7 +351,7 @@ PAL_LoadUserFont(
             {
                wchar_t w = (wc[0] >= unicode_upper_base) ? (wc[0] - unicode_upper_base + unicode_lower_top) : wc[0];
 #if POINT_IMPORT
-               if (bbw < 8) {
+               if (font_w <= 8) {
                    bFontGlyph[0] = bFontGlyph[14] = 0xff;
                    for (int m = 1; m <= 14; m++)
                        bFontGlyph[m] |= 0x81;
@@ -367,7 +367,7 @@ PAL_LoadUserFont(
                   memcpy(unicode_font[w], bFontGlyph, sizeof(bFontGlyph));
                   font_width[w] = font_w << 1;
                   font_offset_x[w] = bbox;
-                  font_offset_y[w] = bboy;
+                  font_offset_y[w] = _font_height - bboy - bbh - 4;
                }
                else
                {
@@ -380,7 +380,7 @@ PAL_LoadUserFont(
          }
          else
          {
-            if (iCurHeight < bbh )
+            if (iCurHeight < _font_height )
             {
                WORD wCode = strtoul(buf, NULL, 16);
                if(font_w <= 8)
