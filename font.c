@@ -34,6 +34,8 @@
 
 static int _font_height = 16;
 
+//#define POINT_IMPORT 1
+
 char *font_offset_x;
 char *font_offset_y;
 
@@ -348,6 +350,18 @@ PAL_LoadUserFont(
             if (wc[0] != 0)
             {
                wchar_t w = (wc[0] >= unicode_upper_base) ? (wc[0] - unicode_upper_base + unicode_lower_top) : wc[0];
+#if POINT_IMPORT
+               if (bbw < 8) {
+                   bFontGlyph[0] = bFontGlyph[14] = 0xff;
+                   for (int m = 1; m <= 14; m++)
+                       bFontGlyph[m] |= 0x81;
+               }
+               else {
+                   bFontGlyph[0] = bFontGlyph[1] = bFontGlyph[28] = bFontGlyph[29] = 0xff;
+                   for (int m = 2; m <= 27; m++)
+                       bFontGlyph[m] |= ((m % 2) ? 1 : 0x80);
+               }
+#endif
                if (w < sizeof(unicode_font) / sizeof(unicode_font[0]))
                {
                   memcpy(unicode_font[w], bFontGlyph, sizeof(bFontGlyph));
