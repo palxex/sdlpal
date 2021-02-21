@@ -227,7 +227,7 @@ PAL_LoadUserFont(
    int size_x, size_y;
    int cstate = 0;
    int swidth_x_global = 0, swidth_y_global = 0, font_w_global = 0;
-   int swidth_x, swidth_y, font_w;
+   int swidth_x, swidth_y, font_w = 16;
 
    FILE *fp = UTIL_OpenFileForMode(pszBdfFileName, "r");
 

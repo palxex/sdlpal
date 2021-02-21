@@ -1155,16 +1155,22 @@ PAL_DrawTextUnescape(
    //
    if (fUpdate && urect.w > 0)
    {
-      if (fShadow) urect.w++;
+      if (fShadow) urect.w++,urect.h++;
 #define PROT_OFFSET 10 //consider offset in custom font
 	  urect.x -= PROT_OFFSET;
 	  urect.w += 2 * PROT_OFFSET;
 	  urect.y -= PROT_OFFSET;
 	  urect.h += 2*PROT_OFFSET;
+	  if (urect.x < 0) urect.x = 0;
+	  if (urect.y < 0) urect.y = 0;
       if (urect.x + urect.w > 320)
       {
          urect.w = 320 - urect.x;
       }
+	  if (urect.y + urect.h > 200)
+	  {
+		  urect.h = 200 - urect.y;
+	  }
       VIDEO_UpdateScreen(&urect);
    }
 }
