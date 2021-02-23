@@ -226,8 +226,8 @@ PAL_LoadUserFont(
    int got_size;
    int size_x, size_y;
    int cstate = 0;
-   int swidth_x_global = 0, swidth_y_global = 0, font_w_global = 0;
-   int swidth_x, swidth_y, font_w = 16;
+   int font_w_global = 0;
+   int font_w = 16;
 
    FILE *fp = UTIL_OpenFileForMode(pszBdfFileName, "r");
 
@@ -268,8 +268,6 @@ PAL_LoadUserFont(
          else if (strncmp(buf, "STARTCHAR", 9) == 0)
          {
             cstate = 1;
-            swidth_x = swidth_x_global;
-            swidth_y = swidth_y_global;
             font_w = font_w_global;
          }
          else if (strncmp(buf, "ENCODING", 8) == 0)
@@ -294,10 +292,11 @@ PAL_LoadUserFont(
             if (!got_expected)
                TerminateOnError("%s not contains expected font size 15/16!", pszBdfFileName);
          }
-         else if (strncmp(buf, "SWIDTH", 6) == 0)
+         /*else if (strncmp(buf, "SWIDTH", 6) == 0)
          {
              int bytes_consumed = 0, bytes_now;
              char swidth[10];
+             int swidth_x, swidth_y;
              sscanf(buf + bytes_consumed, "%s%n", swidth, &bytes_now); bytes_consumed += bytes_now;
              sscanf(buf + bytes_consumed, "%d%n", &swidth_x, &bytes_now); bytes_consumed += bytes_now;
              sscanf(buf + bytes_consumed, "%d%n", &swidth_y, &bytes_now); bytes_consumed += bytes_now;
@@ -307,6 +306,21 @@ PAL_LoadUserFont(
              if( !cstate ) {
                  swidth_x_global = swidth_x;
                  swidth_y_global = swidth_y;
+                 font_w_global = font_w;
+             }
+         }*/
+         else if (strncmp(buf, "DWIDTH", 6) == 0)
+         {
+             int bytes_consumed = 0, bytes_now;
+             char dwidth[10];
+             int dwidth_x, dwidth_y;
+             sscanf(buf + bytes_consumed, "%s%n", dwidth, &bytes_now); bytes_consumed += bytes_now;
+             sscanf(buf + bytes_consumed, "%d%n", &dwidth_x, &bytes_now); bytes_consumed += bytes_now;
+             sscanf(buf + bytes_consumed, "%d%n", &dwidth_y, &bytes_now); bytes_consumed += bytes_now;
+             font_w = dwidth_x;
+             if (font_w > 8 && font_w <= 16)
+                 font_w = 16;
+             if (!cstate) {
                  font_w_global = font_w;
              }
          }
