@@ -229,7 +229,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\;..\;..\include;..\src;..\liboggvorbis\include;..\libopusfile\src;..\libopusfile\include;..\libopusfile\celt;..\libopusfile\silk;..\libopusfile\silk\float;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\include;..\src;..\liboggvorbis\include;..\libopusfile\src;..\libopusfile\include;..\libopusfile\celt;..\libopusfile\silk;..\libopusfile\silk\float;..\fluidlite\include;..\fluidlite\include\fluidsynth;..\fluidlite\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>HAVE_CONFIG_H;PAL_HAS_GIT_REVISION;PAL_HAS_PLATFORM_SPECIFIC_UTILS;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -297,6 +297,23 @@
     <ClCompile Include="..\battle.c" />
     <ClCompile Include="..\ending.c" />
     <ClCompile Include="..\fight.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_chan.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_chorus.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_conv.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_defsfont.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_dsp_float.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_gen.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_hash.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_init.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_list.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_mod.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_ramsfont.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_rev.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_settings.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_synth.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_sys.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_tuning.c" />
+    <ClCompile Include="..\fluidlite\src\fluid_voice.c" />
     <ClCompile Include="..\font.c" />
     <ClCompile Include="..\game.c" />
     <ClCompile Include="..\global.c" />
@@ -473,6 +490,7 @@
     <ClCompile Include="..\main.c" />
     <ClCompile Include="..\map.c" />
     <ClCompile Include="..\midi.c" />
+    <ClCompile Include="..\midi_fluid.c" />
     <ClCompile Include="..\mp3play.c" />
     <ClCompile Include="..\oggplay.c" />
     <ClCompile Include="..\opusplay.c" />
@@ -556,6 +574,38 @@
     <ClInclude Include="..\codepage.h" />
     <ClInclude Include="..\common.h" />
     <ClInclude Include="..\defines.h" />
+    <ClInclude Include="..\fluidlite\include\fluidlite.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\gen.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\log.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\misc.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\mod.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\ramsfont.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\settings.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\sfont.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\synth.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\types.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\version.h" />
+    <ClInclude Include="..\fluidlite\include\fluidsynth\voice.h" />
+    <ClInclude Include="..\fluidlite\src\fluidsynth_priv.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_chan.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_chorus.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_config.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_conv.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_defsfont.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_gen.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_hash.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_list.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_midi.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_mod.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_phase.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_ramsfont.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_rev.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_settings.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_sfont.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_synth.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_sys.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_tuning.h" />
+    <ClInclude Include="..\fluidlite\src\fluid_voice.h" />
     <ClInclude Include="..\glslp.h" />
     <ClInclude Include="..\liboggvorbis\include\ogg\config_types.h" />
     <ClInclude Include="..\ending.h" />

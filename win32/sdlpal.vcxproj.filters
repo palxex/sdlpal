@@ -79,6 +79,18 @@
     <Filter Include="libopusfile">
       <UniqueIdentifier>{8db6e25a-a8d4-4e0e-af84-e231f468e5c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="fluidlite">
+      <UniqueIdentifier>{e5b9c2d0-0ab4-4191-aff1-9c1619c7b0c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="fluidlite\include">
+      <UniqueIdentifier>{bf1e68a7-8e78-46c2-be91-7641dd2f3fe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="fluidlite\src">
+      <UniqueIdentifier>{0c7375cc-0f8c-4513-968b-b2ec82d35e49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="fluidlite\include\fluidsynth">
+      <UniqueIdentifier>{905d305a-d3dc-4d60-ae8a-d79622fc7940}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\battle.c">
@@ -777,6 +789,60 @@
     <ClCompile Include="..\libopusfile\silk\float\wrappers_FLP.c">
       <Filter>libopusfile</Filter>
     </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_conv.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_defsfont.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_dsp_float.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_gen.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_hash.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_init.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_list.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_mod.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_ramsfont.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_rev.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_settings.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_synth.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_sys.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_tuning.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_voice.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_chan.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\fluidlite\src\fluid_chorus.c">
+      <Filter>fluidlite\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\midi_fluid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ascii.h">
@@ -1378,6 +1444,102 @@
     </ClInclude>
     <ClInclude Include="..\libopusfile\silk\float\structs_FLP.h">
       <Filter>libopusfile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidlite.h">
+      <Filter>fluidlite\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\mod.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\ramsfont.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\settings.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\sfont.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\synth.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\types.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\version.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\voice.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\gen.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\log.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\include\fluidsynth\misc.h">
+      <Filter>fluidlite\include\fluidsynth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_conv.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_defsfont.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_gen.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_hash.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_list.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_mod.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_phase.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_ramsfont.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_rev.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_settings.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_sfont.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_synth.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_sys.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_tuning.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_voice.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluidsynth_priv.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_chan.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_chorus.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_config.h">
+      <Filter>fluidlite\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\fluidlite\src\fluid_midi.h">
+      <Filter>fluidlite\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
