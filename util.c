@@ -579,6 +579,16 @@ UTIL_CloseFile(
    }
 }
 
+BOOL
+UTIL_IsFileExist(
+    const char *path
+)
+{
+    if( UTIL_IsAbsolutePath(path) )
+        return UTIL_GetFullPathName(INTERNAL_BUFFER_SIZE_ARGS, "", path) != NULL;
+    else
+        return UTIL_GetFullPathName(INTERNAL_BUFFER_SIZE_ARGS, gConfig.pszGamePath, path) != NULL;
+}
 
 const char *
 UTIL_GetFullPathName(

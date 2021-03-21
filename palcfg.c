@@ -71,16 +71,19 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_MESSAGEFILE,       PALCFG_STRING,   "MessageFileName",   15, MAKE_STRING(NULL) },
 	{ PALCFG_FONTFILE,          PALCFG_STRING,   "FontFileName",      12, MAKE_STRING(NULL) },
 	{ PALCFG_MUSIC,             PALCFG_STRING,   "Music",              5, MAKE_STRING("RIX") },
+	{ PALCFG_MIDISYNTH,         PALCFG_STRING,   "MIDISynth",          9, MAKE_STRING("native") },
 	{ PALCFG_OPL_CORE,          PALCFG_STRING,   "OPLCore",            7, MAKE_STRING("DBFLT") },
 	{ PALCFG_OPL_CHIP,          PALCFG_STRING,   "OPLChip",            7, MAKE_STRING("OPL2") },
 	{ PALCFG_LOGFILE,           PALCFG_STRING,   "LogFileName",       11, MAKE_STRING(NULL) },
 	{ PALCFG_RIXEXTRAINIT,      PALCFG_STRING,   "RIXExtraInit",      12, MAKE_STRING(NULL) },
 	{ PALCFG_MIDICLIENT,        PALCFG_STRING,   "MIDIClient",        10, MAKE_STRING(NULL) },
+	{ PALCFG_SOUNDFONT,         PALCFG_STRING,   "SoundFont",          9, MAKE_STRING(NULL) },
 	{ PALCFG_SCALEQUALITY,      PALCFG_STRING,   "ScaleQuality",      12, MAKE_STRING("0") },
 	{ PALCFG_SHADER,            PALCFG_STRING,   "Shader",             6, MAKE_STRING(NULL) },
 };
 
 static const char *music_types[] = { "MIDI", "RIX", "MP3", "OGG", "OPUS", "RAW" };
+static const char* synth_types[] = { "native", "tinysoundfont" };
 static const char *cd_types[] = { "NONE", "MP3", "OGG", "OPUS", "RAW" };
 static const char *opl_cores[] = { "MAME", "DBFLT", "DBINT", "NUKED" };
 static const char *opl_chips[] = { "OPL2", "OPL3" };
@@ -290,6 +293,7 @@ PAL_LoadConfig(
 	FILE     *fp;
 	ConfigValue  values[PALCFG_ALL_MAX];
 	MUSICTYPE eMusicType = MUSIC_RIX;
+	MIDISYNTHTYPE eMIDISynthType = SYNTH_NATIVE;
 	CDTYPE eCDType = CD_NONE;
 	OPLCORE_TYPE eOPLCore = OPLCORE_DBFLT;
 	OPLCHIP_TYPE eOPLChip = OPLCHIP_OPL2;
@@ -430,7 +434,7 @@ PAL_LoadConfig(
 				}
 				case PALCFG_MUSIC:
 				{
-					if (PAL_HAS_NATIVEMIDI && SDL_strncasecmp(value.sValue, "MIDI", slen) == 0)
+					if (SDL_strncasecmp(value.sValue, "MIDI", slen) == 0)
 						eMusicType = MUSIC_MIDI;
 					else if (PAL_HAS_MP3 && SDL_strncasecmp(value.sValue, "MP3", slen) == 0)
 						eMusicType = MUSIC_MP3;
@@ -440,6 +444,14 @@ PAL_LoadConfig(
 						eMusicType = MUSIC_OPUS;
 					else if (SDL_strncasecmp(value.sValue, "RIX", slen) == 0)
 						eMusicType = MUSIC_RIX;
+					break;
+				}
+				case PALCFG_MIDISYNTH:
+				{
+					if (PAL_HAS_NATIVEMIDI && SDL_strncasecmp(value.sValue, "native", slen) == 0)
+						eMIDISynthType = SYNTH_NATIVE;
+					else if (SDL_strncasecmp(value.sValue, "tinysoundfont", slen) == 0)
+						eMIDISynthType = SYNTH_TINYSOUNDFONT;
 					break;
 				}
 				case PALCFG_OPL_CORE:
@@ -508,6 +520,9 @@ PAL_LoadConfig(
 				case PALCFG_MIDICLIENT:
 					gConfig.pszMIDIClient = ParseStringValue(value.sValue, gConfig.pszMIDIClient);
 					break;
+				case PALCFG_SOUNDFONT:
+					gConfig.pszSoundFont = ParseStringValue(value.sValue, gConfig.pszSoundFont);
+					break;
 				case PALCFG_SCALEQUALITY:
 					gConfig.pszScaleQuality = ParseStringValue(value.sValue, gConfig.pszScaleQuality);
 					break;
@@ -531,6 +546,7 @@ PAL_LoadConfig(
 	if (!gConfig.pszGamePath) gConfig.pszGamePath = strdup(PAL_PREFIX);
     if (!gConfig.pszShaderPath) gConfig.pszShaderPath = strdup(gConfig.pszGamePath);
 	gConfig.eMusicType = eMusicType;
+	gConfig.eMIDISynth = eMIDISynthType;
 	gConfig.eCDType = eCDType;
 	gConfig.eOPLCore = eOPLCore;
 	gConfig.eOPLChip = (eOPLCore == OPLCORE_NUKED ? OPLCHIP_OPL3 : eOPLChip);
@@ -579,10 +595,15 @@ PAL_LoadConfig(
         gConfig.dwTextureHeight = PAL_DEFAULT_TEXTURE_HEIGHT;
     }
     
-    if(gConfig.fEnableGLSL && !gConfig.pszShader) {
+    if(gConfig.fEnableGLSL && !UTIL_IsFileExist(gConfig.pszShader)) {
         UTIL_LogOutput(LOGLEVEL_ERROR, "Filter backend GLSL enabled but no valid effect file specified");
         gConfig.fEnableGLSL = FALSE;
     }
+
+	if (gConfig.eMIDISynth == SYNTH_TINYSOUNDFONT && !UTIL_IsFileExist(gConfig.pszSoundFont)) {
+		UTIL_LogOutput(LOGLEVEL_ERROR, "TinySoundFont enabled but no valid sf2 file specified");
+		gConfig.eMIDISynth = SYNTH_NATIVE;
+	}
 }
 
 
@@ -624,6 +645,7 @@ PAL_SaveConfig(
 
 		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_CD), cd_types[gConfig.eCDType]); fputs(buf, fp);
 		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_MUSIC), music_types[gConfig.eMusicType]); fputs(buf, fp);
+		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_MIDISYNTH), synth_types[gConfig.eMIDISynth]); fputs(buf, fp);
 		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_OPL_CORE), opl_cores[gConfig.eOPLCore]); fputs(buf, fp);
 		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_OPL_CHIP), opl_chips[gConfig.eOPLChip]); fputs(buf, fp);
 
@@ -634,6 +656,7 @@ PAL_SaveConfig(
 		if (gConfig.pszFontFile && *gConfig.pszFontFile) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_FONTFILE), gConfig.pszFontFile); fputs(buf, fp); }
 		if (gConfig.pszLogFile && *gConfig.pszLogFile) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_LOGFILE), gConfig.pszLogFile); fputs(buf, fp); }
 		if (gConfig.pszMIDIClient && *gConfig.pszMIDIClient) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_MIDICLIENT), gConfig.pszMIDIClient); fputs(buf, fp); }
+		if (gConfig.pszSoundFont && *gConfig.pszSoundFont) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SOUNDFONT), gConfig.pszSoundFont); fputs(buf, fp); }
 		if (gConfig.pszScaleQuality && *gConfig.pszScaleQuality) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SCALEQUALITY), gConfig.pszScaleQuality); fputs(buf, fp); }
 		if (gConfig.pszShader && *gConfig.pszShader) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SHADER), gConfig.pszShader); fputs(buf, fp); }
 
@@ -688,6 +711,7 @@ PAL_GetConfigItem(
 		case PALCFG_FONTFILE:          value.sValue = gConfig.pszFontFile; break;
 		case PALCFG_LOGFILE:           value.sValue = gConfig.pszLogFile; break;
 		case PALCFG_MIDICLIENT:        value.sValue = gConfig.pszMIDIClient; break;
+		case PALCFG_SOUNDFONT:         value.sValue = gConfig.pszSoundFont; break;
 		case PALCFG_SCALEQUALITY:      value.sValue = gConfig.pszScaleQuality; break;
 		case PALCFG_SHADER:            value.sValue = gConfig.pszShader; break;
 		case PALCFG_MUSIC:             value.sValue = music_types[gConfig.eMusicType]; break;
@@ -762,6 +786,10 @@ PAL_SetConfigItem(
 	case PALCFG_MIDICLIENT:
 		if (gConfig.pszMIDIClient) free(gConfig.pszMIDIClient);
 		gConfig.pszMIDIClient = value.sValue && value.sValue[0] ? strdup(value.sValue) : NULL;
+		break;
+	case PALCFG_SOUNDFONT:
+		if (gConfig.pszSoundFont) free(gConfig.pszSoundFont);
+		gConfig.pszSoundFont = value.sValue && value.sValue[0] ? strdup(value.sValue) : NULL;
 		break;
 	case PALCFG_SCALEQUALITY:
 		if (gConfig.pszScaleQuality) free(gConfig.pszScaleQuality);

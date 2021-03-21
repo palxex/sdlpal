@@ -47,6 +47,7 @@
 # define PAL_PORTYEAR         "2013"
 
 #define PAL_HAS_NATIVEMIDI  1
+#define PAL_HAS_TIMIDITY  1
 
 #define PAL_HAS_CONFIG_PAGE 1
 

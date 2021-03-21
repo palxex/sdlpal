@@ -55,6 +55,8 @@
 #define PAL_HAS_NATIVEMIDI  1
 #endif
 
+#define PAL_HAS_TIMIDITY  1
+
 #define PAL_HAS_MOUSE 0
 
 #define PAL_HAS_CONFIG_PAGE 0

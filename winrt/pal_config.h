@@ -50,6 +50,8 @@
 # define PAL_HAS_NATIVEMIDI  1
 #endif
 
+#define PAL_HAS_TIMIDITY  1
+
 #define PAL_FILESYSTEM_IGNORE_CASE 1
 
 #define PAL_NATIVE_PATH_SEPARATOR "\\"

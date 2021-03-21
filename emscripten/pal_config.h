@@ -56,4 +56,6 @@
 #define PAL_HAS_GLSL 1
 #define PAL_HAS_OPUS 0
 
+#define PAL_HAS_TIMIDITY  1
+
 #endif

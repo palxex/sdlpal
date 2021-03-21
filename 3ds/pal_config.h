@@ -38,6 +38,8 @@
 # define PAL_HAS_OPUS          0
 # define PAL_HAS_TOUCH         0
 
+#define PAL_HAS_TIMIDITY  1
+
 # define PAL_DEFAULT_WINDOW_WIDTH   320
 # define PAL_DEFAULT_WINDOW_HEIGHT  240
 # define PAL_DEFAULT_TEXTURE_WIDTH   640

@@ -48,6 +48,7 @@
 # define PAL_IS_VALID_JOYSTICK(s)  (strcmp((s), "applesmc") != 0)
 
 #define PAL_HAS_NATIVEMIDI  1
+#define PAL_HAS_TIMIDITY  1
 
 #define PAL_HAS_CONFIG_PAGE 1
 

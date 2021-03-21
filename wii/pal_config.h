@@ -49,6 +49,8 @@
 # define PAL_HAS_PLATFORM_SPECIFIC_UTILS    1
 # define PAL_HAS_PLATFORM_STARTUP           1
 
+# define PAL_HAS_TIMIDITY  1
+
 # include <gctypes.h>
 # include <dirent.h>
 # include <strings.h>
