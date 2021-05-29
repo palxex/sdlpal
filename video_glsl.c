@@ -55,9 +55,19 @@ static uint32_t gVBOIds[MAX_INDEX];
 static uint32_t gEBOId;
 static uint32_t gPassID = -1;
 static int gMVPSlots[MAX_INDEX], gHDRSlot=-1, gTouchOverlaySlot=-1;
+static int gBT2020Slot = -1;
+static int gRevRGBSlot = -1;
 static int VAOSupported = 1;
 static int glversion_major, glversion_minor;
 static int glslversion_major, glslversion_minor;
+
+static GLint gRevRGB=
+#ifdef GLES
+1
+#else
+0
+#endif
+;
 
 static SDL_Texture *origTexture;
 
@@ -168,7 +178,7 @@ void main()                         \r\n\
 gl_Position = MVPMatrix * VertexCoord; \r\n\
 v_texCoord = TexCoord.xy;              \r\n\
 }";
-static char *plain_glsl_frag = "\r\n\
+static char* plain_glsl_frag = "\r\n\
 #if __VERSION__ >= 130              \r\n\
 #define COMPAT_VARYING in           \r\n\
 #define COMPAT_TEXTURE texture      \r\n\
@@ -191,53 +201,80 @@ precision mediump float;            \r\n\
 COMPAT_VARYING vec2 v_texCoord;     \r\n\
 uniform sampler2D tex0;             \r\n\
 uniform int HDR;                    \r\n\
+uniform int bt2020;                 \r\n\
+uniform int rev_rgb;                \r\n\
 uniform sampler2D TouchOverlay;     \r\n\
 vec3 ACESFilm(vec3 x)               \r\n\
 {                                   \r\n\
-const float A = 2.51;               \r\n\
-const float B = 0.03;               \r\n\
-const float C = 2.43;               \r\n\
-const float D = 0.59;               \r\n\
-const float E = 0.14;               \r\n\
-return (x * (A * x + B)) / (x * (C * x + D) + E); \r\n\
-}                                   \r\n\
-const float SRGB_ALPHA = 0.055;     \r\n\
-float linear_to_srgb(float channel) {\r\n\
-if(channel <= 0.0031308)            \r\n\
-return 12.92 * channel;             \r\n\
-else                                \r\n\
-return (1.0 + SRGB_ALPHA) * pow(channel, 1.0/2.4) - SRGB_ALPHA;    \r\n\
-}                                   \r\n\
-vec3 rgb_to_srgb(vec3 rgb) {        \r\n\
-return vec3(linear_to_srgb(rgb.r), linear_to_srgb(rgb.g), linear_to_srgb(rgb.b)    ); \r\n\
-}                                   \r\n\
-float srgb_to_linear(float channel) {    \r\n\
-if (channel <= 0.04045)             \r\n\
-return channel / 12.92;             \r\n\
-else                                \r\n\
-return pow((channel + SRGB_ALPHA) / (1.0 + SRGB_ALPHA), 2.4);    \r\n\
-}                                   \r\n\
-vec3 srgb_to_rgb(vec3 srgb) {       \r\n\
-return vec3(srgb_to_linear(srgb.r),    srgb_to_linear(srgb.g),    srgb_to_linear(srgb.b));\r\n\
+    const float A = 2.51;               \r\n\
+    const float B = 0.03;               \r\n\
+    const float C = 2.43;               \r\n\
+    const float D = 0.59;               \r\n\
+    const float E = 0.14;               \r\n\
+    return clamp((x * (A * x + B)) / (x * (C * x + D) + E), 0.0, 1.0); \r\n\
+}                                       \r\n\
+const float SRGB_ALPHA = 0.055;         \r\n\
+const float BT2020_ALPHA = 0.099;       \r\n\
+float linear_to_srgb(float channel) {   \r\n\
+    if(channel <= 0.0031308)            \r\n\
+        return 12.92 * channel;         \r\n\
+    else                                \r\n\
+        return (1.0 + SRGB_ALPHA) * pow(channel, 1.0/2.4) - SRGB_ALPHA;    \r\n\
+}                                       \r\n\
+vec3 rgb_to_srgb(vec3 rgb) {            \r\n\
+    return vec3(linear_to_srgb(rgb.r), linear_to_srgb(rgb.g), linear_to_srgb(rgb.b)    ); \r\n\
+}                                       \r\n\
+float srgb_to_linear(float channel) {   \r\n\
+    if (channel <= 0.04045)             \r\n\
+        return channel / 12.92;         \r\n\
+    else                                \r\n\
+        return pow((channel + SRGB_ALPHA) / (1.0 + SRGB_ALPHA), 2.4);    \r\n\
+}                                       \r\n\
+vec3 srgb_to_rgb(vec3 srgb) {           \r\n\
+    return vec3(srgb_to_linear(srgb.r),    srgb_to_linear(srgb.g),    srgb_to_linear(srgb.b));\r\n\
 }\r\n\
-vec4 blend(vec4 dst, vec4 src){     \r\n\
-src.a*=(" STR(TOUCHOVERLAY_ALPHAMOD) ".0/255.0);\r\n\
-float final_alpha = 1.0;\r\n\
-return vec4( (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / final_alpha, final_alpha);\r\n\
-}\r\n\
-void main()                         \r\n\
-{                                   \r\n\
-vec4 srgb = COMPAT_TEXTURE(tex0 , v_texCoord.xy);   \r\n\
-FragColor = vec4(srgb_to_rgb(srgb.rgb), srgb.a);  \r\n\
-#ifdef GL_ES                        \r\n\
-FragColor.rgb = FragColor.bgr;      \r\n\
-#endif                              \r\n\
-vec3 color = FragColor.rgb;         \r\n\
-if( HDR > 0 )                       \r\n\
-color = ACESFilm(color);            \r\n\
-color = rgb_to_srgb(color);         \r\n\
-FragColor.rgb=color;                \r\n\
-FragColor = blend(FragColor, COMPAT_TEXTURE(TouchOverlay , v_texCoord.xy));     \r\n\
+float linear_to_bt2020(float channel) { \r\n\
+    const float alpha = 1.0993, beta = 0.0181;\r\n\
+    if (channel < beta)                 \r\n\
+        return 4.5 * channel;           \r\n\
+    else                                \r\n\
+        return alpha * pow(channel, 0.45) - (alpha - 1.0);\r\n\
+}                                       \r\n\
+vec3 rgb_to_bt2020(vec3 rgb) {          \r\n\
+    return vec3(linear_to_bt2020(rgb.r), linear_to_bt2020(rgb.g), linear_to_bt2020(rgb.b)    ); \r\n\
+}                                       \r\n\
+float bt2020_to_linear(float channel) { \r\n\
+    if (channel <= 0.081)               \r\n\
+        return channel / 4.5;           \r\n\
+    else                                \r\n\
+        return pow((channel + BT2020_ALPHA) / (1.0 + BT2020_ALPHA), 1.0/0.45);    \r\n\
+}                                       \r\n\
+vec3 bt2020_to_rgb(vec3 srgb) {         \r\n\
+    return vec3(bt2020_to_linear(srgb.r),    bt2020_to_linear(srgb.g),    bt2020_to_linear(srgb.b));\r\n\
+}                                       \r\n\
+vec4 blend(vec4 dst, vec4 src){         \r\n\
+    src.a*=(" STR(TOUCHOVERLAY_ALPHAMOD) ".0/255.0);\r\n\
+    float final_alpha = 1.0;            \r\n\
+    return vec4( (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / final_alpha, final_alpha);\r\n\
+}                                       \r\n\
+void main()                             \r\n\
+{                                       \r\n\
+    vec4 orig_color = COMPAT_TEXTURE(tex0 , v_texCoord.xy);   \r\n\
+    vec3 color;                         \r\n\
+    if (bt2020 > 0)                     \r\n\
+        color = bt2020_to_rgb(orig_color.rgb);  \r\n\
+    else                                \r\n\
+        color = srgb_to_rgb(orig_color.rgb);\r\n\
+    if (rev_rgb > 0)                    \r\n\
+        color.rgb = color.bgr;          \r\n\
+    if( HDR > 0 )                       \r\n\
+        color = ACESFilm(color);        \r\n\
+    if( bt2020 > 0 )                    \r\n\
+        color = rgb_to_bt2020(color);   \r\n\
+    else                                \r\n\
+        color = rgb_to_srgb(color);     \r\n\
+    FragColor = vec4(color, orig_color.a);                \r\n\
+    FragColor = blend(FragColor, COMPAT_TEXTURE(TouchOverlay , v_texCoord.xy));     \r\n\
 }";
 
 static char *glslp_template = "\r\n\
@@ -434,6 +471,14 @@ void setupShaderParams(int pass){
         if(gHDRSlot < 0)
             UTIL_LogOutput(LOGLEVEL_DEBUG, "uniform HDR not exist\n");
 
+        gBT2020Slot = glGetUniformLocation(gProgramIds[pass], "bt2020");
+        if (gBT2020Slot < 0)
+            UTIL_LogOutput(LOGLEVEL_DEBUG, "uniform bt2020 not exist\n");
+
+        gRevRGBSlot = glGetUniformLocation(gProgramIds[pass], "rev_rgb");
+        if (gRevRGBSlot < 0)
+            UTIL_LogOutput(LOGLEVEL_DEBUG, "uniform rev_rgb not exist\n");
+
         gTouchOverlaySlot = glGetUniformLocation(gProgramIds[pass], "TouchOverlay");
         if(gTouchOverlaySlot < 0)
             UTIL_LogOutput(LOGLEVEL_DEBUG, "uniform TouchOverlay not exist\n");
@@ -608,6 +653,9 @@ int VIDEO_RenderTexture(SDL_Renderer * renderer, SDL_Texture * texture, const SD
     if( pass == 0 ) {
         GLint HDR = gConfig.fEnableHDR;
         glUniform1i(gHDRSlot, HDR);
+        GLint bt2020 = gConfig.fEnableBT2020;
+        glUniform1i(gBT2020Slot, bt2020);
+        glUniform1i(gRevRGBSlot, gRevRGB);
         glUniform1i(gTouchOverlaySlot, touchoverlay_texture_slot);
     }
 
@@ -925,6 +973,15 @@ void VIDEO_GLSL_Init() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #   endif
 #endif
+
+    if (gConfig.fEnableBT2020) {
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 10);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 10);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 10);
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 2);
+        SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    }
 
     Uint32 flags = PAL_VIDEO_INIT_FLAGS | (gConfig.fFullScreen ? SDL_WINDOW_BORDERLESS : 0) | SDL_WINDOW_OPENGL;
     
