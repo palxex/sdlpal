@@ -83,7 +83,7 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 };
 
 static const char *music_types[] = { "MIDI", "RIX", "MP3", "OGG", "OPUS", "RAW" };
-static const char* synth_types[] = { "native", "timidity", "tinysoundfont" };
+static const char* synth_types[] = { "native", "timidity", "tinysoundfont", "adplug"};
 static const char *cd_types[] = { "NONE", "MP3", "OGG", "OPUS", "RAW" };
 static const char *opl_cores[] = { "MAME", "DBFLT", "DBINT", "NUKED" };
 static const char *opl_chips[] = { "OPL2", "OPL3" };
@@ -454,6 +454,8 @@ PAL_LoadConfig(
 						eMIDISynthType = SYNTH_TIMIDITY;
 					else if (SDL_strncasecmp(value.sValue, "tinysoundfont", slen) == 0)
 						eMIDISynthType = SYNTH_TINYSOUNDFONT;
+					else if (SDL_strncasecmp(value.sValue, "adplug", slen) == 0)
+						eMIDISynthType = SYNTH_ADPLUG;
 					break;
 				}
 				case PALCFG_OPL_CORE:

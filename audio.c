@@ -302,6 +302,8 @@ AUDIO_OpenDevice(
 		   gAudioDevice.pMusPlayer = TIMIDITY_Init();
 	   else if (gConfig.eMIDISynth == SYNTH_TINYSOUNDFONT)
 		   gAudioDevice.pMusPlayer = TSF_Init();
+	   else if (gConfig.eMIDISynth == SYNTH_ADPLUG)
+		   gAudioDevice.pMusPlayer = ADPLUGMIDI_Init();
 	   break;
    default:
 	   break;

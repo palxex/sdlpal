@@ -291,6 +291,7 @@
     </ClCompile>
     <ClCompile Include="..\adplug\dosbox_opls.cpp" />
     <ClCompile Include="..\adplug\mame_opls.cpp" />
+    <ClCompile Include="..\adplug\mid.cpp" />
     <ClCompile Include="..\adplug\nuked_opl.c" />
     <ClCompile Include="..\audio.c" />
     <ClCompile Include="..\aviplay.c" />
@@ -473,6 +474,7 @@
     <ClCompile Include="..\main.c" />
     <ClCompile Include="..\map.c" />
     <ClCompile Include="..\midi.c" />
+    <ClCompile Include="..\midi_adplug.cpp" />
     <ClCompile Include="..\midi_timidity.c" />
     <ClCompile Include="..\midi_tsf.c" />
     <ClCompile Include="..\mp3play.c" />

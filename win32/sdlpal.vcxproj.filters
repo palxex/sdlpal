@@ -813,6 +813,12 @@
     <ClCompile Include="..\midi_tsf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\midi_adplug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\adplug\mid.cpp">
+      <Filter>adplug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ascii.h">

@@ -83,6 +83,13 @@ TSF_Init(
 	VOID
 );
 
+/* Adplug MIDI */
+
+LPAUDIOPLAYER
+ADPLUGMIDI_Init(
+	VOID
+);
+
 LPAUDIOPLAYER
 SOUND_Init(
 	VOID
