@@ -60,6 +60,18 @@ typedef enum tagLineType {
     
     TOKEN_PARAMETERS,
     TOKEN_PARAMETER_NAME,
+
+    //NEW FROM MPV
+    TOKEN_BINDS,
+    TOKEN_BIND_NAME,
+    TOKEN_TARGETS,
+    TOKEN_TARGET_NAME,
+    TOKEN_TARGET_SCALE_TYPE,
+    TOKEN_TARGET_SCALE_TYPE_X,
+    TOKEN_TARGET_SCALE_TYPE_Y,
+    TOKEN_TARGET_SCALE,
+    TOKEN_TARGET_SCALE_X,
+    TOKEN_TARGET_SCALE_Y,
     
     TOKEN_END
 }LineType;
@@ -94,11 +106,23 @@ static char *tokens[] = {
     "parameters",
     "%s",
 
+    //NEW FROM MPV
+    "binds%d",
+    "bind%d%d",
+    "targets%d",
+    "target%d%d",
+    "target%d_scale_type%d",
+    "target%d_scale_type_x%d",
+    "target%d_scale_type_y%d",
+    "target%d_scale%d",
+    "target%d_scale_x%d",
+    "target%d_scale_y%d",
+
     ""
 };
 
-static int token_conform( const char *name, LineType type, GLSLP *pGLSLP ) {
-    int index = -1;
+static int token_conform( const char *name, LineType type, int *pSubType, GLSLP *pGLSLP ) {
+    int index = -1, subIndex = -1;
     switch( type ) {
         case TOKEN_ORIGFILTER:
             if( SDL_strcasecmp(name, tokens[type]) == 0 )
@@ -124,10 +148,39 @@ static int token_conform( const char *name, LineType type, GLSLP *pGLSLP ) {
         case TOKEN_SHADER_SRGB_FRAMEBUFFER:
         case TOKEN_SHADER_MIPMAP_INPUT:
         case TOKEN_SHADER_FRAME_COUNT_MOD:
+        case TOKEN_BINDS:
+        case TOKEN_TARGETS:
             for( int i = 0; i < pGLSLP->shaders; i++ ) {
                 if( SDL_strcasecmp(name, PAL_va(0, tokens[type], i) ) == 0 ) {
                     index = i;
                     break;
+                }
+            }
+            break;
+        case TOKEN_BIND_NAME:
+            for (int i = 0; i < pGLSLP->shaders; i++) {
+                for (int j = 0; j < pGLSLP->shader_params[i].binds; j++) {
+                    if (SDL_strcasecmp(name, PAL_va(0, tokens[type], j, i)) == 0) {
+                        index = i;
+                        subIndex = j;
+                        break;
+                    }
+                }
+            }
+        case TOKEN_TARGET_NAME:
+        case TOKEN_TARGET_SCALE_TYPE:
+        case TOKEN_TARGET_SCALE_TYPE_X:
+        case TOKEN_TARGET_SCALE_TYPE_Y:
+        case TOKEN_TARGET_SCALE:
+        case TOKEN_TARGET_SCALE_X:
+        case TOKEN_TARGET_SCALE_Y:
+            for (int i = 0; i < pGLSLP->shaders; i++) {
+                for (int j = 0; j < pGLSLP->shader_params[i].targets; j++) {
+                    if (SDL_strcasecmp(name, PAL_va(0, tokens[type], j, i)) == 0) {
+                        index = i;
+                        subIndex = j;
+                        break;
+                    }
                 }
             }
             break;
@@ -155,6 +208,7 @@ static int token_conform( const char *name, LineType type, GLSLP *pGLSLP ) {
         default:
             break;
     }
+    *pSubType = subIndex;
     return index;
 }
 
@@ -174,6 +228,7 @@ line_tokenize(
     int * sLength,
     LineType *pType,
     int *pIndex,
+    int *pSubIndex,
     char *pValue,
     GLSLP *pGLSLP
 )
@@ -208,10 +263,11 @@ line_tokenize(
             
             if( len > 0 ) {
                 for( LineType i = TOKEN_NONE+1; i < TOKEN_END; i++ ) {
-                    int index = -1;
-                    if( (index = token_conform(name, i, pGLSLP) ) != -1 ) {
+                    int index = -1, sub = -1;
+                    if( (index = token_conform(name, i, &sub, pGLSLP) ) != -1 ) {
                         *pType = i;
                         *pIndex = index;
+                        *pSubIndex = sub;
                         strcpy(pValue, strip_quotes(value));
                         return TRUE;
                     }
@@ -350,14 +406,17 @@ bool parse_glslp(const char *filename, GLSLP *pGLSLP) {
         while (fgets(buf, 512, fp) != NULL)
         {
             LineType lineType;
-            int index;
+            int index, subIndex;
             char value[512];
             int slen;
-            if (line_tokenize(buf, &slen, &lineType, &index, value, pGLSLP))
+            if (line_tokenize(buf, &slen, &lineType, &index, &subIndex, value, pGLSLP))
             {
                 shader_param  *s_param = &pGLSLP->shader_params[index];
                 texture_param *t_param = &pGLSLP->texture_params[index];
                 uniform_param *u_param = &pGLSLP->uniform_params[index];
+                render_target* ta_param = NULL;
+                if(subIndex >= 0)
+                    ta_param = &s_param->target_params[subIndex];
                 switch( lineType ) {
                     case TOKEN_ORIGFILTER:
                         pGLSLP->orig_filter=strdup(value);
@@ -458,6 +517,37 @@ bool parse_glslp(const char *filename, GLSLP *pGLSLP) {
                     case TOKEN_PARAMETER_NAME:
                         u_param->value = SDL_atof(value);
                         break;
+                    case TOKEN_BINDS:
+                        s_param->binds = SDL_atoi(value);
+                        s_param->bind_names = UTIL_calloc(s_param->binds, sizeof(char*));
+                        break;
+                    case TOKEN_BIND_NAME:
+                        s_param->bind_names[subIndex] = strdup(value);
+                        break;
+                    case TOKEN_TARGETS:
+                        s_param->targets = SDL_atoi(value);
+                        s_param->target_params = UTIL_calloc(s_param->targets, sizeof(render_target));
+                        break;
+                    case TOKEN_TARGET_NAME:
+                        ta_param->name = strdup( value );
+                        break;
+                    case TOKEN_TARGET_SCALE_TYPE:
+                        ta_param->scale_type_x = ta_param->scale_type_y = string_to_scale_type(value);
+                        break;
+                    case TOKEN_TARGET_SCALE_TYPE_X:
+                        ta_param->scale_type_x = string_to_scale_type(value);
+                        break;
+                    case TOKEN_TARGET_SCALE_TYPE_Y:
+                        ta_param->scale_type_y = string_to_scale_type(value);
+                        break;
+                    case TOKEN_TARGET_SCALE:
+                        ta_param->scale_x = ta_param->scale_y = SDL_atof(value);
+                        break;
+                    case TOKEN_TARGET_SCALE_X:
+                        ta_param->scale_x = SDL_atof(value);
+                        break;
+                    case TOKEN_TARGET_SCALE_Y:
+                        ta_param->scale_y = SDL_atof(value);
                     default:
                         break;
                 }
@@ -550,6 +640,13 @@ void destroy_glslp(GLSLP *pGLSLP) {
             free(param->alias);
         if(param->pass_sdl_texture )
             SDL_DestroyTexture( pGLSLP->shader_params[i].pass_sdl_texture );
+        for (int j = 0; j < param->binds; j++) {
+            free(param->bind_names[j]);
+        }
+        for (int j = 0; j < param->targets; j++) {
+            render_target* t_param = &param->target_params[j];
+            free(t_param->name);
+        }
     }
 	free(pGLSLP->shader_params);
     for( int i=0; i<pGLSLP->textures; i++ ) {

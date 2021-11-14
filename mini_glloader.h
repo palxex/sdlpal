@@ -107,6 +107,7 @@ extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLGETSTRINGIPROC glGetStringi;
+extern PFNGLDRAWBUFFERSPROC glDrawBuffers;
 
 extern int initGLExtensions(int major);
 #endif

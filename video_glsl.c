@@ -77,6 +77,77 @@ static int frame_prev_texture_units[MAX_TEXTURES] = {-1};
 static GLint frames = 0;
 static bool frames_passed_limit = false;
 
+static int texture_unit_used = 1;
+
+static int additional_texture_number = 0;
+static char** additional_textures;
+static SDL_Texture** additional_texture_ptrs;
+static int get_array(char** array, char* node) {
+    //!TODO
+    return true;
+}
+static int insert_array(char** array, char* node) {
+    //!TODO
+    return 0;
+}
+static void AdditionalTexture_Calc() {
+    //遍历整个glslp，找到所有render target，统一建立texture记录id，并进行名实对应
+    for (int i = 0; i < gGLSLP.shaders; i++) {
+        shader_param* pShader = &gGLSLP.shader_params[i];
+        for (int j = 0; j < pShader->targets; j++) {
+            render_target* param = &pShader->target_params[j];
+            if (get_array(additional_textures, param->name) < 0) {
+                int index = insert_array(additional_textures, param->name);
+                //!TODO
+                //! calc width/height etc( and fill in ?)
+                additional_texture_ptrs[index] = SDL_CreateTexture(gpRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, 1, 1);//!!
+            }
+        }
+    }
+}
+static void AdditionalTexture_Bind(int programID) {
+    //对当前shader遍历，对其需要的所有bind（shader内表现为uniform sampler2D)，进行bindtexture（不可用glFramebufferRenderbufferEXT，否则就没法在shader里sample其他位置了）
+    //对其需要的所有render target(shader内表现为glFragData[]，进行glFramebufferTexture2DEXT(fbo side)/gl_DrawBuffers(mrt side)。
+    shader_param* pShader = &gGLSLP.shader_params[programID - 2];
+    for (int i = 0; i < pShader->binds; i++) {
+        char* name = pShader->bind_names[i];
+        int index = get_array(additional_textures, name);
+        int slot = glGetUniformLocation(programID, name);
+        if (index > 0) {
+            SDL_Texture* pTexture = additional_texture_ptrs[index];
+            glActiveTexture(GL_TEXTURE0 + texture_unit_used);
+            float a = 1, b = 1;//!TODO
+            SDL_GL_BindTexture(pTexture, &a, &b);
+            if (slot > 0) {
+                glUniform1i(slot, texture_unit_used);
+            }
+            texture_unit_used++;
+        }
+    }
+    for (int i = 0; i < pShader->targets; i++) {
+        render_target* pTarget = &pShader->target_params[i];
+        int index = get_array(additional_textures, pTarget->name);
+        if (index > 0) {
+            SDL_Texture* pTexture = additional_texture_ptrs[index];
+            void* renderdata = gpRenderer->driverdata;//!SDL INTERNAL data; either hack it or rewrite it
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, texturedata->fbo->FBO);
+            glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0+index, data->textype, texturedata->texture, 0);
+        }
+    }
+    int buffers[] = {
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2,
+        GL_COLOR_ATTACHMENT3,
+        GL_COLOR_ATTACHMENT4,
+        GL_COLOR_ATTACHMENT5,
+        GL_COLOR_ATTACHMENT6,
+        GL_COLOR_ATTACHMENT7,
+    };
+    if (pShader->targets > 0)
+        glDrawBuffers(pShader->targets, buffers);
+}
+
 struct AttrTexCoord
 {
     GLfloat s;
@@ -256,8 +327,8 @@ char *readShaderFile(const char *filename, GLuint type) {
     long filesize = ftell(fp);
     char *buf = (char*)malloc(filesize+1);
     fseek(fp,0,SEEK_SET);
-    fread(buf,filesize,1,fp);
-    buf[filesize]='\0';
+    fread(buf, filesize, 1, fp);
+    buf[filesize] = '\0';
     return buf;
 }
 
@@ -566,7 +637,7 @@ int VIDEO_RenderTexture(SDL_Renderer * renderer, SDL_Texture * texture, const SD
 
     //calc texture unit:1(main texture)+glslp_textures+glsl_uniform_textures(orig,pass(1-6),prev(1-6))
     
-    int texture_unit_used = 1;
+    texture_unit_used = 1;
     int touchoverlay_texture_slot = -1;
     if( pass == 0 ) {
         glActiveTexture(GL_TEXTURE0+texture_unit_used);
@@ -1111,6 +1182,7 @@ void VIDEO_GLSL_Setup() {
             param->uniform_ids[j] = glGetUniformLocation(gProgramIds[id+j], param->parameter_name);
     }
     Filter_StepParamSlot(0);
+    AdditionalTexture_Calc();
 
 #if !__IOS__
     // in case of GL2/GLES2(except iOS), the LACK of the belowing snippit makes keepaspectratio a mess.

@@ -65,6 +65,14 @@ typedef struct tagFBOPARAM {
     double pow_width, pow_height;
 }fbo_params;
 
+typedef struct tagRENDERTARGET {
+    char* name;
+    enum scale_type scale_type_x, scale_type_y;
+    double scale_x, scale_y;
+
+    float width, height;
+}render_target;
+
 typedef struct tagSHADERPARAM {
     //by defination
     char *shader;
@@ -77,6 +85,11 @@ typedef struct tagSHADERPARAM {
     bool float_framebuffer;
     bool srgb_framebuffer;
     int frame_count_mod;
+
+    //added by mpv
+    int binds, targets;
+    char **bind_names;
+    render_target* target_params;
     
     //by implementation
     SDL_Texture *pass_sdl_texture;
