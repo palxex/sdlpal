@@ -42,7 +42,7 @@ class CrixPlayer: public CPlayer
   bool load(const std::string &filename, const CFileProvider &fp);
   bool update();
   void rewind(int subsong);
-  void rewindReInit(int subsong, bool reinit); /* For seamless continous */
+  void rewindReInit(int subsong, bool reinit); /* For seamless continuous */
   float getrefresh();
   unsigned int getsubsongs();
 
@@ -65,7 +65,7 @@ class CrixPlayer: public CPlayer
 #endif
   FILE *fp;
   int subsongs;
-  uint8_t rix_buf[16384];  /* rix files' f_buffer */
+  uint8_t *rix_buf;  /* rix files' f_buffer */
   uint16_t f_buffer[300];//9C0h-C18h
   uint16_t a0b0_data2[11];
   uint8_t a0b0_data3[18];

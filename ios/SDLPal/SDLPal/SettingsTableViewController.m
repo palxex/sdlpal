@@ -6,6 +6,8 @@
 //  Copyright © 2017年 SDLPAL team. All rights reserved.
 //
 
+#include "TargetConditionals.h"
+
 #import "SettingsTableViewController.h"
 #import "SDLPal_AppDelegate.h"
 #import <ActionSheetPicker.h>
@@ -25,6 +27,7 @@
     NSArray *OPLSampleRates;
     NSArray *CDFormats;
     NSArray *MusicFormats;
+    NSArray *MIDISynthesizers;
     NSArray *OPLCores;
     NSArray *OPLChips;
     NSArray *LogLevels;
@@ -34,7 +37,10 @@
     NSMutableArray *availLangPacks;
     NSMutableArray *availFonts;
     NSMutableArray *availEffects;
-    BOOL checkAllFilesIncluded;
+    NSMutableArray *availTimidityCFG;
+    NSMutableArray *availSoundFonts;
+    BOOL checkAllGameFilesIncluded;
+    BOOL checkAllAudioFilesIncluded;
     NSString *resourceStatus;
     
     AbstractActionSheetPicker *picker;
@@ -57,7 +63,9 @@
     IBOutlet UITextField *textTextureHeight;
     
     IBOutlet UILabel *lblMusicType;
+    IBOutlet UILabel *lblSynthesizer;
     IBOutlet UILabel *lblOPLCore;
+    IBOutlet UILabel *lblSynthParam;
     IBOutlet UILabel *lblOPLChip;
     IBOutlet UILabel *lblOPLRate;
     IBOutlet UILabel *lblCDAudioSource;
@@ -96,6 +104,7 @@
     OPLSampleRates = @[ @"12429", @"24858", @"49716", @"11025", @"22050", @"44100" ];
     CDFormats = @[ @"None", @"MP3", @"OGG", @"OPUS" ];
     MusicFormats = @[ @"MIDI", @"RIX", @"MP3", @"OGG", @"OPUS" ];
+    MIDISynthesizers = @[ @"native", @"timidity", @"tinysoundfont" ];
     OPLCores = @[ @"MAME", @"DBFLT", @"DBINT", @"NUKED" ];
     OPLChips = @[ @"OPL2", @"OPL3" ];
     LogLevels = @[ @"VERBOSE", @"DEBUG", @"INFO", @"WARNING", @"ERROR", @"FATAL" ];
@@ -110,7 +119,37 @@
 
     [self recheckSharingFolder];
     [self readConfigs];
+    [self reloadMusic];
 }
+
+-(void)setLabelColor:(UIColor *)color {
+    [lblResourceStatus setTextColor:color];
+    [lblLanguageFile setTextColor:color];
+    [lblFontFile setTextColor:color];
+    [lblShader setTextColor:color];
+    [textTextureWidth setTextColor:color];
+    [textTextureHeight setTextColor:color];
+    [lblMusicType setTextColor:color];
+    [lblSynthesizer setTextColor:color];
+    [lblOPLCore setTextColor:color];
+    [lblSynthParam setTextColor:color];
+    [lblOPLChip setTextColor:color];
+    [lblOPLRate setTextColor:color];
+    [lblCDAudioSource setTextColor:color];
+    [lblResampleRate setTextColor:color];
+    [lblAudioBufferSize setTextColor:color];
+    [lblLogLevel setTextColor:color];
+    [textLogFile setTextColor:color];
+}
+
+-(void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    if (@available(iOS 13.0, *)) {
+        [self setLabelColor: [UIColor labelColor]];
+    }else{
+        [self setLabelColor:(NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) ? [UIColor blackColor] : [UIColor whiteColor]];
+    }
+}
+
 -(void)dismissKeyboard
 {
     [self.view endEditing:YES];
@@ -121,14 +160,34 @@
     [self recheckSharingFolder];
     [refreshController endRefreshing];
 }
+- (void)reloadMusic {
+    if( [lblMusicType.text isEqualToString:@"RIX"] ) {
+        lblSynthesizer.text = NSLocalizedString(@"OPL Synthesizer", nil);
+        lblSynthParam.text = NSLocalizedString(@"OPL Chip", nil);
+        lblOPLCore.text = OPLCores[gConfig.eOPLCore];
+        lblOPLChip.text = OPLChips[gConfig.eOPLChip];
+    }
+    if( [lblMusicType.text isEqualToString:@"MIDI"]) {
+        lblSynthesizer.text = NSLocalizedString(@"MIDI Synthesizer", nil);
+        lblSynthParam.text = NSLocalizedString(@"SoundBank", nil);
+        lblOPLCore.text = MIDISynthesizers[gConfig.eMIDISynth];
+        lblOPLChip.text = gConfig.pszSoundBank ? [NSString stringWithUTF8String:gConfig.pszSoundBank] : @"";
+    }
+}
 
 - (void)recheckSharingFolder {
     availLangPacks = [NSMutableArray new];
     availFonts = [NSMutableArray new];
     availEffects = [NSMutableArray new];
+    availTimidityCFG = [NSMutableArray new];
+    availSoundFonts = [NSMutableArray new];
     NSArray *langpackExtensionList = @[@PAL_LOCALIZATION_EXT];
     NSArray *fontExtensionList = @[@"bdf",@"ttf",@"otf",@"ttc"];
     NSArray *effectExtensionList = @[@"glsl",@"glslp"];
+    NSArray *cfgExtensionList = @[@"cfg"];
+    NSArray *soundfontExtensionList = @[@"sf2"];
+    NSArray *requiredGameFiles = @[@"abc.mkf", @"ball.mkf", @"data.mkf", @"f.mkf", @"fbp.mkf", @"fire.mkf", @"gop.mkf", @"m.msg", @"map.mkf", @"mgo.mkf", @"pat.mkf", @"rgm.mkf", @"rng.mkf", @"sss.mkf", @"word.dat"];
+    NSArray *optionalAudioFiles = @[@"voc.mkf", @"sounds.mkf", @"midi.mkf", @"mus.mkf"];
     NSString *basePath = [NSString stringWithUTF8String:UTIL_BasePath()];
     allFiles = [[NSFileManager defaultManager] subpathsOfDirectoryAtPath:basePath error:nil];
     for( NSString *filename in allFiles ) {
@@ -144,17 +203,33 @@
             [availFonts addObject:filename];
         if( [self includedInList:effectExtensionList name:filename.pathExtension] )
             [availEffects addObject:filename];
+        if( [self includedInList:cfgExtensionList name:filename.pathExtension] && ![filename isEqualToString:@"sdlpal.cfg"] )
+            [availTimidityCFG addObject:filename];
+        if( [self includedInList:soundfontExtensionList name:filename.pathExtension] )
+            [availSoundFonts addObject:filename];
     }
     availEffects = [[availEffects sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] mutableCopy];
-    checkAllFilesIncluded = YES;
-    for( NSString *checkFile in @[@"abc.mkf", @"ball.mkf", @"data.mkf", @"f.mkf", @"fbp.mkf", @"fire.mkf", @"gop.mkf", @"m.msg", @"map.mkf", @"mgo.mkf", @"rgm.mkf", @"rng.mkf", @"sss.mkf", @"word.dat"] ) {
+    checkAllGameFilesIncluded = YES;
+    for( NSString *checkFile in requiredGameFiles ) {
         if( ![self includedInList:allFiles name:checkFile] ) {
-            checkAllFilesIncluded = NO;
+            checkAllGameFilesIncluded = NO;
+            NSLog(@"Required original game resource files are missing, please copy files under: %@\nRequired game files are: %@", basePath, requiredGameFiles);
+            break;
+        }
+    }
+    checkAllAudioFilesIncluded = YES;
+    for( NSString *checkFile in optionalAudioFiles) {
+        if( ![self includedInList:allFiles name:checkFile] ) {
+            checkAllAudioFilesIncluded = NO;
+            NSLog(@"Optional game audio files are missing, please copy files under: %@\nRequired audio files are: %@", basePath, optionalAudioFiles);
             break;
         }
     }
     if(!resourceStatus) resourceStatus = lblResourceStatus.text;
-    lblResourceStatus.text  = [NSString stringWithFormat:@"%@%@", resourceStatus, checkAllFilesIncluded ? @"✅" : @"❌" ];
+#if TARGET_OS_SIMULATOR
+    resourceStatus = @"Simulator's doc folder";
+#endif
+    lblResourceStatus.text  = [NSString stringWithFormat:@"%@%@", resourceStatus, checkAllGameFilesIncluded ? @"✅" : @"❌" ];
 }
 
 typedef void(^SelectedBlock)(NSString *selected);
@@ -198,7 +273,16 @@ typedef void(^SelectedBlock)(NSString *selected);
             rows = [toggleGLSL isOn] ? 3 : 1;
             break;
         case 4:
-            rows = [lblMusicType.text isEqualToString:@"RIX"] ? 11 : 4;
+            if( [lblMusicType.text isEqualToString:@"RIX"] )
+                rows = 12;
+            else if([lblMusicType.text isEqualToString:@"MIDI"]) {
+                if([lblOPLCore.text isEqualToString:@"native"])
+                    rows = 8;
+                else
+                    rows = 9;
+            }
+            else
+                rows = 7;
             break;
         case 5:
             rows = 2;
@@ -230,23 +314,36 @@ typedef void(^SelectedBlock)(NSString *selected);
     }else if( indexPath.section == 4 && indexPath.row == 0 ) { //BGM
         [self showPickerWithTitle:nil toLabel:lblMusicType inArray:MusicFormats origin:cell allowEmpty:NO doneBlock:^(NSString *selected) {
             [self.tableView reloadData];
+            [self reloadMusic];
         }];
     }else if( indexPath.section == 4 && indexPath.row == 1 ) { //CD Source
         [self showPickerWithTitle:nil toLabel:lblCDAudioSource inArray:CDFormats origin:cell];
-    }else if( indexPath.section == 4 && indexPath.row == 4 ) { //OPL Core
-        [self showPickerWithTitle:nil toLabel:lblOPLCore inArray:OPLCores origin:cell allowEmpty:NO doneBlock:^(NSString *selected) {
-            if( [selected isEqualToString:@"NUKED"] )
-                lblOPLChip.text = @"OPL3";
-        }];
-    }else if( indexPath.section == 4 && indexPath.row == 6 ) { //OPL Rate
+    }else if( indexPath.section == 4 && indexPath.row == 7 ) { //OPL Core/MIDI Synthesizer
+        if([lblMusicType.text isEqualToString:@"RIX"]){
+            [self showPickerWithTitle:nil toLabel:lblOPLCore inArray:OPLCores origin:cell];
+            [self tableView:tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:8 inSection:4]].userInteractionEnabled = YES;
+        }else if([lblMusicType.text isEqualToString:@"MIDI"])
+            [self showPickerWithTitle:nil toLabel:lblOPLCore inArray:MIDISynthesizers origin:cell allowEmpty:NO doneBlock:^(NSString *selected) {
+                [self.tableView reloadData];
+            }];
+    }else if( indexPath.section == 4 && indexPath.row == 8 ) { //OPL Chip/SoundFont
+        if([lblMusicType.text isEqualToString:@"RIX"])
+            [self showPickerWithTitle:nil toLabel:lblOPLChip inArray:OPLChips origin:cell];
+        else if([lblMusicType.text isEqualToString:@"MIDI"]) {
+            if([lblOPLCore.text isEqualToString:@"timidity"])
+                [self showPickerWithTitle:nil toLabel:lblOPLChip inArray:availTimidityCFG origin:cell allowEmpty:YES];
+            else if([lblOPLCore.text isEqualToString:@"tinysoundfont"])
+                [self showPickerWithTitle:nil toLabel:lblOPLChip inArray:availSoundFonts origin:cell allowEmpty:YES];
+        }
+    }else if( indexPath.section == 4 && indexPath.row == 9 ) { //OPL Rate
         [self showPickerWithTitle:nil toLabel:lblOPLRate inArray:OPLSampleRates origin:cell];
-    }else if( indexPath.section == 4 && indexPath.row == 7 ) { //SampleRate
+    }else if( indexPath.section == 4 && indexPath.row == 5 ) { //SampleRate
         [self showPickerWithTitle:nil toLabel:lblResampleRate inArray:AudioSampleRates origin:cell];
-    }else if( indexPath.section == 4 && indexPath.row == 8 ) { //Buffer size
+    }else if( indexPath.section == 4 && indexPath.row == 10 ) { //Buffer size
         [self showPickerWithTitle:nil toLabel:lblAudioBufferSize inArray:AudioBufferSizes origin:cell];
-    }else if( indexPath.section == 4 && indexPath.row == 9 ) { //Stereo
+    }else if( indexPath.section == 4 && indexPath.row == 4 ) { //Stereo
         toggleStereo.on = !toggleStereo.isOn;
-    }else if( indexPath.section == 4 && indexPath.row == 10 ) { //Surround
+    }else if( indexPath.section == 4 && indexPath.row == 11 ) { //Surround
         toggleSurroundOPL.on = !toggleSurroundOPL.isOn;
     }else if( indexPath.section == 5 && indexPath.row == 0 ) { //Log Level
         [self showPickerWithTitle:nil toLabel:lblLogLevel inArray:LogLevels origin:cell];
@@ -259,12 +356,25 @@ typedef void(^SelectedBlock)(NSString *selected);
 }
 
 - (IBAction)btnConfirmClicked:(id)sender {
-    if(!checkAllFilesIncluded){
-        UIAlertController  *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Cannot find data file in the iTunes File Sharing directory",nil)
+    if(!checkAllGameFilesIncluded){
+        
+        NSString *errorMsg = @"Cannot find data file in the iTunes File Sharing directory";
+#if TARGET_OS_SIMULATOR
+        NSString *basePath = [NSString stringWithUTF8String:UTIL_BasePath()];
+        errorMsg = [NSString stringWithFormat:@"Cannot find data file in the simulator's document folder: %@", basePath];
+#endif
+        UIAlertController  *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(errorMsg,nil)
                                                                         message:NSLocalizedString(@"NOTE: For copyright reasons data files required to run the game are NOT included.",nil)
                                                                  preferredStyle:UIAlertControllerStyleAlert];
         UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:UIKitLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil];
         [alert addAction:cacelAction];
+#if TARGET_OS_SIMULATOR
+        UIAlertAction *copyPathAction = [UIAlertAction actionWithTitle:UIKitLocalizedString(@"Copy Folder Path") style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+            pasteboard.string = basePath;
+        }];
+        [alert addAction:copyPathAction];
+#endif
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
@@ -296,7 +406,7 @@ typedef void(^SelectedBlock)(NSString *selected);
 
 - (void)readConfigs {
     gConfig.fFullScreen = YES; //iOS specific; need this to make sure statusbar hidden in game completely
-    
+        
     lblLanguageFile.text    = [NSString stringWithUTF8String:gConfig.pszMsgFile  ? gConfig.pszMsgFile  : ""];
     lblFontFile.text        = [NSString stringWithUTF8String:gConfig.pszFontFile ? gConfig.pszFontFile : ""];
     textLogFile.text        = [NSString stringWithUTF8String:gConfig.pszLogFile  ? gConfig.pszLogFile  : ""];
@@ -313,8 +423,8 @@ typedef void(^SelectedBlock)(NSString *selected);
     toggleSmoothScaling.on      = gConfig.pszScaleQuality ? strncmp(gConfig.pszScaleQuality, "0", sizeof(char)) != 0 : NO;
     
     lblMusicType.text       = MusicFormats[gConfig.eMusicType];
-    lblOPLCore.text         = OPLCores[gConfig.eOPLCore];
-    lblOPLChip.text         = OPLChips[gConfig.eOPLChip];
+    lblOPLCore.text         = gConfig.eMusicType == MUSIC_RIX ? OPLCores[gConfig.eOPLCore] : MIDISynthesizers[gConfig.eMIDISynth];
+    lblOPLChip.text         = gConfig.eMusicType == MUSIC_RIX ? OPLChips[gConfig.eOPLChip] : (gConfig.pszSoundBank ? [NSString stringWithUTF8String:gConfig.pszSoundBank] : nil);
     lblOPLRate.text         = [NSString stringWithFormat:@"%d",gConfig.iOPLSampleRate];
     lblCDAudioSource.text   = CDFormats[gConfig.eCDType];
     lblResampleRate.text    = [NSString stringWithFormat:@"%d",gConfig.iSampleRate];
@@ -324,8 +434,7 @@ typedef void(^SelectedBlock)(NSString *selected);
     sliderMusicVolume.value     = gConfig.iMusicVolume;
     sliderSFXVolume.value       = gConfig.iSoundVolume;
     sliderResampleQuality.value = gConfig.iResampleQuality;
-    
-    
+
     lblLogLevel.text        = LogLevels[gConfig.iLogLevel];
     
     [self.tableView reloadData];
@@ -335,7 +444,7 @@ typedef void(^SelectedBlock)(NSString *selected);
     gConfig.pszMsgFile  = [lblLanguageFile.text length] == 0 ? NULL : strdup([[lblLanguageFile  text] UTF8String]);
     gConfig.pszFontFile = [lblFontFile.text length] == 0 ? NULL : strdup([[lblFontFile      text] UTF8String]);
     gConfig.pszLogFile  = [textLogFile.text length] == 0 ? NULL : strdup([[textLogFile      text] UTF8String]);
-    
+
     gConfig.iAudioChannels  = toggleStereo.isOn ? 2 : 1;
     gConfig.fUseSurroundOPL = toggleSurroundOPL.isOn;
     
@@ -350,9 +459,15 @@ typedef void(^SelectedBlock)(NSString *selected);
     gConfig.pszShader = [lblShader.text length] == 0 ? NULL :strdup([lblShader.text UTF8String]);
    
     gConfig.eMusicType  = (MUSICTYPE)[MusicFormats indexOfObject:lblMusicType.text];
-    gConfig.eOPLCore    = (OPLCORE_TYPE)[OPLCores  indexOfObject:lblOPLCore.text];
-    gConfig.eOPLChip    = gConfig.eOPLCore == OPLCORE_NUKED ? OPLCHIP_OPL3 : (OPLCHIP_TYPE)[OPLChips  indexOfObject:lblOPLChip.text];
-    gConfig.iOPLSampleRate = [lblOPLRate.text intValue];
+    if(gConfig.eMusicType == MUSIC_RIX) {
+        gConfig.eOPLCore    = (OPLCORE_TYPE)[OPLCores  indexOfObject:lblOPLCore.text];
+        gConfig.eOPLChip    = (OPLCHIP_TYPE)[OPLChips  indexOfObject:lblOPLChip.text];
+        gConfig.iOPLSampleRate = [lblOPLRate.text intValue];
+    }
+    if(gConfig.eMusicType == MUSIC_MIDI) {
+        gConfig.eMIDISynth    = (MIDISYNTHTYPE)[MIDISynthesizers  indexOfObject:lblOPLCore.text];
+        gConfig.pszSoundBank  = [lblOPLChip.text length] == 0 ? NULL : strdup([[lblOPLChip      text] UTF8String]);
+    }
     gConfig.eCDType     = (CDTYPE)[CDFormats indexOfObject:lblCDAudioSource.text];
     gConfig.iSampleRate = [lblResampleRate.text intValue];
     gConfig.wAudioBufferSize = [lblAudioBufferSize.text intValue];

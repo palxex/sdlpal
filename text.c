@@ -1,15 +1,14 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2020, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// it under the terms of the GNU General Public License, version 3
+// as published by the Free Software Foundation.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -117,7 +116,7 @@ PAL_ReadOneLine(
 {
 	if (fgets(temp, limit, fp))
 	{
-		int n = strlen(temp);
+		size_t n = strlen(temp);
 		if (n == limit - 1 && temp[n - 1] != '\n' && !feof(fp))
 		{
 			// Line too long, try to read it as a whole
@@ -1145,7 +1144,6 @@ PAL_DrawTextUnescape(
       if (fShadow)
       {
 		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
-		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y), 0, fUse8x8Font);
       }
 	  PAL_DrawCharOnSurface(*lpszText++, gpScreen, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
 	  rect.x += char_width; urect.w += char_width;
@@ -1156,11 +1154,22 @@ PAL_DrawTextUnescape(
    //
    if (fUpdate && urect.w > 0)
    {
-      if (fShadow) urect.w++;
+      if (fShadow) urect.w++,urect.h++;
+#define PROT_OFFSET 10 //consider offset in custom font
+	  urect.x -= PROT_OFFSET;
+	  urect.w += 2 * PROT_OFFSET;
+	  urect.y -= PROT_OFFSET;
+	  urect.h += 2*PROT_OFFSET;
+	  if (urect.x < 0) urect.x = 0;
+	  if (urect.y < 0) urect.y = 0;
       if (urect.x + urect.w > 320)
       {
          urect.w = 320 - urect.x;
       }
+	  if (urect.y + urect.h > 200)
+	  {
+		  urect.h = 200 - urect.y;
+	  }
       VIDEO_UpdateScreen(&urect);
    }
 }
@@ -1228,7 +1237,7 @@ PAL_StartDialogWithOffset(
 
 --*/
 {
-   PAL_LARGE BYTE buf[16384];
+   PAL_LARGE BYTE buf[PAL_RLEBUFSIZE];
    SDL_Rect       rect;
 
    if (gpGlobals->fInBattle && !g_fUpdatedInBattle)
@@ -1265,7 +1274,7 @@ PAL_StartDialogWithOffset(
          //
          // Display the character face at the upper part of the screen
          //
-         if (PAL_MKFReadChunk(buf, 16384, iNumCharFace, gpGlobals->f.fpRGM) > 0)
+         if (PAL_MKFReadChunk(buf, PAL_RLEBUFSIZE, iNumCharFace, gpGlobals->f.fpRGM) > 0)
          {
             rect.w = PAL_RLEGetWidth((LPCBITMAPRLE)buf);
             rect.h = PAL_RLEGetHeight((LPCBITMAPRLE)buf);
@@ -1310,7 +1319,7 @@ PAL_StartDialogWithOffset(
          //
          // Display the character face at the lower part of the screen
          //
-         if (PAL_MKFReadChunk(buf, 16384, iNumCharFace, gpGlobals->f.fpRGM) > 0)
+         if (PAL_MKFReadChunk(buf, PAL_RLEBUFSIZE, iNumCharFace, gpGlobals->f.fpRGM) > 0)
          {
             rect.x = 270 - PAL_RLEGetWidth((LPCBITMAPRLE)buf) / 2 + xOff;
             rect.y = 144 - PAL_RLEGetHeight((LPCBITMAPRLE)buf) / 2 + yOff;
@@ -1694,7 +1703,7 @@ PAL_ShowDialogText(
    }
    else
    {
-      int len = wcslen(lpszText);
+      size_t len = wcslen(lpszText);
       if (g_TextLib.nCurrentDialogLine == 0 &&
           g_TextLib.bDialogPosition != kDialogCenter &&
 		  (lpszText[len - 1] == 0xff1a ||
@@ -1880,7 +1889,7 @@ PAL_SetCodePage(
 CODEPAGE
 PAL_DetectCodePageForString(
 	const char *   text,
-	int            text_len,
+	size_t         text_len,
 	CODEPAGE       default_cp,
 	int *          probability
 )
@@ -1947,9 +1956,9 @@ INT
 PAL_MultiByteToWideCharCP(
    CODEPAGE      cp,
    LPCSTR        mbs,
-   int           mbslength,
+   size_t        mbslength,
    LPWSTR        wcs,
-   int           wcslength
+   size_t        wcslength
 )
 /*++
   Purpose:

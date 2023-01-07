@@ -1,15 +1,14 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2020, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// it under the terms of the GNU General Public License, version 3
+// as published by the Free Software Foundation.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -608,7 +607,7 @@ PAL_SystemMenu(
       {
          AUDIO_PlayMusic(0, FALSE, 1);
          PAL_FadeOut(1);
-         PAL_InitGameData(iSlot);
+         PAL_ReloadInNextTick(iSlot);
       }
       break;
 
@@ -617,7 +616,7 @@ PAL_SystemMenu(
       // Music
       //
       AUDIO_EnableMusic(PAL_SwitchMenu(AUDIO_MusicEnabled()));
-      if (gConfig.eMusicType == MUSIC_MIDI)
+      if (gConfig.eMIDISynth == SYNTH_NATIVE && gConfig.eMusicType == MUSIC_MIDI)
       {
          AUDIO_PlayMusic(AUDIO_MusicEnabled() ? gpGlobals->wNumMusic : 0, AUDIO_MusicEnabled(), 0);
       }
@@ -674,7 +673,6 @@ PAL_InGameMagicMenu(
    int              i, y;
    static WORD      w;
    WORD             wMagic;
-   const SDL_Rect   rect = {35, 62, 285, 90};
 
    //
    // Draw the player info boxes
@@ -884,7 +882,6 @@ PAL_InventoryMenu(
 --*/
 {
    static WORD      w = 0;
-   const SDL_Rect   rect = {30, 60, 290, 60};
 
    MENUITEM        rgMenuItem[2] =
    {
@@ -952,7 +949,6 @@ PAL_InGameMenu(
 {
    LPBOX                lpCashBox, lpMenuBox;
    WORD                 wReturnValue;
-   const SDL_Rect       rect = {0, 0, 320, 185};
    
    // Fix render problem with shadow
    VIDEO_BackupScreen(gpScreen);
@@ -1059,7 +1055,7 @@ PAL_PlayerStatus(
 --*/
 {
    PAL_LARGE BYTE   bufBackground[320 * 200];
-   PAL_LARGE BYTE   bufImage[16384];
+   PAL_LARGE BYTE   bufImage[PAL_RLEBUFSIZE];
    PAL_LARGE BYTE   bufImageBox[50 * 49];
    int              labels0[] = {
       STATUS_LABEL_EXP, STATUS_LABEL_LEVEL, STATUS_LABEL_HP,
@@ -1121,7 +1117,7 @@ PAL_PlayerStatus(
       //
       // Draw the image of player role
       //
-      if (PAL_MKFReadChunk(bufImage, 16384, gpGlobals->g.PlayerRoles.rgwAvatar[iPlayerRole], gpGlobals->f.fpRGM) > 0)
+      if (PAL_MKFReadChunk(bufImage, PAL_RLEBUFSIZE, gpGlobals->g.PlayerRoles.rgwAvatar[iPlayerRole], gpGlobals->f.fpRGM) > 0)
       {
          PAL_RLEBlitToSurface(bufImage, gpScreen, gConfig.ScreenLayout.RoleImage);
       }
@@ -1143,7 +1139,7 @@ PAL_PlayerStatus(
          //
          // Draw the image
          //
-         if (PAL_MKFReadChunk(bufImage, 16384,
+         if (PAL_MKFReadChunk(bufImage, PAL_RLEBUFSIZE,
             gpGlobals->g.rgObject[w].item.wBitmap, gpGlobals->f.fpBALL) > 0)
          {
             PAL_RLEBlitToSurface(bufImage, gpScreen,
@@ -1592,7 +1588,6 @@ PAL_BuyMenu(
    MENUITEM        rgMenuItem[MAX_STORE_ITEM];
    int             i, y;
    WORD            w;
-   SDL_Rect        rect = {125, 8, 190, 190};
 
    //
    // create the menu items

@@ -56,7 +56,7 @@ differences between OPL2 and OPL3 shown in datasheets:
 */
 /*
  * SDLPAL
- * Copyright (c) 2011-2020, SDLPAL development team.
+ * Copyright (c) 2011-2022, SDLPAL development team.
  * All rights reserved.
  *
  * This file is part of SDLPAL.
@@ -790,7 +790,7 @@ static inline void advance(OPL3 *chip)
 			case EG_SUS:    /* sustain phase */
 
 				/* this is important behaviour:
-				one can change percusive/non-percussive modes on the fly and
+				one can change percussive/non-percussive modes on the fly and
 				the chip will remain in sustain phase - verified on real YM3812 */
 
 				if(op->eg_type)     /* non-percussive mode */
