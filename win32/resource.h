@@ -6,6 +6,7 @@
 #define IDI_SDLPAL                      101
 #define IDD_LAUNCHER                    101
 #define IDS_CONFIRM                     102
+#define IDS_INVALID                     103
 #define IDC_DEFAULT                     1000
 #define IDC_BRGAME                      1001
 #define IDC_GAMEPATH                    1002

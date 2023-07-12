@@ -108,6 +108,10 @@
 #  endif
 #  define strdup _strdup
 #  define access _access
+#  define R_OK 4
+#  define W_OK 2
+#  define X_OK 0
+#  define F_OK 0
 #  pragma warning (disable:4244)
 # endif
 

@@ -312,16 +312,36 @@ INT_PTR InitProc(HWND hwndDlg, HWND hwndCtrl, LPARAM lParam)
 
 	return TRUE;
 }
+// callback function
+INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
+{
+	if (uMsg == BFFM_INITIALIZED) SendMessage(hwnd, BFFM_SETSELECTION, TRUE, pData);
+	return 0;
+}
+
+BOOL validate()
+{
+	return access(gConfig.pszGamePath, R_OK) == F_OK;
+}
 
 INT_PTR ButtonProc(HWND hwndDlg, WORD idControl, HWND hwndCtrl)
 {
 	switch (idControl)
 	{
 	case IDOK:
-		gConfig.fLaunchSetting = FALSE;
-		SaveSettings(hwndDlg, TRUE);
-		EndDialog(hwndDlg, IDOK);
-		return TRUE;
+		if (validate()) {
+			gConfig.fLaunchSetting = FALSE;
+			SaveSettings(hwndDlg, TRUE);
+			EndDialog(hwndDlg, IDOK);
+			return TRUE;
+		}
+		else {
+			TCHAR szMsgInvalid[MAX_PATH];
+			char mbszMsgInvalid[MAX_PATH];
+			LoadStringEx(g_hInstance, IDS_INVALID, g_wLanguage, szMsgInvalid, MAX_PATH);
+			MessageBox(hwndDlg, szMsgInvalid, L"Alert!", MB_OK);
+			return TRUE;
+		}
 
 	case IDCANCEL:
 		EndDialog(hwndDlg, IDCANCEL);
@@ -334,16 +354,41 @@ INT_PTR ButtonProc(HWND hwndDlg, WORD idControl, HWND hwndCtrl)
 
 	case IDC_BRGAME:
 	{
-		TCHAR szName[MAX_PATH * 2], szTitle[200];
-		BROWSEINFO bi = { hwndDlg, nullptr, szName, szTitle, BIF_USENEWUI, nullptr, NULL, 0 };
+		static TCHAR szName[MAX_PATH * 2], szTitle[200], szCwd[MAX_PATH], szOldPath[MAX_PATH];
+#define CONCAT2(X, Y) X##Y
+#define CONCAT(X, Y) CONCAT2(X, Y)
+#define WIDEN(X) CONCAT(L, X)
+#define WPAL_PREFIX WIDEN(PAL_PREFIX)
+		static bool bSetuped = false;
+		int n = 0;
+		if (!bSetuped) {
+			_wgetcwd(szCwd, MAX_PATH);
+			n = _tcslen(szCwd);
+			if (szCwd[n - 1] != '\\') _tcscat(szCwd, L"\\");
+			if (gConfig.pszGamePath)
+				mbstowcs(szOldPath,gConfig.pszGamePath, MAX_PATH);
+			else
+				lstrcpyW(szOldPath, WPAL_PREFIX);
+			bSetuped = true;
+		}
+		if (lstrcmpiW(szOldPath, WPAL_PREFIX) == 0) {
+			lstrcpyW(szOldPath, szCwd);
+		}
+		BROWSEINFO bi = { hwndDlg, nullptr, szName, szTitle, BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE, BrowseCallbackProc, (LPARAM)szOldPath, 0 };
 		LoadStringEx(g_hInstance, IDC_BRGAME, g_wLanguage, szTitle, 200);
 		auto pidl = SHBrowseForFolder(&bi);
 		if (pidl)
 		{
 			SHGetPathFromIDList(pidl, szName);
-			int n = _tcslen(szName);
+			n = _tcslen(szName);
 			if (szName[n - 1] != '\\') _tcscat(szName, L"\\");
+			if (lstrcmpiW(szName, szCwd) == 0)
+				lstrcpyW(szName, WPAL_PREFIX);
 			SetDlgItemText(hwndDlg, IDC_GAMEPATH, szName);
+
+			lstrcpyW(szOldPath, szName);
+			gConfig.pszGamePath = (char*)realloc(gConfig.pszGamePath, n + 1);
+			GetDlgItemTextA(hwndDlg, IDC_GAMEPATH, gConfig.pszGamePath, n + 1);
 		}
 		return TRUE;
 	}

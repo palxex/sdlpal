@@ -193,6 +193,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_CONFIRM             "Confirm"
+    IDS_INVALID             "GamePath invalid"
 END
 
 STRINGTABLE
@@ -370,6 +371,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_CONFIRM             "确认"
+    IDS_INVALID             "资源目录不合法"
 END
 
 STRINGTABLE
@@ -521,6 +523,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_CONFIRM             "絋粄"
+    IDS_INVALID             "戈方戈Жぃ猭"
 END
 
 STRINGTABLE

@@ -497,6 +497,11 @@ main(
 
    PAL_LoadConfig(TRUE);
 
+   if (access(gConfig.pszGamePath, R_OK) != F_OK)
+   {
+       gConfig.fLaunchSetting = 1;
+   }
+
    //
    // Platform-specific initialization
    //
