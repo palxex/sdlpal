@@ -161,6 +161,16 @@ void SaveSettings(HWND hwndDlg, BOOL fWriteFile)
 		free(gConfig.pszShader); gConfig.pszShader = nullptr;
 	}
 
+	if (gConfig.pszSavePath && access(gConfig.pszSavePath, R_OK) != F_OK) {
+		free(gConfig.pszSavePath);
+		gConfig.pszSavePath = strdup(gConfig.pszGamePath);
+	}
+
+	if (gConfig.pszShaderPath && access(gConfig.pszShaderPath, R_OK) != F_OK) {
+		free(gConfig.pszShaderPath);
+		gConfig.pszShaderPath = strdup(gConfig.pszGamePath);
+	}
+
 	gConfig.fFullScreen = IsDlgButtonChecked(hwndDlg, IDC_FULLSCREEN) == BST_CHECKED;
 	gConfig.fUseTouchOverlay = IsDlgButtonChecked(hwndDlg, IDC_TOUCHOVERLAY) == BST_CHECKED;
 	gConfig.fEnableAviPlay = IsDlgButtonChecked(hwndDlg, IDC_ENABLEAVI) == BST_CHECKED;
