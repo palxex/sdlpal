@@ -22,6 +22,7 @@
 #include "font.h"
 #include "util.h"
 #include "text.h"
+#include "global.h"
 
 #define _FONT_C
 
@@ -30,6 +31,9 @@
 #include "fontglyph_tw.h"
 #include "fontglyph_jp.h"
 #include "ascii.h"
+
+#include <SDL_ttf.h>
+TTF_Font* gTTFFont;
 
 static int _font_height = 16;
 
@@ -228,6 +232,12 @@ PAL_LoadUserFont(
    int cstate = 0;
    int font_w_global = 0;
    int font_w = 16;
+
+#if HACK_TTF
+   if (strstr(pszBdfFileName, ".ttf") ||
+       strstr(pszBdfFileName, ".ttc"))
+       return;
+#endif
 
    FILE *fp = UTIL_OpenFileForMode(pszBdfFileName, "r");
 
@@ -506,6 +516,13 @@ PAL_InitFont(
       }
    }
 
+#if HACK_TTF
+   TTF_Init();
+   gTTFFont = TTF_OpenFont(gConfig.pszFontFile, TTF_SIZE);
+   if( !gTTFFont )
+       TerminateOnError(PAL_va("PAL_InitFont failed: %s cannot open!", gConfig.pszFontFile));
+#endif
+
    return 0;
 }
 
@@ -516,6 +533,10 @@ PAL_FreeFont(
 {
     free(font_offset_x);
     free(font_offset_y);
+#if HACK_TTF
+    TTF_CloseFont(gTTFFont);
+    TTF_Quit();
+#endif
 }
 
 void
@@ -527,6 +548,42 @@ PAL_DrawCharOnSurface(
 	BOOL                     fUse8x8Font
 )
 {
+#if HACK_TTF
+    wchar_t wText[2] = { 0 };
+    wText[0] = wChar;
+#  if TTF_BLEND
+    SDL_Color *pCurrentPalette = lpSurface->format->palette->colors;
+    SDL_Color forecol = pCurrentPalette[bColor];
+    SDL_Surface* text = TTF_RenderUNICODE_Blended(gTTFFont, wText, forecol);
+    SDL_Rect tRect = { PAL_X(pos), PAL_Y(pos), text->clip_rect.w, text->clip_rect.h };
+    SDL_BlitSurface(text, &text->clip_rect, lpSurface, &tRect);
+#  else
+    SDL_Color forecol = { 0xFF,0xFF,0xFF,0 };
+    SDL_Color bgcol = { 0,0,0,0 };
+    SDL_Surface* text = TTF_RenderUNICODE_Shaded(gTTFFont, wText, forecol, bgcol);
+    if (SDL_MUSTLOCK(lpSurface))
+    {
+        SDL_LockSurface(lpSurface);
+    }
+    LPBYTE dest = (LPBYTE)lpSurface->pixels + PAL_Y(pos) * lpSurface->pitch + PAL_X(pos);
+    LPBYTE top = (LPBYTE)lpSurface->pixels + lpSurface->h * lpSurface->pitch;
+    for (int i = 0; i < text->clip_rect.h && dest < top; i++, dest += lpSurface->pitch)
+    {
+        for (int j = 0; j < text->clip_rect.w; j++)
+        {
+            if (((LPBYTE)text->pixels)[i * text->pitch + j] != 0) //bg color index
+            {
+                dest[j] = bColor;
+            }
+        }
+    }
+    if (SDL_MUSTLOCK(lpSurface))
+    {
+        SDL_UnlockSurface(lpSurface);
+    }
+#  endif // TTF_BLEND
+    return;
+#else
 	int       i, j;
 	int       x = PAL_X(pos), y = PAL_Y(pos);
     int       x_offset, y_offset;
@@ -605,6 +662,7 @@ PAL_DrawCharOnSurface(
 			}
 		}
 	}
+#endif
 }
 
 int

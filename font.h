@@ -26,6 +26,10 @@
 #include "palcommon.h"
 #include "palcfg.h"
 
+#define HACK_TTF 1
+#define TTF_BLEND 0
+#define TTF_SIZE 32
+
 PAL_C_LINKAGE_BEGIN
 
 extern char *font_offset_x;

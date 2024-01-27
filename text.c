@@ -1140,6 +1140,9 @@ PAL_DrawTextUnescape(
       // Draw the character
       //
 	  int char_width = fUse8x8Font ? 8 : PAL_CharWidth(*lpszText);
+#if HACK_TTF
+	  char_width = TTF_SIZE;
+#endif
 
       if (fShadow)
       {
@@ -1156,6 +1159,10 @@ PAL_DrawTextUnescape(
    {
       if (fShadow) urect.w++,urect.h++;
 #define PROT_OFFSET 10 //consider offset in custom font
+#if HACK_TTF
+#undef PROT_OFFSET
+#define PROT_OFFSET 10+TTF_SIZE
+#endif
 	  urect.x -= PROT_OFFSET;
 	  urect.w += 2 * PROT_OFFSET;
 	  urect.y -= PROT_OFFSET;
@@ -1584,7 +1591,11 @@ TEXT_DisplayText(
                PAL_DrawNumber(text[0]-'0', 1, PAL_XY(x, y+4), kNumColorYellow, kNumAlignLeft);
             else
                PAL_DrawTextUnescape(text, PAL_XY(x, y), color, !isDialog, !isDialog && !g_TextLib.fUserSkip, FALSE, FALSE);
-            x += PAL_CharWidth(text[0]);
+#if HACK_TTF
+			x += TTF_SIZE;
+#else
+			x += PAL_CharWidth(text[0]);
+#endif
             
             if (!isDialog && !g_TextLib.fUserSkip)
             {
@@ -1650,7 +1661,13 @@ PAL_ShowDialogText(
    }
 
    x = PAL_X(g_TextLib.posDialogText);
-   y = PAL_Y(g_TextLib.posDialogText) + g_TextLib.nCurrentDialogLine * 18;
+   int multiplier =
+#if HACK_TTF
+	   TTF_SIZE + 2;
+#else
+	   18;
+#endif
+   y = PAL_Y(g_TextLib.posDialogText) + g_TextLib.nCurrentDialogLine * multiplier;
 
    if (g_TextLib.bDialogPosition == kDialogCenterWindow)
    {
