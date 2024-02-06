@@ -702,6 +702,22 @@ VOID
    }
 }
 
+SHORT
+PAL_JoystickGetAxis(
+    INT axis
+)
+/*++
+  Purpose:
+    Get the current state of an axis control on a joystick.
+  Parameters:
+    [IN] axis - The axis to query.
+  Return value:
+    Current state of the requested axis control.
+ --*/
+{
+    return SDL_JoystickGetAxis(g_pJoy, axis);
+}
+
 #endif
 
 #if PAL_HAS_TOUCH

@@ -933,6 +933,13 @@ const char *get_gl_profile(int flags) {
     }
 }
 
+void UseActualResolution() {
+    SDL_DisplayMode DM;
+    SDL_GetCurrentDisplayMode(0, &DM);
+    gConfig.dwScreenWidth = DM.w;
+    gConfig.dwScreenHeight = DM.h;
+}
+
 int get_SDL_GLAttribute(SDL_GLattr attr) {
     int orig_value;
     SDL_GL_GetAttribute(attr, &orig_value);
@@ -958,6 +965,15 @@ void VIDEO_GLSL_Init() {
 #endif
 
     Uint32 flags = PAL_VIDEO_INIT_FLAGS | SDL_WINDOW_OPENGL;
+
+#ifdef __SWITCH__
+    //
+    // since switch will change native resolution between handheld/docked Mode 
+    // and KeepAspectRatio on DKP SDL not work well with non-native resolution
+    //
+    if(gConfig.fKeepAspectRatio)
+        UseActualResolution();
+#endif
     
     UTIL_LogOutput(LOGLEVEL_DEBUG, "requesting to create window with flags: %s %s profile latest available\n", SDL_GetHint( SDL_HINT_RENDER_DRIVER ),  get_gl_profile(get_SDL_GLAttribute(SDL_GL_CONTEXT_PROFILE_MASK)));
     gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, gConfig.dwScreenWidth, gConfig.dwScreenHeight, flags);
@@ -996,7 +1012,7 @@ void VIDEO_GLSL_Setup() {
     char *glslversion = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     SDL_sscanf(glversion, "%d.%d", &glversion_major, &glversion_minor);
     if(!strncmp(rendererInfo.name, "opengl", 6)) {
-#     ifndef __APPLE__
+#     if !defined(__APPLE__) && !defined(__SWITCH__)
         if (!initGLExtensions(glversion_major))
             UTIL_LogOutput(LOGLEVEL_FATAL,  "Couldn't init GL extensions!\n" );
 #     endif
@@ -1041,7 +1057,9 @@ void VIDEO_GLSL_Setup() {
     VAOSupported = 0;
 #endif
 #endif
-    
+
+    UTIL_LogOutput(LOGLEVEL_DEBUG, "GLSL version:%d.%d\n", glslversion_major, glslversion_minor);
+
     struct VertexDataFormat vData[ 4 ];
     GLuint iData[ 4 ];
     //Set rendering indices
@@ -1090,6 +1108,7 @@ void VIDEO_GLSL_Setup() {
             FILE *fp = UTIL_OpenFileForMode(MID_GLSLP, "w");
             fputs( PAL_va( 0, glslp_template, gConfig.pszShader, gConfig.pszShader, gConfig.dwTextureWidth, gConfig.dwTextureHeight, "false" ), fp );
             fclose(fp);
+            UTIL_LogOutput(LOGLEVEL_DEBUG, "[PASS 2] finish loading %s\n", gConfig.pszShader);
             origGLSL = gConfig.pszShader;
             gConfig.pszShader = strdup(MID_GLSLP);
         }else{
