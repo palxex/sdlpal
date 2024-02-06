@@ -835,6 +835,7 @@ SDL_Texture *VIDEO_GLSL_CreateTexture(int width, int height)
         
         WORD w = (WORD)(ratio * gConfig.dwTextureWidth) & ~0x3;
         WORD h = (WORD)(ratio * gConfig.dwTextureHeight) & ~0x3;
+
         gTextureRect.x = (width - w) / 2;
         gTextureRect.y = (height - h) / 2;
         gTextureRect.w = w; gTextureRect.h = h;
@@ -1054,7 +1055,7 @@ void VIDEO_GLSL_Setup() {
     char *glslversion = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     SDL_sscanf(glversion, "%d.%d", &glversion_major, &glversion_minor);
     if(!strncmp(pszRenderName, "opengl", 6)) {
-#     ifndef __APPLE__
+#     if !defined(__APPLE__) && !defined(__SWITCH__)
         if (!initGLExtensions(glversion_major))
             UTIL_LogOutput(LOGLEVEL_FATAL,  "Couldn't init GL extensions!\n" );
 #     endif

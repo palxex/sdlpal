@@ -37,6 +37,9 @@
 #			include <SDL_opengles.h>
 #			include <SDL_opengles2.h>
 #		endif
+#       if __SWITCH__
+#			include <GLES3/gl3.h>
+#       endif
 #endif
 
 #if __IOS__
@@ -46,12 +49,12 @@
 #define glBindVertexArray glBindVertexArrayOES
 #endif
 
-#if __IOS__ || __ANDROID__ || __EMSCRIPTEN__ || __WINRT__ || SDL_VIDEO_DRIVER_RPI
+#if __IOS__ || __ANDROID__ || __EMSCRIPTEN__ || __WINRT__ || SDL_VIDEO_DRIVER_RPI || __SWITCH__
 #define GLES 1
 #undef FORCE_OPENGL_CORE_PROFILE
 #endif
 
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__SWITCH__)
 
 //avoid manually imported glfuncs conflicts with platform-builtin ones, like emscripten
 #define glCreateShader _glCreateShader
