@@ -201,6 +201,16 @@ UTIL_GetScreenSize(
 	DWORD *pdwScreenHeight
 )
 {
+	if( gConfig.fKeepAspectRatio ) {
+		SDL_DisplayMode DM;
+		int ret = SDL_GetCurrentDisplayMode(0, &DM);
+		if(ret == 0){
+			*pdwScreenWidth = DM.w;
+			*pdwScreenHeight = DM.h;
+		}
+		return ret == 0;
+	}
+	else
 	return FALSE;
 }
 
@@ -212,11 +222,16 @@ UTIL_IsAbsolutePath(
 	return FALSE;
 }
 
+void LOG_to_stdio(LOGLEVEL level, const char *full_log, const char *user_log){
+       printf(full_log);
+}
+
 int UTIL_Platform_Startup(
 	int argc,
 	char* argv[]
 )
 {
+	//UTIL_LogAddOutputCallback(LOG_to_stdio, gConfig.iLogLevel);
 	return 0;
 }
 
