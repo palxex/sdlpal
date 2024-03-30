@@ -12,8 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
     - name: submodules
       run: |
         sed -i.bak 's#\.\./#https://github.com/sdlpal/#g' .gitmodules
