@@ -36,7 +36,7 @@ CONFIGURATION gConfig;
       int i;                                                     \
       for (i = 0; i < (size) / 2; i++)                           \
       {                                                          \
-         ((LPWORD)(buf))[i] = SDL_SwapLE16(((LPWORD)(buf))[i]);  \
+         ((LPWORD)(buf))[i] = SDL_Swap16LE(((LPWORD)(buf))[i]);  \
       }                                                          \
    } while(0)
 #endif

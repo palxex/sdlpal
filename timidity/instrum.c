@@ -20,7 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "timidity.h"
 #include "options.h"
@@ -156,7 +156,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 {
   Instrument *ip;
   Sample *sp;
-  SDL_RWops *rw;
+  SDL_IOStream *rw;
   char tmp[1024];
   int i,j,noluck=0;
   static char *patch_ext[] = PATCH_EXT_LIST;
@@ -194,13 +194,13 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
   /* Read some headers and do cursory sanity checks. There are loads
      of magic offsets. This could be rewritten... */
 
-  if ((239 != SDL_RWread(rw, tmp, 1, 239)) ||
+  if ((239 != SDL_ReadIO(rw, tmp, 1, 239)) ||
       (memcmp(tmp, "GF1PATCH110\0ID#000002", 22) &&
        memcmp(tmp, "GF1PATCH100\0ID#000002", 22))) /* don't know what the
 						      differences are */
     {
       SNDDBG(("%s: not an instrument\n", name));
-      SDL_RWclose(rw);
+      SDL_CloseIO(rw);
       return 0;
     }
   
@@ -208,14 +208,14 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 				       0 means 1 */
     {
       SNDDBG(("Can't handle patches with %d instruments\n", tmp[82]));
-      SDL_RWclose(rw);
+      SDL_CloseIO(rw);
       return 0;
     }
 
   if (tmp[151] != 1 && tmp[151] != 0) /* layers. What's a layer? */
     {
       SNDDBG(("Can't handle instruments with %d layers\n", tmp[151]));
-      SDL_RWclose(rw);
+      SDL_CloseIO(rw);
       return 0;
     }
   
@@ -231,18 +231,18 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
       Uint8 tmpchar;
 
 #define READ_CHAR(thing) \
-      if (1 != SDL_RWread(rw, &tmpchar, 1, 1)) goto fail; \
+      if (1 != SDL_ReadIO(rw, &tmpchar, 1, 1)) goto fail; \
       thing = tmpchar;
 #define READ_SHORT(thing) \
-      if (1 != SDL_RWread(rw, &tmpshort, 2, 1)) goto fail; \
-      thing = SDL_SwapLE16(tmpshort);
+      if (1 != SDL_ReadIO(rw, &tmpshort, 2, 1)) goto fail; \
+      thing = SDL_Swap16LE(tmpshort);
 #define READ_LONG(thing) \
-      if (1 != SDL_RWread(rw, &tmplong, 4, 1)) goto fail; \
-      thing = SDL_SwapLE32(tmplong);
+      if (1 != SDL_ReadIO(rw, &tmplong, 4, 1)) goto fail; \
+      thing = SDL_Swap32LE(tmplong);
 
-      SDL_RWseek(rw, 7, RW_SEEK_CUR); /* Skip the wave name */
+      SDL_SeekIO(rw, 7, SDL_IO_SEEK_CUR); /* Skip the wave name */
 
-      if (1 != SDL_RWread(rw, &fractions, 1, 1))
+      if (1 != SDL_ReadIO(rw, &fractions, 1, 1))
 	{
 	fail:
 	  SNDDBG(("Error reading sample %d\n", i));
@@ -250,7 +250,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 	    free(ip->sample[j].data);
 	  free(ip->sample);
 	  free(ip);
-	  SDL_RWclose(rw);
+	  SDL_CloseIO(rw);
 	  return 0;
 	}
 
@@ -263,7 +263,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
       READ_LONG(sp->low_freq);
       READ_LONG(sp->high_freq);
       READ_LONG(sp->root_freq);
-      SDL_RWseek(rw, 2, RW_SEEK_CUR); /* Why have a "root frequency" and then
+      SDL_SeekIO(rw, 2, SDL_IO_SEEK_CUR); /* Why have a "root frequency" and then
 				    * "tuning"?? */
       
       READ_CHAR(tmp[0]);
@@ -274,7 +274,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 	sp->panning=(Uint8)(panning & 0x7F);
 
       /* envelope, tremolo, and vibrato */
-      if (18 != SDL_RWread(rw, tmp, 1, 18)) goto fail; 
+      if (18 != SDL_ReadIO(rw, tmp, 1, 18)) goto fail; 
 
       if (!tmp[13] || !tmp[14])
 	{
@@ -312,7 +312,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 
       READ_CHAR(sp->modes);
 
-      SDL_RWseek(rw, 40, RW_SEEK_CUR); /* skip the useless scale frequency, scale
+      SDL_SeekIO(rw, 40, SDL_IO_SEEK_CUR); /* skip the useless scale frequency, scale
 				       factor (what's it mean?), and reserved
 				       space */
 
@@ -385,7 +385,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 
       /* Then read the sample data */
       sp->data = (sample_t *) safe_malloc(sp->data_length+4);
-      if (1 != SDL_RWread(rw, sp->data, sp->data_length, 1))
+      if (1 != SDL_ReadIO(rw, sp->data, sp->data_length, 1))
 	goto fail;
       
       if (!(sp->modes & MODES_16BIT)) /* convert to 16-bit data */
@@ -410,7 +410,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 	  Sint16 *tmp16=(Sint16 *)sp->data,s;
 	  while (k--)
 	    {
-	      s=SDL_SwapLE16(*tmp16);
+	      s=SDL_Swap16LE(*tmp16);
 	      *tmp16++=s;
 	    }
 	}
@@ -503,7 +503,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 	}
     }
 
-  SDL_RWclose(rw);
+  SDL_CloseIO(rw);
   return ip;
 }
 

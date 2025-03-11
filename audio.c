@@ -252,7 +252,7 @@ AUDIO_OpenDevice(
    // Open the audio device.
    //
    gAudioDevice.spec.freq = gConfig.iSampleRate;
-   gAudioDevice.spec.format = AUDIO_S16SYS;
+   gAudioDevice.spec.format = SDL_AUDIO_S16;
    gAudioDevice.spec.channels = gConfig.iAudioChannels;
    gAudioDevice.spec.samples = gConfig.wAudioBufferSize;
    gAudioDevice.spec.callback = AUDIO_FillBuffer;

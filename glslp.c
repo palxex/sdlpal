@@ -331,7 +331,7 @@ char *get_glslp_path(const char *filename) {
     char *path = (char*)filename;
     if( !UTIL_IsAbsolutePath(filename) )
         path = PAL_va(0, "%s%s%s", gConfig.pszShaderPath, PAL_NATIVE_PATH_SEPARATOR, filename);
-#if __WINRT__
+#if __WINRT__ /* __WINRT__ has been removed in SDL3 */
     //seems M$ decided fobidden parent referencing. avoid sandbox escaping?
 	GLSLP_reflow(path);
 #endif

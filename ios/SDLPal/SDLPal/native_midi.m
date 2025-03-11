@@ -22,10 +22,10 @@
 // Copyright (C) 2017  SDLPal team
 //
 
-#include "SDL_config.h"
+#include <SDL3/SDL_config.h>
 
-#include "SDL.h"
-#include "SDL_endian.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_endian.h>
 #include "native_midi/native_midi.h"
 
 #import <Foundation/Foundation.h>
@@ -55,16 +55,16 @@ int native_midi_detect()
 NativeMidiSong *native_midi_loadsong(const char *midifile)
 {
     NativeMidiSong *retval = NULL;
-    SDL_RWops *rw = SDL_RWFromFile(midifile, "rb");
+    SDL_IOStream *rw = SDL_IOFromFile(midifile, "rb");
     if (rw != NULL) {
         retval = native_midi_loadsong_RW(rw);
-        SDL_RWclose(rw);
+        SDL_CloseIO(rw);
     }
     
     return retval;
 }
 
-NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
+NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw)
 {
     NativeMidiSong *retval = (NativeMidiSong *)malloc(sizeof(NativeMidiSong));
     char midiInterFile[PATH_MAX];
@@ -74,7 +74,7 @@ NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
     {
         char buf[4096];
         size_t bytes;
-        while((bytes = SDL_RWread(rw, buf, sizeof(char), sizeof(buf)))!=0)
+        while((bytes = SDL_ReadIO(rw, buf, sizeof(char), sizeof(buf)))!=0)
             fwrite(buf, sizeof(char), bytes, fp);
         fclose(fp);
         

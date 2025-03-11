@@ -20,7 +20,7 @@
 
 #ifndef _SDL_config_h
 #define _SDL_config_h
-#include "SDL_platform.h"
+#include <SDL3/SDL_platform.h>
 
 /* C datatypes */
 #define SDL_HAS_64BIT_TYPE 1
@@ -52,13 +52,13 @@
 #define HAVE_NANOSLEEP 1
 
 /* Enable various drivers */
-#define SDL_AUDIO_DRIVER_DUMMY 1
+#define SDL_AUDIO_DRIVER_DUMMY /* SDL_AUDIO_DRIVER_DUMMY has been removed in SDL3 */ 1
 #define SDL_CDROM_DISABLED 1
-#define SDL_JOYSTICK_DISABLED 1
-#define SDL_LOADSO_DISABLED 1
-#define SDL_THREAD_PTHREAD 1
-#define SDL_THREAD_PTHREAD_RECURSIVE_MUTEX 1
-#define SDL_TIMER_UNIX 1
-#define SDL_VIDEO_DRIVER_DUMMY 1
+#define SDL_JOYSTICK_DISABLED /* SDL_JOYSTICK_DISABLED has been removed in SDL3 */ 1
+#define SDL_LOADSO_DISABLED /* SDL_LOADSO_DISABLED has been removed in SDL3 */ 1
+#define SDL_THREAD_PTHREAD /* SDL_THREAD_PTHREAD has been removed in SDL3 */ 1
+#define SDL_THREAD_PTHREAD_RECURSIVE_MUTEX /* SDL_THREAD_PTHREAD_RECURSIVE_MUTEX has been removed in SDL3 */ 1
+#define SDL_TIMER_UNIX /* SDL_TIMER_UNIX has been removed in SDL3 */ 1
+#define SDL_VIDEO_DRIVER_DUMMY /* SDL_VIDEO_DRIVER_DUMMY has been removed in SDL3 */ 1
 
 #endif /* _SDL_config_h */

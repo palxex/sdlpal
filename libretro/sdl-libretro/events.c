@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include <SDL_libretro.h>
+#include <SDL3/SDL_libretro.h>
 #include "../../3rd/SDL/src/video/dummy/SDL_nullevents_c.h"
 
 void DUMMY_PumpEvents(_THIS)

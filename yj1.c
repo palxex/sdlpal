@@ -119,10 +119,10 @@ static unsigned short
 		if (yj1_get_bits(src, bitptr, 1))
 			return yj1_get_bits(src, bitptr, header->LZSSRepeatCodeLengthTable[temp - 1]);
 		else
-			return SDL_SwapLE16(header->LZSSRepeatTable[temp]);
+			return SDL_Swap16LE(header->LZSSRepeatTable[temp]);
 	}
 	else
-		return SDL_SwapLE16(header->LZSSRepeatTable[0]);
+		return SDL_Swap16LE(header->LZSSRepeatTable[0]);
 }
 
 INT
@@ -140,9 +140,9 @@ INT
 
 	if (Source == NULL)
 		return -1;
-	if (SDL_SwapLE32(hdr->Signature) != 0x315f4a59)
+	if (SDL_Swap32LE(hdr->Signature) != 0x315f4a59)
 		return -1;
-	if (SDL_SwapLE32(hdr->UncompressedLength) > (unsigned int)DestSize)
+	if (SDL_Swap32LE(hdr->UncompressedLength) > (unsigned int)DestSize)
 		return -1;
 
 	do
@@ -174,16 +174,16 @@ INT
 
 	dest = (unsigned char *)Destination;
 
-	for (i = 0; i < SDL_SwapLE16(hdr->BlockCount); i++)
+	for (i = 0; i < SDL_Swap16LE(hdr->BlockCount); i++)
 	{
 		unsigned int bitptr;
 		PYJ_1_BLOCKHEADER header;
 
 		header = (PYJ_1_BLOCKHEADER)src;
 		src += 4;
-		if (!SDL_SwapLE16(header->CompressedLength))
+		if (!SDL_Swap16LE(header->CompressedLength))
 		{
-			unsigned short hul = SDL_SwapLE16(header->UncompressedLength);
+			unsigned short hul = SDL_Swap16LE(header->UncompressedLength);
 			while (hul--)
 			{
 				*dest++ = *src++;
@@ -227,11 +227,11 @@ INT
 				}
 			}
 		}
-		src = ((unsigned char *)header) + SDL_SwapLE16(header->CompressedLength);
+		src = ((unsigned char *)header) + SDL_Swap16LE(header->CompressedLength);
 	}
 	free(root);
 
-	return SDL_SwapLE32(hdr->UncompressedLength);
+	return SDL_Swap32LE(hdr->UncompressedLength);
 }
 
 /* ============================================================================================================================================= */
@@ -373,7 +373,7 @@ INT
 	if (!yj2_build_tree(&tree))
 		return -1;
 
-	Length = SDL_SwapLE32(*((unsigned int*)Source));
+	Length = SDL_Swap32LE(*((unsigned int*)Source));
 	if (Length > DestSize)
 		return -1;
 	dest = (unsigned char*)Destination;

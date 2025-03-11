@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "timidity.h"
 
@@ -40,7 +40,7 @@ static char g_config_path[256] = "";
 
 /* Quick-and-dirty fgets() replacement. */
 
-static char *RWgets(SDL_RWops *rw, char *s, int size)
+static char *RWgets(SDL_IOStream *rw, char *s, int size)
 {
     int num_read = 0;
     char *p = s;
@@ -49,7 +49,7 @@ static char *RWgets(SDL_RWops *rw, char *s, int size)
 
     for (; num_read < size; ++p)
     {
-	if (SDL_RWread(rw, p, 1, 1) != 1)
+	if (SDL_ReadIO(rw, p, 1, 1) != 1)
 	    break;
 
 	num_read++;
@@ -72,7 +72,7 @@ static char *RWgets(SDL_RWops *rw, char *s, int size)
 
 static int read_config_file(const char *name)
 {
-  SDL_RWops *rw;
+  SDL_IOStream *rw;
   char tmp[1024], *w[MAXWORDS], *cp;
   ToneBank *bank=0;
   int i, j, k, line=0, words;
@@ -227,7 +227,7 @@ static int read_config_file(const char *name)
 	status = read_config_file(w[i]);
 	rcf_count--;
 	if (status != 0) {
-	  SDL_RWclose(rw);
+	  SDL_CloseIO(rw);
 	  return status;
 	}
       }
@@ -399,10 +399,10 @@ static int read_config_file(const char *name)
       }
     }
   }
-  SDL_RWclose(rw);
+  SDL_CloseIO(rw);
   return 0;
 fail:
-  SDL_RWclose(rw);
+  SDL_CloseIO(rw);
   return -2;
 }
 
@@ -471,7 +471,7 @@ int Timidity_Init(char *config_path, char *config_file)
   return 0;
 }
 
-MidiSong *Timidity_LoadSong(SDL_RWops *rw, SDL_AudioSpec *audio)
+MidiSong *Timidity_LoadSong(SDL_IOStream *rw, SDL_AudioSpec *audio)
 {
   MidiSong *song;
   int i;
@@ -523,16 +523,16 @@ MidiSong *Timidity_LoadSong(SDL_RWops *rw, SDL_AudioSpec *audio)
       return NULL;
   }
   switch (audio->format) {
-  case AUDIO_S8:
+  case SDL_AUDIO_S8:
 	  song->write = s32tos8;
 	  break;
-  case AUDIO_U8:
+  case SDL_AUDIO_U8:
 	  song->write = s32tou8;
 	  break;
-  case AUDIO_S16LSB:
+  case SDL_AUDIO_S16LE:
 	  song->write = s32tos16l;
 	  break;
-  case AUDIO_S16MSB:
+  case SDL_AUDIO_S16BE:
 	  song->write = s32tos16b;
 	  break;
   case AUDIO_U16LSB:
@@ -542,13 +542,13 @@ MidiSong *Timidity_LoadSong(SDL_RWops *rw, SDL_AudioSpec *audio)
 	  song->write = s32tou16b;
 	  break;
 #if SDL_VERSION_ATLEAST(2,0,0)
-  case AUDIO_S32LSB:
+  case SDL_AUDIO_S32LE:
 	  song->write = s32tos32l;
 	  break;
-  case AUDIO_S32MSB:
+  case SDL_AUDIO_S32BE:
 	  song->write = s32tos32b;
 	  break;
-  case AUDIO_F32SYS:
+  case SDL_AUDIO_F32:
 	  song->write = s32tof32;
 	  break;
 #endif

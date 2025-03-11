@@ -43,8 +43,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "SDL.h"
-#include "SDL_endian.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_endian.h>
 
 #define __WIDETEXT(quote) L##quote
 #define WIDETEXT(quote) __WIDETEXT(quote)
@@ -122,7 +122,7 @@ typedef const BYTE *LPCBYTE;
 
 # include <unistd.h>
 # include <dirent.h>
-# ifdef __APPLE__
+# ifdef SDL_PLATFORM_APPLE
 #  include <objc/objc.h>
 # endif
 
@@ -145,7 +145,7 @@ typedef unsigned char       UCHAR, *PUCHAR;
 typedef unsigned short      WORD, *LPWORD;
 typedef unsigned int        DWORD, *LPDWORD;
 typedef int                 INT, *LPINT;
-# if !defined( __APPLE__ ) && !defined( GEKKO )
+# if !defined( SDL_PLATFORM_APPLE ) && !defined( GEKKO )
 typedef int                 BOOL, *LPBOOL;
 # endif
 typedef unsigned int        UINT, *PUINT, UINT32, *PUINT32;

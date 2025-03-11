@@ -435,7 +435,7 @@ PAL_EndingScreen(
 
 		PAL_FadeOut(1);
 
-		SDL_FillRect(gpScreen, NULL, 0);
+		SDL_FillSurfaceRect(gpScreen, NULL, 0);
 		gpGlobals->wNumPalette = 4;
 		gpGlobals->fNeedToFadeIn = TRUE;
 		PAL_EndingAnimation();
@@ -448,13 +448,13 @@ PAL_EndingScreen(
 			AUDIO_PlayMusic(0x11, TRUE, 0);
 		}
 
-		SDL_FillRect(gpScreen, NULL, 0);
+		SDL_FillSurfaceRect(gpScreen, NULL, 0);
 		PAL_SetPalette(0, FALSE);
 		PAL_RNGPlay(0xb, 0, -1, 7);
 
 		PAL_FadeOut(2);
 
-		SDL_FillRect(gpScreen, NULL, 0);
+		SDL_FillSurfaceRect(gpScreen, NULL, 0);
 		gpGlobals->wNumPalette = 8;
 		gpGlobals->fNeedToFadeIn = TRUE;
 		PAL_RNGPlay(10, 0, -1, 6);

@@ -21,8 +21,8 @@
 */
 
 #include "mad.h"
-#include "SDL_rwops.h"
-#include "SDL_audio.h"
+#include <SDL3/SDL_rwops.h>
+#include <SDL3/SDL_audio.h>
 
 #define MAD_INPUT_BUFFER_SIZE	(5*8192)
 #define MAD_OUTPUT_BUFFER_SIZE	8192
@@ -39,7 +39,7 @@ enum {
 };
 
 typedef struct {
-  SDL_RWops *rw;
+  SDL_IOStream *rw;
   void *resampler[2];	/* SDLPAL: Avoid to use SDL's stupid resampler */
   struct mad_stream stream;
   struct mad_frame frame;
@@ -58,7 +58,7 @@ typedef struct {
 } mad_data;
 
 mad_data *mad_openFile(const char *filename, SDL_AudioSpec *mixer, int resampler_quality);
-mad_data *mad_openFileRW(SDL_RWops *rw, SDL_AudioSpec *mixer, int resampler_quality);
+mad_data *mad_openFileRW(SDL_IOStream *rw, SDL_AudioSpec *mixer, int resampler_quality);
 void mad_closeFile(mad_data *mp3_mad);
 
 void mad_start(mad_data *mp3_mad);

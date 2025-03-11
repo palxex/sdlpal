@@ -23,7 +23,7 @@
 
 #include "native_midi_common.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -277,7 +277,7 @@ static MIDIEvent *MIDItoStream(MIDIFile *mididata)
 	return currentEvent;
 }
 
-static int ReadMIDIFile(MIDIFile *mididata, SDL_RWops *rw)
+static int ReadMIDIFile(MIDIFile *mididata, SDL_IOStream *rw)
 {
 	int i = 0;
 	Uint32	ID;
@@ -292,23 +292,23 @@ static int ReadMIDIFile(MIDIFile *mididata, SDL_RWops *rw)
 		return 0;
 
 	/* Make sure this is really a MIDI file */
-	SDL_RWread(rw, &ID, 1, 4);
+	SDL_ReadIO(rw, &ID, 1, 4);
 	if (BE_LONG(ID) != 'MThd')
 		return 0;
 
 	/* Header size must be 6 */
-	SDL_RWread(rw, &size, 1, 4);
+	SDL_ReadIO(rw, &size, 1, 4);
 	size = BE_LONG(size);
 	if (size != 6)
 		return 0;
 
 	/* We only support format 0 and 1, but not 2 */
-	SDL_RWread(rw, &format, 1, 2);
+	SDL_ReadIO(rw, &format, 1, 2);
 	format = BE_SHORT(format);
 	if (format != 0 && format != 1)
 		return 0;
 
-	SDL_RWread(rw, &tracks, 1, 2);
+	SDL_ReadIO(rw, &tracks, 1, 2);
 	tracks = BE_SHORT(tracks);
 	mididata->nTracks = tracks;
     
@@ -321,14 +321,14 @@ static int ReadMIDIFile(MIDIFile *mididata, SDL_RWops *rw)
     }
     
 	/* Retrieve the PPQN value, needed for playback */
-	SDL_RWread(rw, &division, 1, 2);
+	SDL_ReadIO(rw, &division, 1, 2);
 	mididata->division = BE_SHORT(division);
 	
 	
 	for (i=0; i<tracks; i++)
 	{
-		SDL_RWread(rw, &ID, 1, 4);	/* We might want to verify this is MTrk... */
-		SDL_RWread(rw, &size, 1, 4);
+		SDL_ReadIO(rw, &ID, 1, 4);	/* We might want to verify this is MTrk... */
+		SDL_ReadIO(rw, &size, 1, 4);
 		size = BE_LONG(size);
 		mididata->track[i].len = size;
 		mididata->track[i].data = malloc(size);
@@ -337,7 +337,7 @@ static int ReadMIDIFile(MIDIFile *mididata, SDL_RWops *rw)
 			printf("Out of memory");
 			goto bail;
 		}
-		SDL_RWread(rw, mididata->track[i].data, 1, size);
+		SDL_ReadIO(rw, mididata->track[i].data, 1, size);
 	}
 	return 1;
 
@@ -351,7 +351,7 @@ bail:
 	return 0;
 }
 
-MIDIEvent *CreateMIDIEventList(SDL_RWops *rw, Uint16 *division)
+MIDIEvent *CreateMIDIEventList(SDL_IOStream *rw, Uint16 *division)
 {
 	MIDIFile *mididata = NULL;
 	MIDIEvent *eventList;

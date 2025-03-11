@@ -23,7 +23,7 @@
 #include "native_midi/native_midi_common.h"
 #include "palcfg.h"
 
-#include <SDL_thread.h>
+#include <SDL3/SDL_thread.h>
 #include <alsa/asoundlib.h>
 
 
@@ -668,16 +668,16 @@ int native_midi_detect()
 NativeMidiSong *native_midi_loadsong(const char *midifile)
 {
     // Attempt to load the midi file
-    SDL_RWops *rw = SDL_RWFromFile(midifile, "rb");
+    SDL_IOStream *rw = SDL_IOFromFile(midifile, "rb");
     if (rw == NULL) return NULL;
 
     NativeMidiSong *song = native_midi_loadsong_RW(rw);
-    SDL_RWclose(rw);
+    SDL_CloseIO(rw);
     return song;
 }
 
 
-NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
+NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw)
 {
     NativeMidiSong *song = calloc(1, sizeof(NativeMidiSong));
     if (song == NULL) return NULL;

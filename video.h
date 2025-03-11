@@ -30,7 +30,7 @@
 #define VIDEO_CopyEntireSurface(s, t)   SDL_BlitSurface((s), NULL, (t), NULL)
 #define VIDEO_BackupScreen(s)           SDL_BlitSurface((s), NULL, gpScreenBak, NULL)
 #define VIDEO_RestoreScreen(t)          SDL_BlitSurface(gpScreenBak, NULL, (t), NULL)
-#define VIDEO_FreeSurface(s)            SDL_FreeSurface(s)
+#define VIDEO_FreeSurface(s)            SDL_DestroySurface(s)
 
 PAL_C_LINKAGE_BEGIN
 

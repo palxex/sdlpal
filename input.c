@@ -39,7 +39,7 @@ static SDL_Joystick     *g_pJoy = NULL;
 # define SDLK_KP_9     SDLK_KP9
 # define SDLK_KP_0     SDLK_KP0
 
-# define SDL_JoystickNameForIndex    SDL_JoystickName
+# define SDL_JoystickNameForIndex    SDL_GetJoystickName
 # define SDL_GetKeyboardState        SDL_GetKeyState
 # define SDL_GetScancodeFromKey(x)   (x)
 #endif
@@ -80,14 +80,14 @@ static const int g_KeyMap[][2] = {
    { SDLK_KP_7,      kKeyHome },
    { SDLK_END,       kKeyEnd },
    { SDLK_KP_1,      kKeyEnd },
-   { SDLK_r,         kKeyRepeat },
-   { SDLK_a,         kKeyAuto },
-   { SDLK_d,         kKeyDefend },
-   { SDLK_e,         kKeyUseItem },
-   { SDLK_w,         kKeyThrowItem },
-   { SDLK_q,         kKeyFlee },
-   { SDLK_f,         kKeyForce },
-   { SDLK_s,         kKeyStatus }
+   { SDLK_R,         kKeyRepeat },
+   { SDLK_A,         kKeyAuto },
+   { SDLK_D,         kKeyDefend },
+   { SDLK_E,         kKeyUseItem },
+   { SDLK_W,         kKeyThrowItem },
+   { SDLK_Q,         kKeyFlee },
+   { SDLK_F,         kKeyForce },
+   { SDLK_S,         kKeyStatus }
 };
 
 #if PAL_HAS_JOYSTICKS
@@ -117,7 +117,7 @@ PAL_DetectJoystick(
         {
             if (PAL_IS_VALID_JOYSTICK(SDL_JoystickNameForIndex(i)))
             {
-                g_pJoy = SDL_JoystickOpen(i);
+                g_pJoy = SDL_OpenJoystick(i);
                 break;
             }
         }
@@ -336,12 +336,12 @@ PAL_KeyboardEventFilter(
 
 --*/
 {
-   if (lpEvent->type == SDL_KEYDOWN)
+   if (lpEvent->type == SDL_EVENT_KEY_DOWN)
    {
       //
       // Pressed a key
       //
-      if (lpEvent->key.keysym.mod & KMOD_ALT)
+      if (lpEvent->key.keysym.mod & SDL_KMOD_ALT)
       {
          if (lpEvent->key.keysym.sym == SDLK_RETURN)
          {
@@ -359,16 +359,16 @@ PAL_KeyboardEventFilter(
             PAL_Shutdown(0);
          }
       }
-      else if (lpEvent->key.keysym.sym == SDLK_p)
+      else if (lpEvent->key.keysym.sym == SDLK_P)
       {
          VIDEO_SaveScreenshot();
       }
 #if PAL_HAS_GLSL
-      else if (lpEvent->key.keysym.sym == SDLK_z)
+      else if (lpEvent->key.keysym.sym == SDLK_Z)
       {
          Filter_StepParamSlot(1);
       }
-      else if (lpEvent->key.keysym.sym == SDLK_x)
+      else if (lpEvent->key.keysym.sym == SDLK_X)
       {
          Filter_StepParamSlot(-1);
       }
@@ -422,7 +422,7 @@ PAL_MouseEventFilter(
    static INT   lastReleasex = 0;
    static INT   lastReleasey = 0;
 
-   if (lpEvent->type!= SDL_MOUSEBUTTONDOWN && lpEvent->type != SDL_MOUSEBUTTONUP)
+   if (lpEvent->type!= SDL_EVENT_MOUSE_BUTTON_DOWN && lpEvent->type != SDL_EVENT_MOUSE_BUTTON_UP)
       return;
 
    vi = SDL_GetVideoInfo();
@@ -438,7 +438,7 @@ PAL_MouseEventFilter(
    
    switch (lpEvent->type)
    {
-   case SDL_MOUSEBUTTONDOWN:
+   case SDL_EVENT_MOUSE_BUTTON_DOWN:
       lastPressButtonTime = SDL_GetTicks();
       lastPressx = lpEvent->button.x;
       lastPressy = lpEvent->button.y;
@@ -482,7 +482,7 @@ PAL_MouseEventFilter(
          break;
       }
       break;
-   case SDL_MOUSEBUTTONUP:
+   case SDL_EVENT_MOUSE_BUTTON_UP:
       lastReleaseButtonTime = SDL_GetTicks();
       lastReleasex = lpEvent->button.x;
       lastReleasey = lpEvent->button.y;
@@ -595,11 +595,11 @@ PAL_JoystickEventFilter(
 #if PAL_HAS_JOYSTICKS
    switch (lpEvent->type)
    {
-   case SDL_JOYDEVICEADDED:
-   case SDL_JOYDEVICEREMOVED:
+   case SDL_EVENT_JOYSTICK_ADDED:
+   case SDL_EVENT_JOYSTICK_REMOVED:
        PAL_DetectJoystick();
        break;
-   case SDL_JOYAXISMOTION:
+   case SDL_EVENT_JOYSTICK_AXIS_MOTION:
       g_InputState.joystickNeedUpdate = TRUE;
       //
       // Moved an axis on joystick
@@ -644,7 +644,7 @@ PAL_JoystickEventFilter(
       }
       break;
 
-   case SDL_JOYHATMOTION:
+   case SDL_EVENT_JOYSTICK_HAT_MOTION:
       //
       // Pressed the joystick hat button
       //
@@ -686,7 +686,7 @@ PAL_JoystickEventFilter(
       }
       break;
 
-   case SDL_JOYBUTTONDOWN:
+   case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
       //
       // Pressed the joystick button
       //
@@ -981,7 +981,7 @@ PAL_TouchEventFilter(
 #if PAL_HAS_TOUCH
    switch (lpEvent->type)
    {
-   case SDL_FINGERDOWN:
+   case SDL_EVENT_FINGER_DOWN:
      if (gFinger1 == -1)
      {
         int area = PAL_GetTouchArea(lpEvent->tfinger.x, lpEvent->tfinger.y);
@@ -1000,7 +1000,7 @@ PAL_TouchEventFilter(
      }
      break;
 
-   case SDL_FINGERUP:
+   case SDL_EVENT_FINGER_UP:
      if (lpEvent->tfinger.fingerId == gFinger1)
      {
         PAL_UnsetTouchAction(g_iPrevTouch1);
@@ -1015,7 +1015,7 @@ PAL_TouchEventFilter(
      }
      break;
 
-   case SDL_FINGERMOTION:
+   case SDL_EVENT_FINGER_MOTION:
       if (lpEvent->tfinger.fingerId == gFinger1)
       {
          int area = PAL_GetTouchArea(lpEvent->tfinger.x, lpEvent->tfinger.y);
@@ -1068,7 +1068,7 @@ PAL_EventFilter(
    {
 #if SDL_VERSION_ATLEAST(2,0,0)
    case SDL_WINDOWEVENT:
-      if (lpEvent->window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+      if (lpEvent->window.event == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
       {
          //
          // resized the window
@@ -1077,11 +1077,11 @@ PAL_EventFilter(
       }
       break;
 
-   case SDL_APP_WILLENTERBACKGROUND:
+   case SDL_EVENT_WILL_ENTER_BACKGROUND:
       g_bRenderPaused = TRUE;
       break;
 
-   case SDL_APP_DIDENTERFOREGROUND:
+   case SDL_EVENT_DID_ENTER_FOREGROUND:
       g_bRenderPaused = FALSE;
       VIDEO_UpdateScreen(NULL);
       break;
@@ -1094,7 +1094,7 @@ PAL_EventFilter(
       break;
 #endif
 
-   case SDL_QUIT:
+   case SDL_EVENT_QUIT:
       //
       // clicked on the close button of the window. Quit immediately.
       //
@@ -1190,7 +1190,7 @@ PAL_ShutdownInput(
 #if PAL_HAS_JOYSTICKS
    if (g_pJoy != NULL)
    {
-      SDL_JoystickClose(g_pJoy);
+      SDL_CloseJoystick(g_pJoy);
       g_pJoy = NULL;
    }
 #endif

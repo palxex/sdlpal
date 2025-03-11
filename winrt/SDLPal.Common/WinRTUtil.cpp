@@ -10,8 +10,8 @@
 #include "../SDLPal.Common/StringHelper.h"
 #include "../../main.h"
 
-#include "SDL.h"
-#include "SDL_endian.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_endian.h>
 
 static std::string g_configpath;
 
@@ -124,11 +124,11 @@ static int SDLCALL WinRT_EventFilter(void *userdata, SDL_Event * event)
 {
 	switch (event->type)
 	{
-	case SDL_APP_DIDENTERFOREGROUND:
+	case SDL_EVENT_DID_ENTER_FOREGROUND:
 		CreateRunningFile();
 		break;
-	case SDL_APP_DIDENTERBACKGROUND:
-	case SDL_APP_TERMINATING:
+	case SDL_EVENT_DID_ENTER_BACKGROUND:
+	case SDL_EVENT_TERMINATING:
 		// Enter background or exiting, treat as normal exit
 		DeleteRunningFile();
 		break;
@@ -138,7 +138,7 @@ static int SDLCALL WinRT_EventFilter(void *userdata, SDL_Event * event)
 
 static int input_event_filter(const SDL_Event *lpEvent, PALINPUTSTATE *state)
 {
-	if (lpEvent->type == SDL_KEYDOWN &&
+	if (lpEvent->type == SDL_EVENT_KEY_DOWN &&
 		lpEvent->key.keysym.sym == SDLK_AC_BACK &&
 		!gpGlobals->fInMainGame)
 	{

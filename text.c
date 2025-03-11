@@ -837,7 +837,7 @@ PAL_InitText(
 	   // Split messages and do code page conversion here
 	   for (i = 0, wlen = 0; i < g_TextLib.nMsgs; i++)
 	   {
-		   wlen += PAL_MultiByteToWideChar((LPCSTR)temp + SDL_SwapLE32(offsets[i]), SDL_SwapLE32(offsets[i + 1]) - SDL_SwapLE32(offsets[i]), NULL, 0) + 1;
+		   wlen += PAL_MultiByteToWideChar((LPCSTR)temp + SDL_Swap32LE(offsets[i]), SDL_Swap32LE(offsets[i + 1]) - SDL_Swap32LE(offsets[i]), NULL, 0) + 1;
 	   }
 	   g_TextLib.lpMsgBuf = (LPWSTR*)malloc(g_TextLib.nMsgs * sizeof(LPWSTR));
 	   if (g_TextLib.lpMsgBuf == NULL)
@@ -860,7 +860,7 @@ PAL_InitText(
 	   {
 		   int l;
 		   g_TextLib.lpMsgBuf[i] = tmp + wpos;
-		   l = PAL_MultiByteToWideChar((LPCSTR)temp + SDL_SwapLE32(offsets[i]), SDL_SwapLE32(offsets[i + 1]) - SDL_SwapLE32(offsets[i]), g_TextLib.lpMsgBuf[i], wlen - wpos);
+		   l = PAL_MultiByteToWideChar((LPCSTR)temp + SDL_Swap32LE(offsets[i]), SDL_Swap32LE(offsets[i + 1]) - SDL_Swap32LE(offsets[i]), g_TextLib.lpMsgBuf[i], wlen - wpos);
 		   g_TextLib.lpMsgBuf[i][l] = 0;
 		   wpos += l + 1;
 	   }

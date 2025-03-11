@@ -107,7 +107,7 @@ typedef struct {
 
 typedef struct {
     int playing;
-    SDL_RWops *rw;
+    SDL_IOStream *rw;
     Sint32 rate;
     Sint32 encoding;
     float master_volume;
@@ -150,7 +150,7 @@ extern int Timidity_Init(char *config_path, char *config_file);
 extern int Timidity_Init_NoConfig(void);
 extern void Timidity_SetVolume(MidiSong *song, int volume);
 extern int Timidity_PlaySome(MidiSong *song, void *stream, Sint32 len);
-extern MidiSong *Timidity_LoadSong(SDL_RWops *rw, SDL_AudioSpec *audio);
+extern MidiSong *Timidity_LoadSong(SDL_IOStream *rw, SDL_AudioSpec *audio);
 extern void Timidity_Start(MidiSong *song);
 extern void Timidity_Seek(MidiSong *song, Uint32 ms);
 extern Uint32 Timidity_GetSongLength(MidiSong *song); /* returns millseconds */

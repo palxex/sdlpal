@@ -26,7 +26,7 @@
 #ifndef _NATIVE_MIDI_COMMON_H_
 #define _NATIVE_MIDI_COMMON_H_
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 /* Midi Status Bytes */
 #define MIDI_STATUS_NOTE_OFF	0x8
@@ -62,7 +62,7 @@ extern "C"
 /* Load a midifile to memory, converting it to a list of MIDIEvents.
    This function returns a linked lists of MIDIEvents, 0 if an error occured.
  */ 
-MIDIEvent *CreateMIDIEventList(SDL_RWops *rw, Uint16 *division);
+MIDIEvent *CreateMIDIEventList(SDL_IOStream *rw, Uint16 *division);
 
 /* Release a MIDIEvent list after usage. */
 void FreeMIDIEventList(MIDIEvent *head);

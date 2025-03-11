@@ -87,9 +87,9 @@ MIDI_Play(
 
 		if (buf)
 		{
-			SDL_RWops *rw = SDL_RWFromConstMem(buf, size);
+			SDL_IOStream *rw = SDL_IOFromConstMem(buf, size);
 			g_pMidi = native_midi_loadsong_RW(rw);
-			SDL_RWclose(rw);
+			SDL_CloseIO(rw);
 			free(buf);
 		}
 	}

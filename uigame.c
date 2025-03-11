@@ -30,7 +30,7 @@ static WORD GetSavedTimes(int iSaveSlot)
 	if (fp != NULL)
 	{
 		if (fread(&wSavedTimes, sizeof(WORD), 1, fp) == 1)
-			wSavedTimes = SDL_SwapLE16(wSavedTimes);
+			wSavedTimes = SDL_Swap16LE(wSavedTimes);
 		else
 			wSavedTimes = 0;
 		fclose(fp);

@@ -20,18 +20,18 @@
     icculus@icculus.org
 */
 
-#ifdef __APPLE__
+#ifdef SDL_PLATFORM_APPLE
 
 /* This is Mac OS X only, using Core MIDI.
    Mac OS 9 support via QuickTime is in native_midi_mac.c */
 
-#include "SDL_config.h"
+#include <SDL3/SDL_config.h>
 
 #include <AudioToolbox/AudioToolbox.h>
 #include <AvailabilityMacros.h>
 
-#include "SDL.h"
-#include "SDL_endian.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_endian.h>
 #include "native_midi.h"
 
 /* Native Midi song */
@@ -148,35 +148,35 @@ int native_midi_detect()
 NativeMidiSong *native_midi_loadsong(const char *midifile)
 {
     NativeMidiSong *retval = NULL;
-    SDL_RWops *rw = SDL_RWFromFile(midifile, "rb");
+    SDL_IOStream *rw = SDL_IOFromFile(midifile, "rb");
     if (rw != NULL) {
         retval = native_midi_loadsong_RW(rw);
-        SDL_RWclose(rw);
+        SDL_CloseIO(rw);
     }
 
     return retval;
 }
 
-NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
+NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw)
 {
     NativeMidiSong *retval = NULL;
     void *buf = NULL;
     int len = 0;
     CFDataRef data = NULL;
 
-    if (SDL_RWseek(rw, 0, RW_SEEK_END) < 0)
+    if (SDL_SeekIO(rw, 0, SDL_IO_SEEK_END) < 0)
         goto fail;
-    len = SDL_RWtell(rw);
+    len = SDL_TellIO(rw);
     if (len < 0)
         goto fail;
-    if (SDL_RWseek(rw, 0, RW_SEEK_SET) < 0)
+    if (SDL_SeekIO(rw, 0, SDL_IO_SEEK_SET) < 0)
         goto fail;
 
     buf = malloc(len);
     if (buf == NULL)
         goto fail;
 
-    if (SDL_RWread(rw, buf, len, 1) != 1)
+    if (SDL_ReadIO(rw, buf, len, 1) != 1)
         goto fail;
 
     retval = malloc(sizeof(NativeMidiSong));

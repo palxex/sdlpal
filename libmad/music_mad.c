@@ -32,9 +32,9 @@
 
 mad_data *
 mad_openFile(const char *filename, SDL_AudioSpec *mixer, int resampler_quality) {
-  SDL_RWops *rw;
+  SDL_IOStream *rw;
 
-  rw = SDL_RWFromFile(filename, "rb");
+  rw = SDL_IOFromFile(filename, "rb");
   if (rw == NULL) {
 	return NULL;
   }
@@ -43,7 +43,7 @@ mad_openFile(const char *filename, SDL_AudioSpec *mixer, int resampler_quality) 
 }
 
 mad_data *
-mad_openFileRW(SDL_RWops *rw, SDL_AudioSpec *mixer, int resampler_quality) {
+mad_openFileRW(SDL_IOStream *rw, SDL_AudioSpec *mixer, int resampler_quality) {
   mad_data *mp3_mad;
 
   mp3_mad = (mad_data *)malloc(sizeof(mad_data));
@@ -141,7 +141,7 @@ read_next_frame(mad_data *mp3_mad) {
 	}
 
 	/* Now read additional bytes from the input file. */
-	read_size = SDL_RWread(mp3_mad->rw, read_start, 1, read_size);
+	read_size = SDL_ReadIO(mp3_mad->rw, read_start, 1, read_size);
 	
 	if (read_size <= 0) {
 	  if ((mp3_mad->status & (MS_input_eof | MS_input_error)) == 0) {
@@ -387,7 +387,7 @@ mad_seek(mad_data *mp3_mad, double position) {
 	mp3_mad->output_begin = 0;
 	mp3_mad->output_end = 0;
 
-	SDL_RWseek(mp3_mad->rw, 0, SEEK_SET);
+	SDL_SeekIO(mp3_mad->rw, 0, SEEK_SET);
   }
 
   /* Now we have to skip frames until we come to the right one.

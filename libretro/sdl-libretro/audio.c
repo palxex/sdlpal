@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include <SDL_libretro.h>
+#include <SDL3/SDL_libretro.h>
 #include "../../3rd/SDL/src/audio/SDL_audiomem.h"
 #include "../../3rd/SDL/src/audio/SDL_audio_c.h"
 #include "../../3rd/SDL/src/audio/SDL_audiodev_c.h"

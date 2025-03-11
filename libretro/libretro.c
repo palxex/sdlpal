@@ -20,7 +20,7 @@
 
 #include <unistd.h>
 #include <libgen.h>
-#include <SDL_libretro.h>
+#include <SDL3/SDL_libretro.h>
 #include "util.h"
 #include "palcfg.h"
 
@@ -221,7 +221,7 @@ bool retro_load_game(const struct retro_game_info *game)
 void retro_unload_game(void)
 {
     SDL_Event event;
-    event.type = SDL_QUIT;
+    event.type = SDL_EVENT_QUIT;
     SDL_PushEvent(&event);
     SDL_WaitThread(sdlpal_thread, NULL);
 }
@@ -245,21 +245,21 @@ static void pump_joypad_events(void)
     static int16_t buttons[16] = {0};
     static const int bkeys[16] = {
         [RETRO_DEVICE_ID_JOYPAD_B]      = SDLK_ESCAPE, /* Menu */
-        [RETRO_DEVICE_ID_JOYPAD_Y]      = SDLK_q,      /* Flee */
-        [RETRO_DEVICE_ID_JOYPAD_SELECT] = SDLK_s,      /* Status */
-        [RETRO_DEVICE_ID_JOYPAD_START]  = SDLK_a,      /* Auto */
+        [RETRO_DEVICE_ID_JOYPAD_Y]      = SDLK_Q,      /* Flee */
+        [RETRO_DEVICE_ID_JOYPAD_SELECT] = SDLK_S,      /* Status */
+        [RETRO_DEVICE_ID_JOYPAD_START]  = SDLK_A,      /* Auto */
         [RETRO_DEVICE_ID_JOYPAD_UP]     = SDLK_UP,
         [RETRO_DEVICE_ID_JOYPAD_DOWN]   = SDLK_DOWN,
         [RETRO_DEVICE_ID_JOYPAD_LEFT]   = SDLK_LEFT,
         [RETRO_DEVICE_ID_JOYPAD_RIGHT]  = SDLK_RIGHT,
         [RETRO_DEVICE_ID_JOYPAD_A]      = SDLK_RETURN, /* Search */
-        [RETRO_DEVICE_ID_JOYPAD_X]      = SDLK_r,      /* Repeat */
+        [RETRO_DEVICE_ID_JOYPAD_X]      = SDLK_R,      /* Repeat */
         [RETRO_DEVICE_ID_JOYPAD_L]      = SDLK_PAGEUP,
         [RETRO_DEVICE_ID_JOYPAD_R]      = SDLK_PAGEDOWN,
-        [RETRO_DEVICE_ID_JOYPAD_L2]     = SDLK_d,      /* Defend */
-        [RETRO_DEVICE_ID_JOYPAD_R2]     = SDLK_e,      /* UseItem */
-        [RETRO_DEVICE_ID_JOYPAD_L3]     = SDLK_w,      /* ThrowItem */
-        [RETRO_DEVICE_ID_JOYPAD_R3]     = SDLK_f,      /* Force */
+        [RETRO_DEVICE_ID_JOYPAD_L2]     = SDLK_D,      /* Defend */
+        [RETRO_DEVICE_ID_JOYPAD_R2]     = SDLK_E,      /* UseItem */
+        [RETRO_DEVICE_ID_JOYPAD_L3]     = SDLK_W,      /* ThrowItem */
+        [RETRO_DEVICE_ID_JOYPAD_R3]     = SDLK_F,      /* Force */
     };
     for (int i = 0; i < 16; ++i) {
         int16_t state = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i);

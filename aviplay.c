@@ -87,7 +87,7 @@
 
 typedef struct AVIPlayState
 {
-	SDL_mutex     *selfMutex;
+	SDL_Mutex     *selfMutex;
     volatile FILE *fp;                 // pointer to the AVI file
     SDL_Surface   *surface;            // video buffer
 
@@ -132,9 +132,9 @@ PAL_ReadAVIInfo(
 		UTIL_LogOutput(LOGLEVEL_WARNING, "No RIFF header!");
 		return NULL;
 	}
-	hdr.signature = SDL_SwapLE32(hdr.signature);
-	hdr.type      = SDL_SwapLE32(hdr.type);
-	hdr.length    = SDL_SwapLE32(hdr.length);
+	hdr.signature = SDL_Swap32LE(hdr.signature);
+	hdr.type      = SDL_Swap32LE(hdr.type);
+	hdr.length    = SDL_Swap32LE(hdr.length);
 	if (hdr.signature != RIFF_RIFF || hdr.type != RIFF_AVI ||
 		hdr.length > (uint32_t)(file_length - sizeof(RIFFHeader) + sizeof(uint32_t)))
 	{
@@ -158,8 +158,8 @@ PAL_ReadAVIInfo(
 		}
 		else
 		{
-			block.type = SDL_SwapLE32(block.type);
-			block.length = SDL_SwapLE32(block.length);
+			block.type = SDL_Swap32LE(block.type);
+			block.length = SDL_Swap32LE(block.length);
 			pos += sizeof(RIFFChunkHeader);
 		}
 
@@ -175,7 +175,7 @@ PAL_ReadAVIInfo(
 			}
 			else
 			{
-				block.list.type = SDL_SwapLE32(block.list.type);
+				block.list.type = SDL_Swap32LE(block.list.type);
 			}
 		}
 
@@ -280,9 +280,9 @@ PAL_ReadAVIInfo(
 			// Build SDL audio conversion info
 			//
 			SDL_BuildAudioCVT(&avi->cvt,
-				(wfe.format.wBitsPerSample == 8) ? AUDIO_U8 : AUDIO_S16LSB,
+				(wfe.format.wBitsPerSample == 8) ? SDL_AUDIO_U8 : SDL_AUDIO_S16LE,
 				wfe.format.nChannels, wfe.format.nSamplesPerSec,
-				AUDIO_S16SYS,
+				SDL_AUDIO_S16,
 				AUDIO_GetDeviceSpec()->channels,
 				AUDIO_GetDeviceSpec()->freq);
 			//
@@ -424,8 +424,8 @@ PAL_ReadDataChunk(
 	{
 		if (fread(&hdr, sizeof(RIFFChunkHeader), 1, fp) != 1) return NULL;
 
-		hdr.type = SDL_SwapLE32(hdr.type);
-		hdr.length = SDL_SwapLE32(hdr.length);
+		hdr.type = SDL_Swap32LE(hdr.type);
+		hdr.length = SDL_Swap32LE(hdr.length);
 		pos += sizeof(RIFFChunkHeader);
 
 		switch (hdr.type)
@@ -453,7 +453,7 @@ PAL_ReadDataChunk(
 			// Only 'rec ' LIST is allowed here, if not, skip it completely
 			//
 			if (fread(&hdr.list.type, sizeof(uint32_t), 1, fp) != 1) return NULL;
-			hdr.list.type = SDL_SwapLE32(hdr.list.type);
+			hdr.list.type = SDL_Swap32LE(hdr.list.type);
 			if (hdr.list.type == AVI_rec) break;
 		case AVI_JUNK:
 		default:
@@ -747,7 +747,7 @@ PAL_PlayAVI(
 
 	if (avi->surface != NULL)
 	{
-		SDL_FreeSurface(avi->surface);
+		SDL_DestroySurface(avi->surface);
 		avi->surface = NULL;
 	}
 

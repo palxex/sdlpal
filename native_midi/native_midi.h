@@ -25,7 +25,7 @@
 #ifndef _NATIVE_MIDI_H_
 #define _NATIVE_MIDI_H_
 
-#include <SDL_rwops.h>
+#include <SDL3/SDL_rwops.h>
 
 typedef struct _NativeMidiSong NativeMidiSong;
 
@@ -69,18 +69,18 @@ NativeMidiSong *native_midi_loadsong(const char *midifile);
 /*++
   Purpose:
 
-    Load the MIDI song from SDL_RWops stream.
+    Load the MIDI song from SDL_IOStream stream.
 
   Parameters:
 
-    [IN]  rw - pointer to the SDL_RWops stream.
+    [IN]  rw - pointer to the SDL_IOStream stream.
 
   Return value:
 
     A NativeMidiSong object on success, NULL on failure.
 
 --*/
-NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw);
+NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw);
 
 /*++
   Purpose:

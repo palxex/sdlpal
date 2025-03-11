@@ -20,13 +20,13 @@
 */
 #include "../src/SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_UIKIT
+#if SDL_VIDEO_DRIVER_UIKIT /* SDL_VIDEO_DRIVER_UIKIT has been removed in SDL3 */
 
 #include "../src/video/SDL_sysvideo.h"
-#include "SDL_assert.h"
-#include "SDL_hints.h"
-#include "SDL_system.h"
-#include "SDL_main.h"
+#include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_system.h>
+#include <SDL3/SDL_main.h>
 
 #import "SDLPal_AppDelegate.h"
 #import "../src/video/uikit/SDL_uikitmodes.h"
@@ -98,9 +98,9 @@ int sdlpal_main(int argc, char **argv)
 - (void)postFinishLaunch
 {
     /* run the user's application, passing argc and argv */
-    SDL_iPhoneSetEventPump(SDL_TRUE);
+    SDL_SetiOSEventPump(true);
     exit_status = SDL_main(forward_argc, forward_argv);
-    SDL_iPhoneSetEventPump(SDL_FALSE);
+    SDL_SetiOSEventPump(false);
 
     /* exit, passing the return status from the user's application */
     /* We don't actually exit to support applications that do setup in their
@@ -109,7 +109,7 @@ int sdlpal_main(int argc, char **argv)
     [self restart];
 }
 
-#undef SDL_IPHONE_LAUNCHSCREEN
+#undef SDL_IPHONE_LAUNCHSCREEN /* SDL_IPHONE_LAUNCHSCREEN has been removed in SDL3 */
 
 - (void)launchGame {
     self.isInGame = YES;
@@ -157,12 +157,12 @@ int sdlpal_main(int argc, char **argv)
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
-    SDL_SendAppEvent(SDL_APP_TERMINATING);
+    SDL_SendAppEvent(SDL_EVENT_TERMINATING);
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
 {
-    SDL_SendAppEvent(SDL_APP_LOWMEMORY);
+    SDL_SendAppEvent(SDL_EVENT_LOW_MEMORY);
 }
 
 #if !TARGET_OS_TV
@@ -206,33 +206,33 @@ int sdlpal_main(int argc, char **argv)
     if (_this) {
         SDL_Window *window;
         for (window = _this->windows; window != nil; window = window->next) {
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_FOCUS_LOST, 0, 0);
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_MINIMIZED, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_FOCUS_LOST, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_MINIMIZED, 0, 0);
         }
     }
-    SDL_SendAppEvent(SDL_APP_WILLENTERBACKGROUND);
+    SDL_SendAppEvent(SDL_EVENT_WILL_ENTER_BACKGROUND);
 }
 
 - (void)applicationDidEnterBackground:(UIApplication*)application
 {
-    SDL_SendAppEvent(SDL_APP_DIDENTERBACKGROUND);
+    SDL_SendAppEvent(SDL_EVENT_DID_ENTER_BACKGROUND);
 }
 
 - (void)applicationWillEnterForeground:(UIApplication*)application
 {
-    SDL_SendAppEvent(SDL_APP_WILLENTERFOREGROUND);
+    SDL_SendAppEvent(SDL_EVENT_WILL_ENTER_FOREGROUND);
 }
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
-    SDL_SendAppEvent(SDL_APP_DIDENTERFOREGROUND);
+    SDL_SendAppEvent(SDL_EVENT_DID_ENTER_FOREGROUND);
 
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
     if (_this) {
         SDL_Window *window;
         for (window = _this->windows; window != nil; window = window->next) {
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_FOCUS_GAINED, 0, 0);
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_RESTORED, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_FOCUS_GAINED, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_RESTORED, 0, 0);
         }
     }
 }
@@ -268,6 +268,6 @@ int sdlpal_main(int argc, char **argv)
 
 @end
 
-#endif /* SDL_VIDEO_DRIVER_UIKIT */
+#endif /* SDL_VIDEO_DRIVER_UIKIT /* SDL_VIDEO_DRIVER_UIKIT has been removed in SDL3 */ */
 
 /* vi: set ts=4 sw=4 expandtab: */

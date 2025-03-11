@@ -31,7 +31,7 @@
 #include "glslp.h"
 
 #define SDL_STBIMAGE_IMPLEMENTATION
-#include "SDL_stbimage.h"
+#include <SDL3/SDL_stbimage.h>
 
 #define FORCE_OPENGL_CORE_PROFILE 1
 #define SUPPORT_PARAMETER_UNIFORM 1
@@ -500,7 +500,7 @@ SDL_Texture *load_texture(char *name, char *filename, bool filter_linear, enum w
     SDL_GL_BindTexture(texture, NULL, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, get_gl_wrap_mode(mode, type));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, get_gl_wrap_mode(mode, type));
-    SDL_FreeSurface(surf);
+    SDL_DestroySurface(surf);
     return texture;
 }
 
@@ -759,14 +759,14 @@ int VIDEO_RenderTexture(SDL_Renderer * renderer, SDL_Texture * texture, const SD
 }
 
 //remove all fixed pipeline call in RenderCopy
-#define SDL_RenderCopy CORE_RenderCopy
+#define SDL_RenderTexture CORE_RenderCopy
 PAL_FORCE_INLINE int CORE_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
                     const SDL_Rect * srcrect, const SDL_Rect * dstrect)
 {
 #if SDL_VERSION_ATLEAST(2,0,10)
-    // hack for 2.0.10, manually call glViewport for replaced SDL_RenderCopy.
+    // hack for 2.0.10, manually call glViewport for replaced SDL_RenderTexture.
     int w,h;
-    SDL_GetRendererOutputSize(renderer, &w, &h);
+    SDL_GetCurrentRenderOutputSize(renderer, &w, &h);
     glViewport(0, 0, w, h);
 #endif
     return VIDEO_RenderTexture(renderer, texture, srcrect, dstrect, gPassID);
@@ -895,20 +895,20 @@ void VIDEO_GLSL_RenderCopy()
         SDL_SetRenderTarget(gpRenderer, gGLSLP.shader_params[i].pass_sdl_texture);
         SDL_RenderClear(gpRenderer);
         gPassID++;
-        SDL_RenderCopy(gpRenderer, prevTexture, NULL, NULL);
+        SDL_RenderTexture(gpRenderer, prevTexture, NULL, NULL);
         prevTexture = gGLSLP.shader_params[i].pass_sdl_texture;
     }
 
     SDL_SetRenderTarget(gpRenderer, gpTexture);
     SDL_RenderClear(gpRenderer);
     gPassID++;
-    SDL_RenderCopy(gpRenderer, prevTexture, NULL, &gTextureRect);
+    SDL_RenderTexture(gpRenderer, prevTexture, NULL, &gTextureRect);
     SDL_DestroyTexture(origTexture);
     
     SDL_SetRenderTarget(gpRenderer, NULL);
     SDL_RenderClear(gpRenderer);
     gPassID = 0;
-    SDL_RenderCopy(gpRenderer, gpTexture, NULL, NULL);
+    SDL_RenderTexture(gpRenderer, gpTexture, NULL, NULL);
     
     SDL_GL_SwapWindow(gpWindow);
     
@@ -933,7 +933,7 @@ const char *get_gl_profile(int flags) {
     }
 }
 
-int get_SDL_GLAttribute(SDL_GLattr attr) {
+int get_SDL_GLAttribute(SDL_GLAttr attr) {
     int orig_value;
     SDL_GL_GetAttribute(attr, &orig_value);
     return orig_value;
@@ -946,7 +946,7 @@ void VIDEO_GLSL_Init() {
     SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &orig_profile);
 #if GLES
     SDL_SetHint( SDL_HINT_RENDER_DRIVER, "opengles2");
-#   if SDL_VIDEO_OPENGL_EGL && (SDL_VIDEO_DRIVER_EMSCRIPTEN || SDL_VIDEO_DRIVER_WINRT)
+#   if SDL_VIDEO_OPENGL_EGL /* SDL_VIDEO_OPENGL_EGL has been removed in SDL3 */ && (SDL_VIDEO_DRIVER_EMSCRIPTEN /* SDL_VIDEO_DRIVER_EMSCRIPTEN has been removed in SDL3 */ || SDL_VIDEO_DRIVER_WINRT /* SDL_VIDEO_DRIVER_WINRT has been removed in SDL3 */)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #   endif
@@ -983,7 +983,7 @@ static void dump_preset() {
 }
 
 void VIDEO_GLSL_Setup() {
-    SDL_GetRendererOutputSize(gpRenderer, &gRendererWidth, &gRendererHeight);
+    SDL_GetCurrentRenderOutputSize(gpRenderer, &gRendererWidth, &gRendererHeight);
     SDL_RendererInfo rendererInfo;
     SDL_GetRendererInfo(gpRenderer, &rendererInfo);
     
@@ -996,7 +996,7 @@ void VIDEO_GLSL_Setup() {
     char *glslversion = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     SDL_sscanf(glversion, "%d.%d", &glversion_major, &glversion_minor);
     if(!strncmp(rendererInfo.name, "opengl", 6)) {
-#     ifndef __APPLE__
+#     ifndef SDL_PLATFORM_APPLE
         if (!initGLExtensions(glversion_major))
             UTIL_LogOutput(LOGLEVEL_FATAL,  "Couldn't init GL extensions!\n" );
 #     endif
@@ -1026,7 +1026,7 @@ void VIDEO_GLSL_Setup() {
     
     // iOS native GLES supports VAO extension
 #if GLES
-#if !defined(__APPLE__)
+#if !defined(SDL_PLATFORM_APPLE)
     if(!strncmp(glversion, "OpenGL ES", 9)) {
         SDL_sscanf(glversion, "OpenGL ES %d.%d", &glversion_major, &glversion_minor);
         if( glversion_major <= 2)

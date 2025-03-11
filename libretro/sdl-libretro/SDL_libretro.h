@@ -20,7 +20,7 @@
 
 #ifndef _SDL_LIBRETRO_H
 #define _SDL_LIBRETRO_H
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <libretro.h>
 
 #ifdef __cplusplus

@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "options.h"
 #include "common.h"
@@ -26,9 +26,9 @@
 static PathList *pathlist = NULL; /* This is a linked list */
 
 /* This is meant to find and open files for reading */
-SDL_RWops *open_file(const char *name)
+SDL_IOStream *open_file(const char *name)
 {
-  SDL_RWops *rw;
+  SDL_IOStream *rw;
 
   if (!name || !(*name))
     {
@@ -39,7 +39,7 @@ SDL_RWops *open_file(const char *name)
   /* First try the given name */
 
   SNDDBG(("Trying to open %s\n", name));
-  if ((rw = SDL_RWFromFile(name, "rb")))
+  if ((rw = SDL_IOFromFile(name, "rb")))
     return rw;
 
   if (name[0] != PATH_SEP)
@@ -63,7 +63,7 @@ SDL_RWops *open_file(const char *name)
 	  }
 	strcat(current_filename, name);
 	SNDDBG(("Trying to open %s\n", current_filename));
-	if ((rw = SDL_RWFromFile(current_filename, "rb")))
+	if ((rw = SDL_IOFromFile(current_filename, "rb")))
 	  return rw;
 	plp = plp->next;
       }

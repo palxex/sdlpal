@@ -25,9 +25,9 @@
 
 #include <math.h>
 
-#ifdef __QNXNTO__
+#ifdef SDL_PLATFORM_QNXNTO
 #define pow std::powf
-#endif // __QNXNTO__
+#endif // SDL_PLATFORM_QNXNTO
 
 // If 'math.h' doesn't define HUGE_VAL, we try to use HUGE instead.
 #ifndef HUGE_VAL

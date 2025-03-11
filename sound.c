@@ -100,8 +100,8 @@ SOUND_LoadWAVEData(
 	const uint8_t         *lpWaveData = NULL;
 	uint32_t len,type;
 
-	if (dwLen < sizeof(RIFFHeader) || SDL_SwapLE32(lpRiff->signature) != RIFF_RIFF ||
-		SDL_SwapLE32(lpRiff->type) != RIFF_WAVE || dwLen < SDL_SwapLE32(lpRiff->length) + 8)
+	if (dwLen < sizeof(RIFFHeader) || SDL_Swap32LE(lpRiff->signature) != RIFF_RIFF ||
+		SDL_Swap32LE(lpRiff->type) != RIFF_WAVE || dwLen < SDL_Swap32LE(lpRiff->length) + 8)
 	{
 		return NULL;
 	}
@@ -109,8 +109,8 @@ SOUND_LoadWAVEData(
 	lpChunk = (const RIFFChunkHeader *)(lpRiff + 1); dwLen -= sizeof(RIFFHeader);
 	while (dwLen >= sizeof(RIFFChunkHeader))
 	{
-        len = SDL_SwapLE32(lpChunk->length);
-        type = SDL_SwapLE32(lpChunk->type);
+        len = SDL_Swap32LE(lpChunk->length);
+        type = SDL_Swap32LE(lpChunk->type);
 		if (dwLen >= sizeof(RIFFChunkHeader) + len)
 			dwLen -= sizeof(RIFFChunkHeader) + len;
 		else
@@ -120,7 +120,7 @@ SOUND_LoadWAVEData(
 		{
 		case WAVE_fmt:
 			lpFormat = (const WAVEFormatPCM *)(lpChunk + 1);
-			if (len != sizeof(WAVEFormatPCM) || lpFormat->wFormatTag != SDL_SwapLE16(0x0001))
+			if (len != sizeof(WAVEFormatPCM) || lpFormat->wFormatTag != SDL_Swap16LE(0x0001))
 			{
 				return NULL;
 			}
@@ -138,11 +138,11 @@ SOUND_LoadWAVEData(
 		return NULL;
 	}
 
-	lpSpec->channels = SDL_SwapLE16(lpFormat->nChannels);
-	lpSpec->format = (SDL_SwapLE16(lpFormat->wBitsPerSample) == 16) ? AUDIO_S16 : AUDIO_U8;
-	lpSpec->freq = SDL_SwapLE32(lpFormat->nSamplesPerSec);
+	lpSpec->channels = SDL_Swap16LE(lpFormat->nChannels);
+	lpSpec->format = (SDL_Swap16LE(lpFormat->wBitsPerSample) == 16) ? SDL_AUDIO_S16LE : SDL_AUDIO_U8;
+	lpSpec->freq = SDL_Swap32LE(lpFormat->nSamplesPerSec);
 	lpSpec->size = len;
-	lpSpec->align = SDL_SwapLE16(lpFormat->nChannels) * SDL_SwapLE16(lpFormat->wBitsPerSample) >> 3;
+	lpSpec->align = SDL_Swap16LE(lpFormat->nChannels) * SDL_Swap16LE(lpFormat->wBitsPerSample) >> 3;
 
 	return lpWaveData;
 }
@@ -185,13 +185,13 @@ SOUND_LoadVOCData(
 {
 	LPCVOCHEADER lpVOC = (LPCVOCHEADER)lpData;
 
-	if (dwLen < sizeof(VOCHEADER) || memcmp(lpVOC->signature, "Creative Voice File\x1A", 0x14) || SDL_SwapLE16(lpVOC->data_offset) >= dwLen)
+	if (dwLen < sizeof(VOCHEADER) || memcmp(lpVOC->signature, "Creative Voice File\x1A", 0x14) || SDL_Swap16LE(lpVOC->data_offset) >= dwLen)
 	{
 		return NULL;
 	}
 
-	lpData += SDL_SwapLE16(lpVOC->data_offset);
-	dwLen -= SDL_SwapLE16(lpVOC->data_offset);
+	lpData += SDL_Swap16LE(lpVOC->data_offset);
+	dwLen -= SDL_Swap16LE(lpVOC->data_offset);
 
 	while (dwLen && *lpData)
 	{
@@ -212,7 +212,7 @@ SOUND_LoadVOCData(
 		{
 			if (lpData[5] != 0) return NULL;	/* Only 8-bit is supported */
 
-			lpSpec->format = AUDIO_U8;
+			lpSpec->format = SDL_AUDIO_U8;
 			lpSpec->channels = 1;
 			lpSpec->freq = ((1000000 / (256 - lpData[4]) + 99) / 100) * 100; /* Round to next 100Hz */
 			lpSpec->size = len - 2;
@@ -520,7 +520,7 @@ SOUND_ResampleMix_S16_Mono_Mono(
 		int j, to_write = resampler_get_free_count(resampler[0]);
 		if (to_write > src_samples) to_write = src_samples;
 		for (j = 0; j < to_write; j++)
-			resampler_write_sample(resampler[0], SDL_SwapLE16(*src++));
+			resampler_write_sample(resampler[0], SDL_Swap16LE(*src++));
 		src_samples -= to_write;
 		while (total_bytes < channel_len && resampler_get_sample_count(resampler[0]) > 0)
 		{
@@ -579,7 +579,7 @@ SOUND_ResampleMix_S16_Mono_Stereo(
 		int j, to_write = resampler_get_free_count(resampler[0]);
 		if (to_write > src_samples) to_write = src_samples;
 		for (j = 0; j < to_write; j++)
-			resampler_write_sample(resampler[0], SDL_SwapLE16(*src++));
+			resampler_write_sample(resampler[0], SDL_Swap16LE(*src++));
 		src_samples -= to_write;
 		while (total_bytes < channel_len && resampler_get_sample_count(resampler[0]) > 0)
 		{
@@ -639,8 +639,8 @@ SOUND_ResampleMix_S16_Stereo_Mono(
 		if (to_write > src_samples) to_write = src_samples;
 		for (j = 0; j < to_write; j++)
 		{
-			resampler_write_sample(resampler[0], SDL_SwapLE16(*src++));
-			resampler_write_sample(resampler[1], SDL_SwapLE16(*src++));
+			resampler_write_sample(resampler[0], SDL_Swap16LE(*src++));
+			resampler_write_sample(resampler[1], SDL_Swap16LE(*src++));
 		}
 		src_samples -= to_write;
 		while (total_bytes < channel_len && resampler_get_sample_count(resampler[0]) > 0)
@@ -702,8 +702,8 @@ SOUND_ResampleMix_S16_Stereo_Stereo(
 		if (to_write > src_samples) to_write = src_samples;
 		for (j = 0; j < to_write; j++)
 		{
-			resampler_write_sample(resampler[0], SDL_SwapLE16(*src++));
-			resampler_write_sample(resampler[1], SDL_SwapLE16(*src++));
+			resampler_write_sample(resampler[0], SDL_Swap16LE(*src++));
+			resampler_write_sample(resampler[1], SDL_Swap16LE(*src++));
 		}
 		src_samples -= to_write;
 		while (total_bytes < channel_len && resampler_get_sample_count(resampler[0]) > 0)
@@ -799,13 +799,13 @@ SOUND_Play(
 	}
 
 	if (wavespec.channels == 1 && devspec->channels == 1)
-		mixer = (wavespec.format == AUDIO_S16) ? SOUND_ResampleMix_S16_Mono_Mono : SOUND_ResampleMix_U8_Mono_Mono;
+		mixer = (wavespec.format == SDL_AUDIO_S16LE) ? SOUND_ResampleMix_S16_Mono_Mono : SOUND_ResampleMix_U8_Mono_Mono;
 	else if (wavespec.channels == 1 && devspec->channels == 2)
-		mixer = (wavespec.format == AUDIO_S16) ? SOUND_ResampleMix_S16_Mono_Stereo : SOUND_ResampleMix_U8_Mono_Stereo;
+		mixer = (wavespec.format == SDL_AUDIO_S16LE) ? SOUND_ResampleMix_S16_Mono_Stereo : SOUND_ResampleMix_U8_Mono_Stereo;
 	else if (wavespec.channels == 2 && devspec->channels == 1)
-		mixer = (wavespec.format == AUDIO_S16) ? SOUND_ResampleMix_S16_Stereo_Mono : SOUND_ResampleMix_U8_Stereo_Mono;
+		mixer = (wavespec.format == SDL_AUDIO_S16LE) ? SOUND_ResampleMix_S16_Stereo_Mono : SOUND_ResampleMix_U8_Stereo_Mono;
 	else if (wavespec.channels == 2 && devspec->channels == 2)
-		mixer = (wavespec.format == AUDIO_S16) ? SOUND_ResampleMix_S16_Stereo_Stereo : SOUND_ResampleMix_U8_Stereo_Stereo;
+		mixer = (wavespec.format == SDL_AUDIO_S16LE) ? SOUND_ResampleMix_S16_Stereo_Stereo : SOUND_ResampleMix_U8_Stereo_Stereo;
 	else
 	{
 		free(buf);

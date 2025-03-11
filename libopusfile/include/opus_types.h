@@ -90,7 +90,7 @@
    typedef SInt32 opus_int32;
    typedef UInt32 opus_uint32;
 
-#elif (defined(__APPLE__) && defined(__MACH__)) /* MacOS X Framework build */
+#elif (defined(SDL_PLATFORM_APPLE) && defined(__MACH__)) /* MacOS X Framework build */
 
 #  include <sys/types.h>
    typedef int16_t opus_int16;

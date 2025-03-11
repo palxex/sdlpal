@@ -1060,8 +1060,8 @@ TEST(sdlpal, PAL_RLEBlitToSurface) {
         {
             pos = PAL_XY(71 + hpos * 130, 47 + vpos * 78);
 
-            SDL_FillRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
-            SDL_FillRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
 
             PAL_RLEBlitToSurface(bitmap, surface, pos);
             PAL_RLEBlitToSurface_test(bitmap, surface_test, pos);
@@ -1070,8 +1070,8 @@ TEST(sdlpal, PAL_RLEBlitToSurface) {
         }
     }
 
-    SDL_FreeSurface(surface_test);
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface_test);
+    SDL_DestroySurface(surface);
 }
 
 TEST(sdlpal, PAL_RLEBlitToSurfaceWithShadow) {
@@ -1088,8 +1088,8 @@ TEST(sdlpal, PAL_RLEBlitToSurfaceWithShadow) {
         {
             pos = PAL_XY(71 + hpos * 130, 47 + vpos * 78);
 
-            SDL_FillRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
-            SDL_FillRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
 
             PAL_RLEBlitToSurfaceWithShadow(bitmap, surface, pos, FALSE);
             PAL_RLEBlitToSurfaceWithShadow(bitmap, surface, pos, TRUE);
@@ -1100,8 +1100,8 @@ TEST(sdlpal, PAL_RLEBlitToSurfaceWithShadow) {
         }
     }
 
-    SDL_FreeSurface(surface_test);
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface_test);
+    SDL_DestroySurface(surface);
 }
 
 TEST(sdlpal, PAL_RLEBlitWithColorShift) {
@@ -1118,8 +1118,8 @@ TEST(sdlpal, PAL_RLEBlitWithColorShift) {
         {
             pos = PAL_XY(71 + hpos * 130, 47 + vpos * 78);
 
-            SDL_FillRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
-            SDL_FillRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
 
             PAL_RLEBlitWithColorShift(bitmap, surface, pos, 5 + vpos + hpos);
             PAL_RLEBlitWithColorShift_test(bitmap, surface_test, pos, 5 + vpos + hpos);
@@ -1128,8 +1128,8 @@ TEST(sdlpal, PAL_RLEBlitWithColorShift) {
         }
     }
 
-    SDL_FreeSurface(surface_test);
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface_test);
+    SDL_DestroySurface(surface);
 }
 
 TEST(sdlpal, PAL_RLEBlitMonoColor) {
@@ -1146,8 +1146,8 @@ TEST(sdlpal, PAL_RLEBlitMonoColor) {
         {
             pos = PAL_XY(71 + hpos * 130, 47 + vpos * 78);
 
-            SDL_FillRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
-            SDL_FillRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
+            SDL_FillSurfaceRect(surface_test, nullptr, ((vpos << 4) & 0xf0) | (hpos & 0x0f));
 
             PAL_RLEBlitMonoColor(bitmap, surface, pos, ((7 + vpos + hpos) << 4) | 9, 5 + vpos + hpos);
             PAL_RLEBlitMonoColor_test(bitmap, surface_test, pos, ((7 + vpos + hpos) << 4) | 9, 5 + vpos + hpos);
@@ -1156,7 +1156,7 @@ TEST(sdlpal, PAL_RLEBlitMonoColor) {
         }
     }
 
-    SDL_FreeSurface(surface_test);
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface_test);
+    SDL_DestroySurface(surface);
 }
 

@@ -75,9 +75,9 @@
 #define CONFIG_FILE_ETC "/etc/timidity.cfg"
 #define CONFIG_FILE_ETC_TIMIDITY_FREEPATS "/etc/timidity/freepats.cfg"
 
-#if defined(__WIN32__) || defined(__OS2__)
+#if defined(SDL_PLATFORM_WIN32) || defined(SDL_PLATFORM_OS2)
 #define DEFAULT_PATH	"C:\\TIMIDITY"
-#elif !defined(__WINRT__)
+#elif !defined(__WINRT__ /* __WINRT__ has been removed in SDL3 */)
 #define DEFAULT_PATH	"/etc/timidity"
 #define DEFAULT_PATH1	"/usr/share/timidity"
 #define DEFAULT_PATH2	"/usr/local/share/timidity"
@@ -108,7 +108,7 @@
 #endif
 
 /* The path separator (D.M.) */
-#if defined(__WIN32__) || defined(__OS2__)
+#if defined(SDL_PLATFORM_WIN32) || defined(SDL_PLATFORM_OS2)
 #  define PATH_SEP '\\'
 #else
 #  define PATH_SEP '/'

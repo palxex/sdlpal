@@ -107,14 +107,14 @@ extern "C" NativeMidiSong *native_midi_loadsong(const char *midifile)
     return song;
 }
 
-extern "C" NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
+extern "C" NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw)
 {
     FILE *fp = fopen(midi_file, "wb+");
     if (fp)
     {
         char buf[4096];
         size_t bytes;
-        while((bytes = SDL_RWread(rw, buf, sizeof(char), sizeof(buf))) > 0)
+        while((bytes = SDL_ReadIO(rw, buf, sizeof(char), sizeof(buf))) > 0)
             fwrite(buf, sizeof(char), bytes, fp);
         fclose(fp);
 

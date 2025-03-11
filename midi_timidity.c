@@ -113,11 +113,11 @@ TIMIDITY_Play(
 	{
 		if (gConfig.fIsWIN95)
 		{
-			SDL_RWops* rw = SDL_RWFromFile(PAL_CombinePath(0, gConfig.pszGamePath, PAL_va(1, "Musics%s%.3d.mid", PAL_NATIVE_PATH_SEPARATOR, iNum)), "rb");
+			SDL_IOStream* rw = SDL_IOFromFile(PAL_CombinePath(0, gConfig.pszGamePath, PAL_va(1, "Musics%s%.3d.mid", PAL_NATIVE_PATH_SEPARATOR, iNum)), "rb");
 			if (rw)
 			{
 				player->pSong = Timidity_LoadSong(rw, AUDIO_GetDeviceSpec());
-				SDL_RWclose(rw);
+				SDL_CloseIO(rw);
 			}
 		}
 		
@@ -139,9 +139,9 @@ TIMIDITY_Play(
 
 			if (buf)
 			{
-				SDL_RWops *rw = SDL_RWFromConstMem(buf, size);
+				SDL_IOStream *rw = SDL_IOFromConstMem(buf, size);
 				player->pSong = Timidity_LoadSong(rw, AUDIO_GetDeviceSpec());
-				SDL_RWclose(rw);
+				SDL_CloseIO(rw);
 				free(buf);
 			}
 		}

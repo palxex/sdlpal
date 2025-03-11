@@ -5,7 +5,7 @@
     Feel free to customize this file to suit your needs
 */
 
-#import "SDL.h"
+#import <SDL3/SDL.h>
 #import "SDLMain_SDL12.h"
 #import <sys/param.h> /* for MAXPATHLEN */
 #import <unistd.h>
@@ -73,7 +73,7 @@ void PAL_Shutdown();
 /* Invoked from the Quit menu item */
 - (void)terminate:(id)sender
 {
-    /* Post a SDL_QUIT event */
+    /* Post a SDL_EVENT_QUIT event */
     PAL_Shutdown();
     exit(0);
 }

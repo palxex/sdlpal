@@ -25,10 +25,10 @@
 
 #include "android_jni.h"
 
-#include "SDL_config.h"
+#include <SDL3/SDL_config.h>
 
-#include "SDL.h"
-#include "SDL_endian.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_endian.h>
 #include "native_midi/native_midi.h"
 
 #include <android/log.h>
@@ -63,14 +63,14 @@ NativeMidiSong *native_midi_loadsong(const char *midifile)
     return song;
 }
 
-NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
+NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw)
 {
     FILE *fp = fopen(midiInterFile, "wb+");
     if (fp)
     {
         char buf[4096];
         size_t bytes;
-        while((bytes = SDL_RWread(rw, buf, sizeof(char), sizeof(buf))) > 0)
+        while((bytes = SDL_ReadIO(rw, buf, sizeof(char), sizeof(buf))) > 0)
             fwrite(buf, sizeof(char), bytes, fp);
         fclose(fp);
 

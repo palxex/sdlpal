@@ -25,7 +25,7 @@
 #include "pch.h"
 #include "AsyncHelper.h"
 #include "NativeBuffer.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <memory>
 #include <future>
 #include <thread>
@@ -219,17 +219,17 @@ int native_midi_detect()
 NativeMidiSong *native_midi_loadsong(const char *midifile)
 {
 	/* Attempt to load the midi file */
-	auto rw = SDL_RWFromFile(midifile, "rb");
+	auto rw = SDL_IOFromFile(midifile, "rb");
 	if (rw)
 	{
 		auto song = native_midi_loadsong_RW(rw);
-		SDL_RWclose(rw);
+		SDL_CloseIO(rw);
 		return song;
 	}
 	return nullptr;
 }
 
-NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *rw)
+NativeMidiSong *native_midi_loadsong_RW(SDL_IOStream *rw)
 {
 	std::unique_ptr<NativeMidiSong> newsong(new NativeMidiSong);
 

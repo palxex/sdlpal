@@ -51,7 +51,7 @@ static int input_event_filter(const SDL_Event *lpEvent, volatile PALINPUTSTATE *
     int button, which;
 	switch (lpEvent->type)
 	{
-	case SDL_JOYHATMOTION:
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
 		switch (lpEvent->jhat.value)
 		{
 		case SDL_HAT_LEFT:
@@ -90,7 +90,7 @@ static int input_event_filter(const SDL_Event *lpEvent, volatile PALINPUTSTATE *
 		}
 		return 1;
 
-	case SDL_JOYBUTTONDOWN:
+	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
 		button = lpEvent->jbutton.button;
 		which = lpEvent->jbutton.which;
 reswitchbutton:

@@ -15,7 +15,7 @@
 #  include <config.h>
 #endif
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "options.h"
 #include "output.h"
