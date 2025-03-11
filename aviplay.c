@@ -94,7 +94,11 @@ typedef struct AVIPlayState
     long           lVideoEndPos;
 	uint32_t       dwMicroSecPerFrame;       // microseconds per frame
 	uint32_t       dwBufferSize;
-    SDL_AudioCVT   cvt;
+#if SDL_VERSION_ATLEAST(3,0,0)
+	SDL_AudioSpec  src_spec;
+#else
+	SDL_AudioCVT   cvt;
+#endif
 
 	uint8_t       *pChunkBuffer;
 	uint8_t       *pbAudioBuf;  // ring buffer for audio data
@@ -276,20 +280,26 @@ PAL_ReadAVIInfo(
 			avi->surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
 				bih.biWidth, bih.biHeight, bih.biBitCount,
 				0x7C00, 0x03E0, 0x001F, 0x0000);
+
+			avi->src_spec.format = (wfe.format.wBitsPerSample == 8) ? SDL_AUDIO_U8 : SDL_AUDIO_S16LE;
+			avi->src_spec.channels = wfe.format.nChannels;
+			avi->src_spec.freq = wfe.format.nSamplesPerSec;
 			//
 			// Build SDL audio conversion info
 			//
+			/*
 			SDL_BuildAudioCVT(&avi->cvt,
 				(wfe.format.wBitsPerSample == 8) ? SDL_AUDIO_U8 : SDL_AUDIO_S16LE,
 				wfe.format.nChannels, wfe.format.nSamplesPerSec,
 				SDL_AUDIO_S16,
 				AUDIO_GetDeviceSpec()->channels,
 				AUDIO_GetDeviceSpec()->freq);
+			*/
 			//
 			// Allocate chunk buffer
 			// Since SDL converts audio in-place, we need to make the buffer large enough to hold converted data
 			//
-			avi->dwBufferSize = aviHeader.dwSuggestedBufferSize * avi->cvt.len_mult + sizeof(RIFFChunkHeader);
+			avi->dwBufferSize = aviHeader.dwSuggestedBufferSize * 8 + sizeof(RIFFChunkHeader);
 			if (avi->dwBufferSize > 0)
 				avi->pChunkBuffer = UTIL_malloc(avi->dwBufferSize);
 			else
@@ -297,7 +307,7 @@ PAL_ReadAVIInfo(
 			//
 			// Allocate audio buffer, the buffer size is large enough to hold two-second audio data
 			//
-			avi->dwAudBufLen = max(wfe.format.nAvgBytesPerSec * 2, aviHeader.dwSuggestedBufferSize) * avi->cvt.len_mult;
+			avi->dwAudBufLen = max(wfe.format.nAvgBytesPerSec * 2, aviHeader.dwSuggestedBufferSize) * 8;
 			avi->pbAudioBuf = (uint8_t *)UTIL_malloc(avi->dwAudBufLen);
 			avi->dwAudioReadPos = avi->dwAudioWritePos = 0;
 			return avi;
@@ -478,12 +488,21 @@ PAL_AVIFeedAudio(
     // Convert audio in-place at the original buffer
     // This makes filling process much more simpler
     //
-    avi->cvt.buf = buffer;
+    /*avi->cvt.buf = buffer;
     avi->cvt.len = size;
     SDL_ConvertAudio(&avi->cvt);
-    size = avi->cvt.len_cvt;
+    size = avi->cvt.len_cvt;*/
 
-    SDL_mutexP(avi->selfMutex);
+		Uint8* dst_data = NULL;
+		int dst_len = 0;
+		const SDL_AudioSpec dst_spec = { SDL_AUDIO_S16, AUDIO_GetDeviceSpec()->channels, AUDIO_GetDeviceSpec()->freq };
+		if (!SDL_ConvertAudioSamples(&avi->src_spec, buffer, size, &dst_spec, &dst_data, &dst_len)) {
+			/* error */
+		}
+		buffer = dst_data;
+		size = dst_len;
+
+	SDL_LockMutex(avi->selfMutex);
     while (size > 0)
     {
         uint32_t feed_size = (avi->dwAudioWritePos + size > avi->dwAudBufLen) ? avi->dwAudBufLen - avi->dwAudioWritePos : size;
@@ -495,7 +514,9 @@ PAL_AVIFeedAudio(
         buffer += feed_size;
         size -= feed_size;
     }
-    SDL_mutexV(avi->selfMutex);
+    SDL_UnlockMutex(avi->selfMutex);
+
+	SDL_free(dst_data);
 }
 
 void
@@ -666,7 +687,7 @@ PAL_PlayAVI(
 
     PAL_ClearKeyState();
 
-    VIDEO_ChangeDepth(avi->surface->format->BitsPerPixel);
+    VIDEO_ChangeDepth(SDL_BITSPERPIXEL(avi->surface->format));
 
 	BOOL       fEndPlay = FALSE;
 	RIFFChunk *buf = (RIFFChunk *)avi->pChunkBuffer;
@@ -678,7 +699,7 @@ PAL_PlayAVI(
 
     while (!fEndPlay)
     {
-		RIFFChunk *chunk = PAL_ReadDataChunk(fp, avi->lVideoEndPos, buf, len, avi->cvt.len_mult);
+		RIFFChunk *chunk = PAL_ReadDataChunk(fp, avi->lVideoEndPos, buf, len, 8);
 
 		if (chunk == NULL) break;
 

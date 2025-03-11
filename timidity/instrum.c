@@ -194,7 +194,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
   /* Read some headers and do cursory sanity checks. There are loads
      of magic offsets. This could be rewritten... */
 
-  if ((239 != SDL_ReadIO(rw, tmp, 1, 239)) ||
+  if ((239 != SDL_RWread(rw, tmp, 1, 239)) ||
       (memcmp(tmp, "GF1PATCH110\0ID#000002", 22) &&
        memcmp(tmp, "GF1PATCH100\0ID#000002", 22))) /* don't know what the
 						      differences are */
@@ -231,18 +231,18 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
       Uint8 tmpchar;
 
 #define READ_CHAR(thing) \
-      if (1 != SDL_ReadIO(rw, &tmpchar, 1, 1)) goto fail; \
+      if (1 != SDL_RWread(rw, &tmpchar, 1, 1)) goto fail; \
       thing = tmpchar;
 #define READ_SHORT(thing) \
-      if (1 != SDL_ReadIO(rw, &tmpshort, 2, 1)) goto fail; \
+      if (1 != SDL_RWread(rw, &tmpshort, 2, 1)) goto fail; \
       thing = SDL_Swap16LE(tmpshort);
 #define READ_LONG(thing) \
-      if (1 != SDL_ReadIO(rw, &tmplong, 4, 1)) goto fail; \
+      if (1 != SDL_RWread(rw, &tmplong, 4, 1)) goto fail; \
       thing = SDL_Swap32LE(tmplong);
 
       SDL_SeekIO(rw, 7, SDL_IO_SEEK_CUR); /* Skip the wave name */
 
-      if (1 != SDL_ReadIO(rw, &fractions, 1, 1))
+      if (1 != SDL_RWread(rw, &fractions, 1, 1))
 	{
 	fail:
 	  SNDDBG(("Error reading sample %d\n", i));
@@ -274,7 +274,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 	sp->panning=(Uint8)(panning & 0x7F);
 
       /* envelope, tremolo, and vibrato */
-      if (18 != SDL_ReadIO(rw, tmp, 1, 18)) goto fail; 
+      if (18 != SDL_RWread(rw, tmp, 1, 18)) goto fail; 
 
       if (!tmp[13] || !tmp[14])
 	{
@@ -385,7 +385,7 @@ static Instrument *load_instrument(MidiSong *song, char *name, int percussion,
 
       /* Then read the sample data */
       sp->data = (sample_t *) safe_malloc(sp->data_length+4);
-      if (1 != SDL_ReadIO(rw, sp->data, sp->data_length, 1))
+      if (1 != SDL_RWread(rw, sp->data, sp->data_length, 1))
 	goto fail;
       
       if (!(sp->modes & MODES_16BIT)) /* convert to 16-bit data */

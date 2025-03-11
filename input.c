@@ -121,14 +121,6 @@ PAL_DetectJoystick(
                 break;
             }
         }
-
-        if (g_pJoy != NULL)
-        {
-            //
-            //! CANNOT BE DISABLED OR HOTPLUG STOPS WORK
-            //
-            SDL_JoystickEventState(SDL_ENABLE);
-        }
     }
     else
     {
@@ -288,10 +280,11 @@ PAL_UpdateKeyboardState(
    LPCBYTE        keyState = (LPCBYTE)SDL_GetKeyboardState(NULL);
    int            i;
    DWORD          dwCurrentTime = SDL_GetTicks();
+   SDL_Keymod     mod;
 
    for (i = 0; i < sizeof(g_KeyMap) / sizeof(g_KeyMap[0]); i++)
    {
-      if (keyState[SDL_GetScancodeFromKey(g_KeyMap[i][0])])
+      if (keyState[SDL_GetScancodeFromKey(g_KeyMap[i][0], &mod)])
       {
          if (dwCurrentTime > rgdwKeyLastTime[i])
          {
@@ -341,9 +334,9 @@ PAL_KeyboardEventFilter(
       //
       // Pressed a key
       //
-      if (lpEvent->key.keysym.mod & SDL_KMOD_ALT)
+      if (lpEvent->key.mod & SDL_KMOD_ALT)
       {
-         if (lpEvent->key.keysym.sym == SDLK_RETURN)
+         if (lpEvent->key.key == SDLK_RETURN)
          {
             //
             // Pressed Alt+Enter (toggle fullscreen)...
@@ -351,7 +344,7 @@ PAL_KeyboardEventFilter(
             VIDEO_ToggleFullscreen();
             return;
          }
-         else if (lpEvent->key.keysym.sym == SDLK_F4)
+         else if (lpEvent->key.key == SDLK_F4)
          {
             //
             // Pressed Alt+F4 (Exit program)...
@@ -359,24 +352,24 @@ PAL_KeyboardEventFilter(
             PAL_Shutdown(0);
          }
       }
-      else if (lpEvent->key.keysym.sym == SDLK_P)
+      else if (lpEvent->key.key == SDLK_P)
       {
          VIDEO_SaveScreenshot();
       }
 #if PAL_HAS_GLSL
-      else if (lpEvent->key.keysym.sym == SDLK_Z)
+      else if (lpEvent->key.key == SDLK_Z)
       {
          Filter_StepParamSlot(1);
       }
-      else if (lpEvent->key.keysym.sym == SDLK_X)
+      else if (lpEvent->key.key == SDLK_X)
       {
          Filter_StepParamSlot(-1);
       }
-      else if (lpEvent->key.keysym.sym == SDLK_COMMA)
+      else if (lpEvent->key.key == SDLK_COMMA)
       {
          Filter_StepCurrentParam(1);
       }
-      else if (lpEvent->key.keysym.sym == SDLK_PERIOD)
+      else if (lpEvent->key.key == SDLK_PERIOD)
       {
          Filter_StepCurrentParam(-1);
       }
@@ -1067,6 +1060,11 @@ PAL_EventFilter(
    switch (lpEvent->type)
    {
 #if SDL_VERSION_ATLEAST(2,0,0)
+ #if SDL_VERSION_ATLEAST(3,0,0)
+   case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+       VIDEO_Resize(lpEvent->window.data1, lpEvent->window.data2);
+       break;
+ #else
    case SDL_WINDOWEVENT:
       if (lpEvent->window.event == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
       {
@@ -1076,6 +1074,7 @@ PAL_EventFilter(
          VIDEO_Resize(lpEvent->window.data1, lpEvent->window.data2);
       }
       break;
+#endif
 
    case SDL_EVENT_WILL_ENTER_BACKGROUND:
       g_bRenderPaused = TRUE;

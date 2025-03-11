@@ -46,6 +46,14 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_endian.h>
 
+#define SDL_MIX_MAXVOLUME 1
+#define SDL_SWSURFACE 0
+extern SDL_Surface* SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+extern SDL_Surface* SDL_CreateRGBSurfaceWithFormat(Uint32 flags, int width, int height, int depth, Uint32 format);
+extern SDL_Surface* SDL_CreateRGBSurfaceFrom(void* pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+extern SDL_Surface* SDL_CreateRGBSurfaceWithFormatFrom(void* pixels, int width, int height, int depth, int pitch, Uint32 format);
+extern size_t SDL_RWread(SDL_IOStream* stream, void* ptr, size_t size, size_t nitems);
+
 #define __WIDETEXT(quote) L##quote
 #define WIDETEXT(quote) __WIDETEXT(quote)
 

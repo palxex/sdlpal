@@ -40,6 +40,7 @@ typedef void(*ResampleMixFunction)(void *, const void *, int, void *, int, int, 
 typedef struct tagAUDIODEVICE
 {
    SDL_AudioSpec             spec;		/* Actual-used sound specification */
+   SDL_AudioStream			*stream;
    AUDIOPLAYER              *pMusPlayer;
    AUDIOPLAYER              *pCDPlayer;
 #if PAL_HAS_SDLCD
@@ -241,11 +242,16 @@ AUDIO_OpenDevice(
     } else {
         UTIL_LogOutput(LOGLEVEL_VERBOSE, "Audio subsystem not initialized.\n");
     }
-    for( int i = 0; i<SDL_GetNumAudioDevices(0);i++)
-    {
-        UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio device %d:%s\n", i, SDL_GetAudioDeviceName(i,0));
-    }
-    UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio device: %s\n",(gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(gConfig.iAudioDevice, 0) : "default"));
+	int i, num_devices;
+	SDL_AudioDeviceID* devices = SDL_GetAudioPlaybackDevices(&num_devices);
+	if (devices) {
+		for (i = 0; i < num_devices; ++i) {
+			SDL_AudioDeviceID instance_id = devices[i];
+			UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio device %d:%s\n", i++, SDL_GetAudioDeviceName(instance_id));
+		}
+		UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio device: %s\n", (gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(devices[gConfig.iAudioDevice]) : "default"));
+		SDL_free(devices);
+	}
 #endif
 
    //
@@ -254,14 +260,16 @@ AUDIO_OpenDevice(
    gAudioDevice.spec.freq = gConfig.iSampleRate;
    gAudioDevice.spec.format = SDL_AUDIO_S16;
    gAudioDevice.spec.channels = gConfig.iAudioChannels;
-   gAudioDevice.spec.samples = gConfig.wAudioBufferSize;
-   gAudioDevice.spec.callback = AUDIO_FillBuffer;
+   
+   //gAudioDevice.spec.samples = gConfig.wAudioBufferSize;
+   SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, gConfig.wAudioBufferSize);
+   //gAudioDevice.spec.callback = AUDIO_FillBuffer;
 
-   UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio spec:freq %d, format %d, channels %d, samples %d\n", gAudioDevice.spec.freq, gAudioDevice.spec.format,  gAudioDevice.spec.channels, gAudioDevice.spec.samples);
+   UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio spec:freq %d, format %d, channels %d, samples %d\n", gAudioDevice.spec.freq, gAudioDevice.spec.format,  gAudioDevice.spec.channels, gConfig.wAudioBufferSize);
 
-   if (SDL_OpenAudio(&gAudioDevice.spec, &spec) < 0)
+   if (!(gAudioDevice.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, AUDIO_FillBuffer, NULL)))
    {
-      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio ERROR: %s, got spec:freq %d, format %d, channels %d, samples %d\n", SDL_GetError(), spec.freq, spec.format, spec.channels,  spec.samples);
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio ERROR: %s, got spec:freq %d, format %d, channels %d, samples %d\n", SDL_GetError(), spec.freq, spec.format, spec.channels, gConfig.wAudioBufferSize);
       //
       // Failed
       //
@@ -269,7 +277,7 @@ AUDIO_OpenDevice(
    }
    else
    {
-      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio succeed, got spec:freq %d, format %d, channels %d, samples %d\n", spec.freq, spec.format, spec.channels,  spec.samples);
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio succeed, got spec:freq %d, format %d, channels %d, samples %d\n", spec.freq, spec.format, spec.channels, gConfig.wAudioBufferSize);
       gAudioDevice.pSoundBuffer = malloc(gConfig.wAudioBufferSize * gConfig.iAudioChannels * sizeof(short));
    }
 
@@ -355,7 +363,7 @@ AUDIO_OpenDevice(
    //
    // Let the callback function run so that musics will be played.
    //
-   SDL_PauseAudio(0);
+   SDL_ResumeAudioStream(SDL_GetAudioStreamDevice(gAudioDevice.stream));
 
    return 0;
 }

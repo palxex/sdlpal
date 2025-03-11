@@ -63,6 +63,41 @@ static WORD               g_wShakeLevel      = 0;
 #include "video_glsl.h"
 #endif
 
+#if SDL_VERSION_ATLEAST(3, 0, 0)
+//!TO maintain SDL2 compatibility
+SDL_Surface* SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+{
+    return SDL_CreateSurface(width, height,
+        SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask));
+}
+
+SDL_Surface* SDL_CreateRGBSurfaceWithFormat(Uint32 flags, int width, int height, int depth, Uint32 format)
+{
+    return SDL_CreateSurface(width, height, format);
+}
+
+SDL_Surface* SDL_CreateRGBSurfaceFrom(void* pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+{
+    return SDL_CreateSurfaceFrom(width, height,
+        SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask),
+        pixels, pitch);
+}
+
+SDL_Surface* SDL_CreateRGBSurfaceWithFormatFrom(void* pixels, int width, int height, int depth, int pitch, Uint32 format)
+{
+    return SDL_CreateSurfaceFrom(width, height, format, pixels, pitch);
+}
+
+size_t SDL_RWread(SDL_IOStream* stream, void* ptr, size_t size, size_t nitems)
+{
+    if (size > 0 && nitems > 0) {
+        return SDL_ReadIO(stream, ptr, size * nitems) / size;
+    }
+    return 0;
+}
+
+#endif
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 void VIDEO_SetupTouchArea(int window_w, int window_h, int draw_w, int draw_h)
 {
@@ -177,6 +212,9 @@ VIDEO_Startup(
    if (gpWindow == NULL)
    gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS);
+#if SDL_VERSION_ATLEAST(3,0,0)
+   SDL_SetWindowFullscreen(gpWindow, true);
+#endif
 
    if (gpWindow == NULL)
    {
