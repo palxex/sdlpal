@@ -110,12 +110,15 @@ PAL_DetectJoystick(
 
 --*/
 {
-    if (SDL_NumJoysticks() > 0 && g_fUseJoystick)
+    int numjoysticks;
+    SDL_JoystickID* joysticks = SDL_GetJoysticks(&numjoysticks);
+    if (numjoysticks > 0 && g_fUseJoystick)
     {
         int i;
-        for (i = 0; i < SDL_NumJoysticks(); i++)
+        for (i = 0; i < numjoysticks; i++)
         {
-            if (PAL_IS_VALID_JOYSTICK(SDL_JoystickNameForIndex(i)))
+            SDL_JoystickID instance_id = joysticks[i];
+            if (PAL_IS_VALID_JOYSTICK(SDL_JoystickNameForID(instance_id)))
             {
                 g_pJoy = SDL_OpenJoystick(i);
                 break;

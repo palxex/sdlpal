@@ -20,6 +20,7 @@
 //
 
 #include "main.h"
+#include <SDL3/SDL_main.h>
 #include <setjmp.h>
 
 #if defined(PAL_HAS_GIT_REVISION)

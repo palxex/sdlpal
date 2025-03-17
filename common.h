@@ -53,6 +53,8 @@ extern SDL_Surface* SDL_CreateRGBSurfaceWithFormat(Uint32 flags, int width, int 
 extern SDL_Surface* SDL_CreateRGBSurfaceFrom(void* pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 extern SDL_Surface* SDL_CreateRGBSurfaceWithFormatFrom(void* pixels, int width, int height, int depth, int pitch, Uint32 format);
 extern size_t SDL_RWread(SDL_IOStream* stream, void* ptr, size_t size, size_t nitems);
+#define SDL_mutexP SDL_LockMutex
+#define SDL_mutexV SDL_UnlockMutex
 
 #define __WIDETEXT(quote) L##quote
 #define WIDETEXT(quote) __WIDETEXT(quote)

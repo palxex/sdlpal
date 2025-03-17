@@ -21,6 +21,7 @@
 
 #include "options.h"
 #include "common.h"
+#include "palcfg.h"
 #include "instrum.h"
 #include "playmidi.h"
 #include "readmidi.h"
@@ -49,7 +50,7 @@ static char *RWgets(SDL_IOStream *rw, char *s, int size)
 
     for (; num_read < size; ++p)
     {
-	if (SDL_ReadIO(rw, p, 1, 1) != 1)
+	if (SDL_RWread(rw, p, 1, 1) != 1)
 	    break;
 
 	num_read++;
@@ -535,12 +536,14 @@ MidiSong *Timidity_LoadSong(SDL_IOStream *rw, SDL_AudioSpec *audio)
   case SDL_AUDIO_S16BE:
 	  song->write = s32tos16b;
 	  break;
+#if !SDL_VERSION_ATLEAST(2,0,0)
   case AUDIO_U16LSB:
 	  song->write = s32tou16l;
 	  break;
   case AUDIO_U16MSB:
 	  song->write = s32tou16b;
 	  break;
+#endif
 #if SDL_VERSION_ATLEAST(2,0,0)
   case SDL_AUDIO_S32LE:
 	  song->write = s32tos32l;
@@ -558,9 +561,10 @@ MidiSong *Timidity_LoadSong(SDL_IOStream *rw, SDL_AudioSpec *audio)
 	  return NULL;
   }
 
-  song->buffer_size = audio->samples;
-  song->resample_buffer = safe_malloc(audio->samples * sizeof(sample_t));
-  song->common_buffer = safe_malloc(audio->samples * 2 * sizeof(Sint32));
+  uint32_t samples = gConfig.wAudioBufferSize;
+  song->buffer_size = samples;
+  song->resample_buffer = safe_malloc(samples * sizeof(sample_t));
+  song->common_buffer = safe_malloc(samples * 2 * sizeof(Sint32));
   
   song->control_ratio = audio->freq / CONTROLS_PER_SECOND;
   if (song->control_ratio < 1)

@@ -206,7 +206,7 @@ SDL_STBIMG_DEF bool STBIMG_stbi_callback_from_RW(SDL_IOStream* src, STBIMG_stbio
 //   at seeking. It reads everything into a buffer and calls STBIMG_LoadFromMemory()
 // You should probably only use this if you *really* have performance problems
 //  because of seeking or your src doesn't support  SDL_SeekIO(), but SDL_GetIOSize()
-// src must at least support SDL_ReadIO() and SDL_GetIOSize()
+// src must at least support SDL_RWread() and SDL_GetIOSize()
 // if you set freesrc to non-zero, SDL_CloseIO(src) will be executed after reading.
 // Returns NULL on error, use SDL_GetError() to get more information.
 SDL_STBIMG_DEF SDL_Surface* STBIMG_Load_RW_noSeek(SDL_IOStream* src, int freesrc);
@@ -343,7 +343,7 @@ static int STBIMG__io_read(void* user, char* data, int size)
 {
 	STBIMG_stbio_RWops* io = (STBIMG_stbio_RWops*)user;
 
-	int ret = SDL_ReadIO(io->src, data, sizeof(char), size);
+	int ret = SDL_RWread(io->src, data, sizeof(char), size);
 	if(ret == 0)
 	{
 		// we're at EOF or some error happend
@@ -519,7 +519,7 @@ SDL_STBIMG_DEF SDL_Surface* STBIMG_Load_RW_noSeek(SDL_IOStream* src, int freesrc
 		goto end;
 	}
 
-	if(SDL_ReadIO(src, buf, fileSize, 1) > 0)
+	if(SDL_RWread(src, buf, fileSize, 1) > 0)
 	{
 		// if that fails, STBIMG_LoadFromMemory() has set an SDL error
 		// and ret is NULL, so nothing special to do for us

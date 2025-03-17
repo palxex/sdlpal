@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "music_mad.h"
+#include "../common.h" /* SDLPAL */
 #include "../resampler.h" /* SDLPAL */
 
 #ifndef SDL_AUDIO_BITSIZE
@@ -66,7 +67,7 @@ mad_openFileRW(SDL_IOStream *rw, SDL_AudioSpec *mixer, int resampler_quality) {
 
 void
 mad_closeFile(mad_data *mp3_mad) {
-  SDL_FreeRW(mp3_mad->rw);
+  SDL_CloseIO(mp3_mad->rw);
   mad_stream_finish(&mp3_mad->stream);
   mad_frame_finish(&mp3_mad->frame);
   mad_synth_finish(&mp3_mad->synth);
@@ -141,7 +142,7 @@ read_next_frame(mad_data *mp3_mad) {
 	}
 
 	/* Now read additional bytes from the input file. */
-	read_size = SDL_ReadIO(mp3_mad->rw, read_start, 1, read_size);
+	read_size = SDL_RWread(mp3_mad->rw, read_start, 1, read_size);
 	
 	if (read_size <= 0) {
 	  if ((mp3_mad->status & (MS_input_eof | MS_input_error)) == 0) {
