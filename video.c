@@ -168,7 +168,8 @@ VIDEO_Startup(
 	   gRenderBackend.RenderCopy = VIDEO_GLSL_RenderCopy;
    }
 #endif
-	
+   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "vulkan");
+
    gRenderBackend.Init();
 
    //
@@ -176,7 +177,7 @@ VIDEO_Startup(
    //
    if (gpWindow == NULL)
    gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                               gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS);
+                               gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS|SDL_WINDOW_VULKAN);
 
    if (gpWindow == NULL)
    {
