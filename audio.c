@@ -280,7 +280,7 @@ AUDIO_OpenDevice(
 
    if (!(gAudioDevice.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &gAudioDevice.spec, AUDIO_FillBuffer_Wrapper, NULL)))
    {
-      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio ERROR: %s, got spec:freq %d, format %d, channels %d, samples %d\n", SDL_GetError(), spec.freq, spec.format, spec.channels, gConfig.wAudioBufferSize);
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio ERROR: %s, got spec:freq %d, format %d, channels %d, samples %d\n", SDL_GetError(), gAudioDevice.spec.freq, gAudioDevice.spec.format, gAudioDevice.spec.channels, gConfig.wAudioBufferSize);
       //
       // Failed
       //

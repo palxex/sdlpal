@@ -76,6 +76,7 @@
 #define glActiveTexture _glActiveTexture
 #define glGetUniformLocation _glGetUniformLocation
 #define glGetStringi _glGetStringi
+#define glActiveTextureARB _glActiveTextureARB
 
 extern PFNGLCREATESHADERPROC glCreateShader;
 extern PFNGLSHADERSOURCEPROC glShaderSource;
@@ -107,6 +108,7 @@ extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLGETSTRINGIPROC glGetStringi;
+extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
 
 extern int initGLExtensions(int major);
 #endif

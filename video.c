@@ -204,13 +204,14 @@ VIDEO_Startup(
    }
 #endif
 	
+   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "vulkan");
    gRenderBackend.Init();
 
    //
    // Before we can render anything, we need a window and a renderer.
    //
    if (gpWindow == NULL)
-   gpWindow = SDL_CreateWindow("Pal", gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS);
+   gpWindow = SDL_CreateWindow("Pal", gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS|SDL_WINDOW_VULKAN);
 #if SDL_VERSION_ATLEAST(3,0,0)
    if( gConfig.fFullScreen )
     SDL_SetWindowFullscreen(gpWindow, true);
@@ -227,7 +228,7 @@ VIDEO_Startup(
 	}
 # endif
 
-   gpRenderer = SDL_CreateRenderer(gpWindow, NULL);
+   gpRenderer = SDL_CreateRenderer(gpWindow, SDL_GetHint(SDL_HINT_RENDER_DRIVER));
 
    gRenderBackend.Setup();
 
@@ -288,7 +289,7 @@ VIDEO_Startup(
 
       if (overlay != NULL)
       {
-         //SDL_SetSurfaceColorKey(overlay, SDL_RLEACCEL, SDL_MapRGB(overlay->format, 255, 0, 255));
+         SDL_SetSurfaceColorKey(overlay, true, SDL_MapRGB(SDL_GetPixelFormatDetails(overlay->format), gpPalette, 255, 0, 255));
          //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, gConfig.pszScaleQuality);
          gpTouchOverlay = SDL_CreateTextureFromSurface(gpRenderer, overlay);
          //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -462,6 +463,7 @@ VIDEO_RenderCopy(
    VOID
 )
 {
+    /*
 	void *texture_pixels;
 	int texture_pitch;
 
@@ -479,12 +481,15 @@ VIDEO_RenderCopy(
 	}
 	memset(pixels, 0, gTextureRect.y * texture_pitch);
 	SDL_UnlockTexture(gpTexture);
+    */
+    gpTexture = SDL_CreateTextureFromSurface(gpRenderer, gpScreenReal);
 
 	SDL_RenderClear(gpRenderer);
 	SDL_RenderTexture(gpRenderer, gpTexture, NULL, NULL);
 	if (gConfig.fUseTouchOverlay)
 	{
-		SDL_RenderTexture(gpRenderer, gpTouchOverlay, NULL, &gOverlayRect);
+		SDL_FRect fOverlayRect = { gOverlayRect.x, gOverlayRect.y, gOverlayRect.w, gOverlayRect.h };
+		SDL_RenderTexture(gpRenderer, gpTouchOverlay, NULL, &fOverlayRect);
 	}
 	SDL_RenderPresent(gpRenderer);
 }

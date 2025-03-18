@@ -55,6 +55,7 @@ PFNGLUNIFORM1FPROC glUniform1f;
 PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLGETSTRINGIPROC glGetStringi;
+PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
 
 #if !defined(SDL_PLATFORM_APPLE)
 int initGLExtensions(int major) {
@@ -87,6 +88,7 @@ int initGLExtensions(int major) {
     glUniform1f = (PFNGLUNIFORM1FPROC)SDL_GL_GetProcAddress("glUniform1f");
     glActiveTexture = (PFNGLACTIVETEXTUREPROC)SDL_GL_GetProcAddress("glActiveTexture");
     glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)SDL_GL_GetProcAddress("glGetUniformLocation");
+	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glActiveTextureARB");
     if( major >= 3 )
         glGetStringi = (PFNGLGETSTRINGIPROC)SDL_GL_GetProcAddress("glGetStringi") ;
     
