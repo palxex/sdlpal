@@ -49,7 +49,7 @@
 
 #undef SDL_RWread
 
-#define SDL_MIX_MAXVOLUME 1
+#define SDL_MIX_MAXVOLUME 128
 #define SDL_SWSURFACE 0
 extern SDL_Surface* SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 extern SDL_Surface* SDL_CreateRGBSurfaceWithFormat(Uint32 flags, int width, int height, int depth, Uint32 format);
