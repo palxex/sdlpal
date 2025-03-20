@@ -32,7 +32,7 @@ TOBJFILES = $(CFILES:.c=$(INTER).o) $(CPPFILES:.cpp=$(INTER).o)
 DEPFILES = $(OBJFILES:.o=.d)
 TEST_CPPFILES = $(wildcard ../tests/*.cpp)
 TEST_OBJFILES = $(TEST_CPPFILES:.cpp=.o)
-SDL_CONFIG = pkg-config sdl3
+SDL_CONFIG = sdl2-config
 
 
 FLTK_INSTALLED := $(shell command -v fltk-config 2> /dev/null)

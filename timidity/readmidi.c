@@ -23,6 +23,9 @@
 #include "instrum.h"
 #include "playmidi.h"
 
+#undef SDL_RWread
+extern size_t SDL_RWread(SDL_IOStream* stream, void* ptr, size_t size, size_t nitems);
+
 /* Computes how many (fractional) samples one MIDI delta-time unit contains */
 static void compute_sample_increment(MidiSong *song, Sint32 tempo,
 				     Sint32 divisions)

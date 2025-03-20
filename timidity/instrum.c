@@ -29,6 +29,9 @@
 #include "resample.h"
 #include "tables.h"
 
+#undef SDL_RWread
+extern size_t SDL_RWread(SDL_IOStream* stream, void* ptr, size_t size, size_t nitems);
+
 static void free_instrument(Instrument *ip)
 {
   Sample *sp;

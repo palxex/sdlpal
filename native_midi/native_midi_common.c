@@ -30,6 +30,8 @@
 #include <string.h>
 #include <limits.h>
 
+#undef SDL_RWread
+extern size_t SDL_RWread(SDL_IOStream* stream, void* ptr, size_t size, size_t nitems);
 
 /* The maximum number of midi tracks that we can handle 
 #define MIDI_TRACKS 32 */

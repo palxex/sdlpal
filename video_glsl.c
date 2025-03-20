@@ -489,60 +489,61 @@ GLint get_gl_wrap_mode(enum wrap_mode mode, enum scale_type type) {
     return gl_wrap_mode;
 }
 
-void SDL_GL_BindTexture(SDL_Texture* texture, float* texw, float* texh)
+int SDL_GL_BindTexture(SDL_Texture* texture, float* texw, float* texh)
 {
-        SDL_PropertiesID props;
-        SDL_Renderer* renderer;
-        Sint64 tex;
+    SDL_PropertiesID props;
+    SDL_Renderer* renderer;
+    Sint64 tex;
 
-        renderer = gpRenderer;
-        if (!renderer) {
+    renderer = gpRenderer;
+    if (!renderer) {
+        return -1;
+    }
+
+    props = SDL_GetTextureProperties(texture);
+    if (!props) {
+        return -1;
+    }
+
+    /* always flush the renderer here; good enough. SDL2 only flushed if the texture might have changed, but we'll be conservative. */
+    SDL_FlushRenderer(renderer);
+
+    if ((tex = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER, -1)) != -1) {  // opengl renderer.
+        const Sint64 target = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER, 0);
+        const Sint64 uv = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER, 0);
+        const Sint64 u = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_U_NUMBER, 0);
+        const Sint64 v = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_V_NUMBER, 0);
+
+        bool okay = true;
+
+        if (!okay) {
             return -1;
         }
 
-        props = SDL_GetTextureProperties(texture);
-        if (!props) {
-            return -1;
+        glEnable((GLenum)target);
+
+        if (u && v) {
+            glActiveTextureARB(GL_TEXTURE2_ARB);
+            glBindTexture((GLenum)target, (GLuint)v);
+            glActiveTextureARB(GL_TEXTURE1_ARB);
+            glBindTexture((GLenum)target, (GLuint)u);
+            glActiveTextureARB(GL_TEXTURE0_ARB);
         }
+        else if (uv) {
+            glActiveTextureARB(GL_TEXTURE1_ARB);
+            glBindTexture((GLenum)target, (GLuint)uv);
+            glActiveTextureARB(GL_TEXTURE0_ARB);
+        }
+        glBindTexture((GLenum)target, (GLuint)tex);
 
-        /* always flush the renderer here; good enough. SDL2 only flushed if the texture might have changed, but we'll be conservative. */
-        SDL_FlushRenderer(renderer);
-
-        if ((tex = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER, -1)) != -1) {  // opengl renderer.
-            const Sint64 target = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER, 0);
-            const Sint64 uv = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER, 0);
-            const Sint64 u = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_U_NUMBER, 0);
-            const Sint64 v = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_V_NUMBER, 0);
-
-            bool okay = true;
-
-            if (!okay) {
-                return -1;
-            }
-
-            glEnable((GLenum)target);
-
-            if (u && v) {
-                glActiveTextureARB(GL_TEXTURE2_ARB);
-                glBindTexture((GLenum)target, (GLuint)v);
-                glActiveTextureARB(GL_TEXTURE1_ARB);
-                glBindTexture((GLenum)target, (GLuint)u);
-                glActiveTextureARB(GL_TEXTURE0_ARB);
-            }
-            else if (uv) {
-                glActiveTextureARB(GL_TEXTURE1_ARB);
-                glBindTexture((GLenum)target, (GLuint)uv);
-                glActiveTextureARB(GL_TEXTURE0_ARB);
-            }
-            glBindTexture((GLenum)target, (GLuint)tex);
-
-            if (texw) {
-                *texw = SDL_GetFloatProperty(props, SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT, 1.0f);
-            }
-            if (texh) {
-                *texh = SDL_GetFloatProperty(props, SDL_PROP_TEXTURE_OPENGL_TEX_H_FLOAT, 1.0f);
-            }
-		}
+        if (texw) {
+            *texw = SDL_GetFloatProperty(props, SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT, 1.0f);
+        }
+        if (texh) {
+            *texh = SDL_GetFloatProperty(props, SDL_PROP_TEXTURE_OPENGL_TEX_H_FLOAT, 1.0f);
+        }
+    }
+    return 0;
 }
 
 SDL_Texture *load_texture(char *name, char *filename, bool filter_linear, enum wrap_mode mode, enum scale_type type) {
@@ -742,7 +743,7 @@ int VIDEO_RenderTexture(SDL_Renderer * renderer, SDL_Texture * texture, const SD
     
     SDL_Rect _srcrect,_dstrect;
     
-    int w, h;
+    float w, h;
     SDL_GetTextureSize(texture, &w, &h);
     
     if(!srcrect) {

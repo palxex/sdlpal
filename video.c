@@ -463,7 +463,6 @@ VIDEO_RenderCopy(
    VOID
 )
 {
-    /*
 	void *texture_pixels;
 	int texture_pitch;
 
@@ -481,8 +480,6 @@ VIDEO_RenderCopy(
 	}
 	memset(pixels, 0, gTextureRect.y * texture_pitch);
 	SDL_UnlockTexture(gpTexture);
-    */
-    gpTexture = SDL_CreateTextureFromSurface(gpRenderer, gpScreenReal);
 
 	SDL_RenderClear(gpRenderer);
 	SDL_RenderTexture(gpRenderer, gpTexture, NULL, NULL);

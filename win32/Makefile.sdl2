@@ -25,7 +25,7 @@ OBJFILES = $(CFILES:.c=$(INTER).o) $(CPPFILES:.cpp=$(INTER).o) $(RCFILE_EXT:.rc=
 DEPFILES = $(CFILES:.c=$(INTER).d) $(CPPFILES:.cpp=$(INTER).d)
 TEST_CPPFILES = $(wildcard ../tests/*.cpp)
 TEST_OBJFILES = $(TEST_CPPFILES:.cpp=.o)
-SDL_CONFIG = pkg-config sdl3 
+SDL_CONFIG = sdl2-config
 
 override CCFLAGS += `$(SDL_CONFIG) --cflags` -I../3rd/mingw-std-threads -g -msse2 -Wall -O2 -fno-strict-aliasing $(EXTRA_CCFLAGS) $(TEST_CCFLAGS) $(GENERATED)
 CXXFLAGS = $(CCFLAGS) -std=c++11
