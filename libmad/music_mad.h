@@ -21,7 +21,7 @@
 */
 
 #include "mad.h"
-#include <SDL3/SDL_IOStream.h>
+#include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_audio.h>
 
 #define MAD_INPUT_BUFFER_SIZE	(5*8192)

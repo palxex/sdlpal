@@ -25,7 +25,7 @@
 #ifndef _NATIVE_MIDI_H_
 #define _NATIVE_MIDI_H_
 
-#include <SDL3/SDL_IOStream.h>
+#include <SDL3/SDL_iostream.h>
 
 typedef struct _NativeMidiSong NativeMidiSong;
 
