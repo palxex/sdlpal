@@ -22,6 +22,10 @@
 #include "main.h"
 #include <setjmp.h>
 
+#if SDL_VERSION_ATLEAST(3,0,0)
+    #include <SDL3/SDL_main.h>
+#endif
+
 #if defined(PAL_HAS_GIT_REVISION)
 # undef PAL_GIT_REVISION
 # include "generated.h"
@@ -156,11 +160,14 @@ PAL_Shutdown(
    PAL_FreeGlobals();
 
    g_exit_code = exit_code;
-#if !__EMSCRIPTEN__
+#if !__EMSCRIPTEN__ && SDL_MAJOR_VERSION < 3
    longjmp(g_exit_jmp_buf, 1);
 #else
    SDL_Quit();
    UTIL_Platform_Quit();
+#ifndef __WINRT__
+   exit(0);
+#endif
    return;
 #endif
 }
@@ -476,7 +483,7 @@ main(
    UTIL_Platform_Startup(argc,argv);
 #endif
 
-#if !__EMSCRIPTEN__
+#if !__EMSCRIPTEN__ && SDL_MAJOR_VERSION < 3
    if (setjmp(g_exit_jmp_buf) != 0)
    {
 	   // A longjmp is made, should exit here

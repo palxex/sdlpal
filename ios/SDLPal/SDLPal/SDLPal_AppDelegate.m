@@ -18,18 +18,8 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../src/SDL_internal.h"
-
-#if SDL_VIDEO_DRIVER_UIKIT
-
-#include "../src/video/SDL_sysvideo.h"
-#include "SDL_assert.h"
-#include "SDL_hints.h"
-#include "SDL_system.h"
-#include "SDL_main.h"
 
 #import "SDLPal_AppDelegate.h"
-#import "../src/video/uikit/SDL_uikitmodes.h"
 #import "../src/video/uikit/SDL_uikitwindow.h"
 
 #include "../src/events/SDL_events_c.h"
@@ -78,6 +68,9 @@ int sdlpal_main(int argc, char **argv)
 @end
 
 @implementation SDLPalAppDelegate
+{
+    UIWindow *launchWindow;
+}
 
 /* convenience method */
 + (id)sharedAppDelegate
@@ -95,12 +88,37 @@ int sdlpal_main(int argc, char **argv)
     return @"SDLPalAppDelegate";
 }
 
+- (void)hideLaunchScreen
+{
+    UIWindow *window = launchWindow;
+
+    if (!window || window.hidden) {
+        return;
+    }
+
+    launchWindow = nil;
+
+    // Do a nice animated fade-out (roughly matches the real launch behavior.)
+    [UIView animateWithDuration:0.2
+        animations:^{
+          window.alpha = 0.0;
+        }
+        completion:^(BOOL finished) {
+          window.hidden = YES;
+          UIKit_ForceUpdateHomeIndicator(); // Wait for launch screen to hide so settings are applied to the actual view controller.
+        }];
+}
+
 - (void)postFinishLaunch
 {
-    /* run the user's application, passing argc and argv */
-    SDL_iPhoneSetEventPump(SDL_TRUE);
-    exit_status = SDL_main(forward_argc, forward_argv);
-    SDL_iPhoneSetEventPump(SDL_FALSE);
+    /* Hide the launch screen the next time the run loop is run. SDL apps will
+     * have a chance to load resources while the launch screen is still up. */
+    [self performSelector:@selector(hideLaunchScreen) withObject:nil afterDelay:0.0];
+
+    // run the user's application, passing argc and argv
+    SDL_SetiOSEventPump(true);
+    exit_status = sdlpal_main(forward_argc, forward_argv);
+    SDL_SetiOSEventPump(false);
 
     /* exit, passing the return status from the user's application */
     /* We don't actually exit to support applications that do setup in their
@@ -108,8 +126,6 @@ int sdlpal_main(int argc, char **argv)
     /* exit(exit_status); */
     [self restart];
 }
-
-#undef SDL_IPHONE_LAUNCHSCREEN
 
 - (void)launchGame {
     self.isInGame = YES;
@@ -157,12 +173,12 @@ int sdlpal_main(int argc, char **argv)
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
-    SDL_SendAppEvent(SDL_APP_TERMINATING);
+    SDL_SendAppEvent(SDL_EVENT_TERMINATING);
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
 {
-    SDL_SendAppEvent(SDL_APP_LOWMEMORY);
+    SDL_SendAppEvent(SDL_EVENT_LOW_MEMORY);
 }
 
 #if !TARGET_OS_TV
@@ -177,8 +193,8 @@ int sdlpal_main(int argc, char **argv)
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
 
     if (_this && _this->num_displays > 0) {
-        SDL_DisplayMode *desktopmode = &_this->displays[0].desktop_mode;
-        SDL_DisplayMode *currentmode = &_this->displays[0].current_mode;
+        SDL_DisplayMode *desktopmode = &_this->displays[0]->desktop_mode;
+        SDL_DisplayMode *currentmode = _this->displays[0]->current_mode;
 
         /* The desktop display mode should be kept in sync with the screen
          * orientation so that updating a window's fullscreen state to
@@ -206,8 +222,8 @@ int sdlpal_main(int argc, char **argv)
     if (_this) {
         SDL_Window *window;
         for (window = _this->windows; window != nil; window = window->next) {
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_FOCUS_LOST, 0, 0);
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_MINIMIZED, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_FOCUS_LOST, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_MINIMIZED, 0, 0);
         }
     }
     SDL_SendAppEvent(SDL_APP_WILLENTERBACKGROUND);
@@ -220,54 +236,61 @@ int sdlpal_main(int argc, char **argv)
 
 - (void)applicationWillEnterForeground:(UIApplication*)application
 {
-    SDL_SendAppEvent(SDL_APP_WILLENTERFOREGROUND);
+    SDL_SendAppEvent(SDL_EVENT_WILL_ENTER_FOREGROUND);
 }
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
-    SDL_SendAppEvent(SDL_APP_DIDENTERFOREGROUND);
+    SDL_SendAppEvent(SDL_EVENT_DID_ENTER_FOREGROUND);
 
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
     if (_this) {
         SDL_Window *window;
         for (window = _this->windows; window != nil; window = window->next) {
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_FOCUS_GAINED, 0, 0);
-            SDL_SendWindowEvent(window, SDL_WINDOWEVENT_RESTORED, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_FOCUS_GAINED, 0, 0);
+            SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_RESTORED, 0, 0);
         }
     }
 }
 
-- (void)sendDropFileForURL:(NSURL *)url
+- (UIWindow *)window
+{
+    SDL_VideoDevice *_this = SDL_GetVideoDevice();
+    if (_this) {
+        SDL_Window *window = NULL;
+        for (window = _this->windows; window != NULL; window = window->next) {
+            SDL_UIKitWindowData *data = (__bridge SDL_UIKitWindowData *)window->internal;
+            if (data != nil) {
+                return data.uiwindow;
+            }
+        }
+    }
+    return nil;
+}
+
+- (void)setWindow:(UIWindow *)window
+{
+    // Do nothing.
+}
+
+- (void)sendDropFileForURL:(NSURL *)url fromSourceApplication:(NSString *)sourceApplication
 {
     NSURL *fileURL = url.filePathURL;
+    const char *sourceApplicationCString = sourceApplication ? [sourceApplication UTF8String] : NULL;
     if (fileURL != nil) {
-        SDL_SendDropFile(NULL, fileURL.path.UTF8String);
+        SDL_SendDropFile(NULL, sourceApplicationCString, fileURL.path.UTF8String);
     } else {
-        SDL_SendDropFile(NULL, url.absoluteString.UTF8String);
+        SDL_SendDropFile(NULL, sourceApplicationCString, url.absoluteString.UTF8String);
     }
     SDL_SendDropComplete(NULL);
 }
 
-#if TARGET_OS_TV
-/* TODO: Use this on iOS 9+ as well? */
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
-    /* TODO: Handle options */
-    [self sendDropFileForURL:url];
-    return YES;
-}
-#endif /* TARGET_OS_TV */
-
-#if !TARGET_OS_TV
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-    [self sendDropFileForURL:url];
+    [self sendDropFileForURL:url fromSourceApplication:NULL];
     return YES;
 }
-#endif /* !TARGET_OS_TV */
 
 @end
-
-#endif /* SDL_VIDEO_DRIVER_UIKIT */
 
 /* vi: set ts=4 sw=4 expandtab: */
