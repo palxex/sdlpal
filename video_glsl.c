@@ -58,7 +58,7 @@ static int gMVPSlots[MAX_INDEX];
 static int gHDRSlot = -1;
 static int gUseTouchOverlaySlot = -1;
 static int gTouchOverlaySlot = -1;
-static int VAOSupported = 1;
+static int VAOSupported = 0;
 static int glversion_major, glversion_minor;
 static int glslversion_major, glslversion_minor;
 
@@ -127,10 +127,10 @@ GLKMatrix4 GLKMatrix4MakeOrtho(float left, float right,
     float fan = farZ + nearZ;
     float fsn = farZ - nearZ;
     
-    GLKMatrix4 m = { 2.0f / rsl, 0.0f, 0.0f, 0.0f,
+    GLKMatrix4 m = { { 2.0f / rsl, 0.0f, 0.0f, 0.0f,
         0.0f, 2.0f / tsb, 0.0f, 0.0f,
         0.0f, 0.0f, -2.0f / fsn, 0.0f,
-        -ral / rsl, -tab / tsb, -fan / fsn, 1.0f };
+        -ral / rsl, -tab / tsb, -fan / fsn, 1.0f } };
     
     return m;
 }
@@ -686,9 +686,14 @@ int VIDEO_RenderTexture(SDL_Renderer * renderer, SDL_Texture * texture, const SD
     
     SDL_Rect _srcrect,_dstrect;
     
+#if SDL_VERSION_ATLEAST(3,0,0)
+    float w, h;
+    SDL_GetTextureSize(texture, &w, &h);
+#else
     int w, h;
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-    
+#endif 
+
     if(!srcrect) {
         srcrect = &_srcrect;
         _srcrect.x = 0;
@@ -759,6 +764,7 @@ int VIDEO_RenderTexture(SDL_Renderer * renderer, SDL_Texture * texture, const SD
 }
 
 //remove all fixed pipeline call in RenderCopy
+#undef SDL_RenderCopy
 #define SDL_RenderCopy CORE_RenderCopy
 PAL_FORCE_INLINE int CORE_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
                     const SDL_Rect * srcrect, const SDL_Rect * dstrect)
@@ -960,7 +966,11 @@ void VIDEO_GLSL_Init() {
     Uint32 flags = PAL_VIDEO_INIT_FLAGS | SDL_WINDOW_OPENGL;
     
     UTIL_LogOutput(LOGLEVEL_DEBUG, "requesting to create window with flags: %s %s profile latest available\n", SDL_GetHint( SDL_HINT_RENDER_DRIVER ),  get_gl_profile(get_SDL_GLAttribute(SDL_GL_CONTEXT_PROFILE_MASK)));
+#if SDL_VERSION_ATLEAST(3,0,0)
+    gpWindow = SDL_CreateWindow("Pal", gConfig.dwScreenWidth, gConfig.dwScreenHeight, flags);
+#else
     gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, gConfig.dwScreenWidth, gConfig.dwScreenHeight, flags);
+#endif
     if (gpWindow == NULL) {
         UTIL_LogOutput(LOGLEVEL_DEBUG, "failed to create window with ordered flags! %s\n", SDL_GetError());
         UTIL_LogOutput(LOGLEVEL_DEBUG, "reverting to: OpenGL %s profile %d.%d\n", get_gl_profile(orig_profile), orig_major, orig_minor);
@@ -968,7 +978,11 @@ void VIDEO_GLSL_Init() {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, orig_major);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, orig_minor);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  orig_profile);
+#if SDL_VERSION_ATLEAST(3,0,0)
+        gpWindow = SDL_CreateWindow("Pal", gConfig.dwScreenWidth, gConfig.dwScreenHeight, flags);
+#else
         gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, gConfig.dwScreenWidth, gConfig.dwScreenHeight, flags);
+#endif
     }
 }
 
@@ -984,18 +998,22 @@ static void dump_preset() {
 
 void VIDEO_GLSL_Setup() {
     SDL_GetRendererOutputSize(gpRenderer, &gRendererWidth, &gRendererHeight);
+    const char* pszRenderName;
+#if SDL_VERSION_ATLEAST(3,0,0)
+    pszRenderName = SDL_GetRendererName(gpRenderer);
+#else
     SDL_RendererInfo rendererInfo;
     SDL_GetRendererInfo(gpRenderer, &rendererInfo);
-    
+    pszRenderName = rendererInfo.name;
+#endif
+    UTIL_LogOutput(LOGLEVEL_DEBUG, "render info:%s\n", pszRenderName);
+
     for( int i = 0; i < MAX_TEXTURES; i++ )
         frame_prev_texture_units[i] = -1;
-    
-    UTIL_LogOutput(LOGLEVEL_DEBUG, "render info:%s\n",rendererInfo.name);
-
     char *glversion = (char*)glGetString(GL_VERSION);
     char *glslversion = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     SDL_sscanf(glversion, "%d.%d", &glversion_major, &glversion_minor);
-    if(!strncmp(rendererInfo.name, "opengl", 6)) {
+    if(!strncmp(pszRenderName, "opengl", 6)) {
 #     ifndef __APPLE__
         if (!initGLExtensions(glversion_major))
             UTIL_LogOutput(LOGLEVEL_FATAL,  "Couldn't init GL extensions!\n" );
@@ -1085,7 +1103,7 @@ void VIDEO_GLSL_Setup() {
         UTIL_LogOutput(LOGLEVEL_DEBUG, "[PASS 2] load parametered filter preset\n");
     }else{
         char *origGLSL = NULL;
-        if( SDL_strcasecmp( strrchr(gConfig.pszShader, '.'), ".glsl") == 0 ) {
+        if( SDL_strcasecmp( SDL_strrchr(gConfig.pszShader, '.'), ".glsl") == 0 ) {
             UTIL_LogOutput(LOGLEVEL_DEBUG, "[PASS 2] loading %s\n", gConfig.pszShader);
             FILE *fp = UTIL_OpenFileForMode(MID_GLSLP, "w");
             fputs( PAL_va( 0, glslp_template, gConfig.pszShader, gConfig.pszShader, gConfig.dwTextureWidth, gConfig.dwTextureHeight, "false" ), fp );

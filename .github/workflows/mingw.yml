@@ -8,10 +8,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Install Dependencies
-      run: sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 zip upx-ucl python3-pip && sudo pip3 install cloudsmith-cli
+      run: sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64-i686-dev zip upx-ucl
+    - name: Set up Python
+      uses: actions/setup-python@v5
+    - name: Install dependencies
+      run: |
+        python -m venv ~/venv
+        source ~/venv/bin/activate
+        echo ~/venv/bin >> "$GITHUB_PATH"
+        python -m pip install --upgrade pip
+        pip install cloudsmith-cli
     - uses: actions/checkout@v4
     - name: submodules
       run: |
@@ -21,14 +30,14 @@ jobs:
       run: |
         cd 3rd/SDL
         mkdir $HOME/cache
-        CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ \
-          bash ./configure --host=i686-w64-mingw32 --prefix=$HOME/cache/SDL2 \
-          --enable-static --disable-shared
-        make install V=1 SHELL=/bin/bash
+        cmake -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_INSTALL_PREFIX:PATH=$HOME/cache . -G Unix\ Makefiles
+        cmake --build . --config Release -v
+        cmake --install .
+        echo "PKG_CONFIG_PATH=$HOME/cache/lib/pkgconfig" >> "$GITHUB_ENV"
     - name: make
       run: |
         cd win32
-        PATH=$HOME/cache/SDL2/bin:$PATH make HOST=i686-w64-mingw32-
+        PKG_CONFIG_PATH=$HOME/cache/lib/pkgconfig make HOST=i686-w64-mingw32-
         i686-w64-mingw32-strip -s sdlpal.exe
         upx --best --lzma sdlpal.exe
         zip sdlpal-win32-mingw.zip sdlpal.exe

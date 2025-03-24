@@ -11,14 +11,22 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Install Dependencies
-      run: sudo apt-get install libsdl2-dev libfltk1.3-dev upx-ucl python3-pip fuse && sudo pip3 install cloudsmith-cli
+      run: sudo apt-get install libfltk1.3-dev libasound2-dev upx-ucl python3-pip fuse && sudo pip3 install cloudsmith-cli
     - uses: actions/checkout@v4
     - name: submodules
       run: |
         sed -i 's#\.\./#https://github.com/sdlpal/#g' .gitmodules
         git submodule init && git submodule update
+    - name: make sdl
+      run: |
+        cd 3rd/SDL
+        mkdir $HOME/cache
+        cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_INSTALL_PREFIX:PATH=$HOME/cache . -G Unix\ Makefiles
+        cmake --build . --config Release -v
+        cmake --install .
+        echo "PKG_CONFIG_PATH=$HOME/cache/lib/pkgconfig" >> "$GITHUB_ENV"
     - name: make
-      run: cd unix && make CCFLAGS="-DAPPIMAGE=1"
+      run: cd unix && PKG_CONFIG_PATH=$HOME/cache/lib/pkgconfig make CCFLAGS="-DAPPIMAGE=1"
     - name: appimage
       run: mkdir deploy && cd unix && TRAVIS_BUILD_DIR=$GITHUB_WORKSPACE bash appimage.sh
     - name: check

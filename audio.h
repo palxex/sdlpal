@@ -23,8 +23,34 @@
 #define AUDIO_H
 
 #include "common.h"
+#include "players.h"
 
 PAL_C_LINKAGE_BEGIN
+
+typedef struct tagAUDIODEVICE
+{
+   SDL_AudioSpec             spec;        /* Actual-used sound specification */
+   AUDIOPLAYER              *pMusPlayer;
+   AUDIOPLAYER              *pCDPlayer;
+#if PAL_HAS_SDLCD
+   SDL_CD                   *pCD;
+#endif
+   AUDIOPLAYER              *pSoundPlayer;
+   void                     *pSoundBuffer;    /* The output buffer for sound */
+#if SDL_VERSION_ATLEAST(3,0,0)
+   SDL_AudioStream             *stream;
+#endif
+#if SDL_VERSION_ATLEAST(2,0,0)
+   SDL_AudioDeviceID         id;
+#endif
+   INT                       iMusicVolume;    /* The BGM volume ranged in [0, 128] for better performance */
+   INT                       iSoundVolume;    /* The sound effect volume ranged in [0, 128] for better performance */
+   BOOL                      fMusicEnabled; /* Is BGM enabled? */
+   BOOL                      fSoundEnabled; /* Is sound effect enabled? */
+   BOOL                      fOpened;       /* Is the audio device opened? */
+} AUDIODEVICE;
+
+extern AUDIODEVICE gAudioDevice;
 
 INT
 AUDIO_OpenDevice(

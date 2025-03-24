@@ -1,16 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.sdlpal.sdlpal"
+
     lintOptions {
         checkReleaseBuilds false
     }
 
-    compileSdkVersion 28
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.sdlpal.sdlpal"
         minSdkVersion 10
-        targetSdkVersion 28
+        targetSdkVersion 33
         multiDexEnabled true
         externalNativeBuild {
             ndkBuild {

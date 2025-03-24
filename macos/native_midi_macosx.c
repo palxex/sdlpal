@@ -25,13 +25,12 @@
 /* This is Mac OS X only, using Core MIDI.
    Mac OS 9 support via QuickTime is in native_midi_mac.c */
 
-#include "SDL_config.h"
+#include "sdl_compat.h"
+#include "audio.h"
 
 #include <AudioToolbox/AudioToolbox.h>
 #include <AvailabilityMacros.h>
 
-#include "SDL.h"
-#include "SDL_endian.h"
 #include "native_midi.h"
 
 /* Native Midi song */
