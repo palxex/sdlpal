@@ -19,7 +19,7 @@ jobs:
         git submodule init && git submodule update
     - name: Build
       env:
-        TAG: 3.1.53
+        TAG: 4.0.6
       run: |
         sed -i 's@http://localhost:8080/@https://sdlpal.github.io/demo/@g' emscripten/Makefile
         docker run -v ${{ github.workspace }}:/src emscripten/emsdk:$TAG /bin/bash -c "git config --global --add safe.directory /src && emmake make -C emscripten"

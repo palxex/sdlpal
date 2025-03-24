@@ -22,6 +22,13 @@
 #include "main.h"
 #include <setjmp.h>
 
+#if SDL_VERSION_ATLEAST(3,0,0)
+#if __EMSCRIPTEN__
+#define SDL_MAIN_HANDLED
+#endif
+    #include <SDL3/SDL_main.h>
+#endif
+
 #if defined(PAL_HAS_GIT_REVISION)
 # undef PAL_GIT_REVISION
 # include "generated.h"
@@ -156,11 +163,14 @@ PAL_Shutdown(
    PAL_FreeGlobals();
 
    g_exit_code = exit_code;
-#if !__EMSCRIPTEN__
+#if !__EMSCRIPTEN__ && SDL_MAJOR_VERSION < 3
    longjmp(g_exit_jmp_buf, 1);
 #else
    SDL_Quit();
    UTIL_Platform_Quit();
+#ifndef __WINRT__
+   exit(0);
+#endif
    return;
 #endif
 }
@@ -443,7 +453,9 @@ PAL_SplashScreen(
    PAL_FadeOut(1);
 }
 
-
+#ifdef SDL_PLATFORM_ANDROID
+#include <android/log.h>
+#endif
 
 int
 main(
@@ -467,16 +479,26 @@ main(
 
 --*/
 {
+#ifdef SDL_PLATFORM_ANDROID
+    __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE");
+#endif
+
 #if !defined( __EMSCRIPTEN__ ) && !defined(__WINRT__) && !defined(__N3DS__)
    memset(gExecutablePath,0,PAL_MAX_PATH);
    strncpy(gExecutablePath, argv[0], PAL_MAX_PATH);
+#endif
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE2");
 #endif
 
 #if PAL_HAS_PLATFORM_STARTUP
    UTIL_Platform_Startup(argc,argv);
 #endif
 
-#if !__EMSCRIPTEN__
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE3");
+#endif
+#if !__EMSCRIPTEN__ && SDL_MAJOR_VERSION < 3
    if (setjmp(g_exit_jmp_buf) != 0)
    {
 	   // A longjmp is made, should exit here
@@ -486,6 +508,9 @@ main(
    }
 #endif
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE4");
+#endif
 #if !defined(UNIT_TEST) || defined(UNIT_TEST_GAME_INIT)
    //
    // Initialize SDL
@@ -495,14 +520,23 @@ main(
 	   TerminateOnError("Could not initialize SDL: %s.\n", SDL_GetError());
    }
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE5");
+#endif
    PAL_LoadConfig(TRUE);
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE6");
+#endif
    //
    // Platform-specific initialization
    //
    if (UTIL_Platform_Init(argc, argv) != 0)
 	   return -1;
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE7");
+#endif
    //
    // Should launch setting?
    // Generally, the condition should never be TRUE as the UTIL_Platform_Init is assumed
@@ -511,21 +545,30 @@ main(
    // process go to setting.
    // For platforms without configuration page available, this condition will NEVER be true.
    //
-   if (PAL_HAS_CONFIG_PAGE && gConfig.fLaunchSetting)
-	   return 0;
+   //if (PAL_HAS_CONFIG_PAGE && gConfig.fLaunchSetting)
+//	   return 0;
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE8");
+#endif
    //
    // If user requests a file-based log, then add it after the system-specific one.
    //
    if (gConfig.pszLogFile)
 	   UTIL_LogAddOutputCallback(UTIL_LogToFile, gConfig.iLogLevel);
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE9");
+#endif
    //
    // Initialize everything
    //
    PAL_Init();
 #endif
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE10");
+#endif
 #if !defined(UNIT_TEST)
    //
    // Show the trademark screen and splash screen
@@ -533,11 +576,17 @@ main(
    PAL_TrademarkScreen();
    PAL_SplashScreen();
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE11");
+#endif
    //
    // Run the main game routine
    //
    PAL_GameMain();
 
+#ifdef SDL_PLATFORM_ANDROID
+   __android_log_print(ANDROID_LOG_DEBUG, "LOG_SDLPAL", "YES IM HERE12");
+#endif
    //
    // Should not really reach here...
    //

@@ -91,7 +91,7 @@ static const char *opl_chips[] = { "OPL2", "OPL3" };
 static char * ParseStringValue(const char *sValue, char *original)
 {
 	int n = strlen(sValue);
-	while (n > 0 && isspace(sValue[n - 1])) n--;
+	while (n > 0 && SDL_isspace(sValue[n - 1])) n--;
 	if (n > 0)
 	{
 		char *newval = (char *)realloc(original, n + 1);
@@ -113,7 +113,7 @@ PAL_ParseConfigLine(
 	//
 	// Skip leading spaces
 	//
-	while (*line && isspace(*line)) line++;
+	while (*line && SDL_isspace(*line)) line++;
 
 	//
 	// Skip comments
@@ -128,7 +128,7 @@ PAL_ParseConfigLine(
 			//
 			// Skip tailing spaces
 			//
-			while (end > line && isspace(end[-1])) end--;
+			while (end > line && SDL_isspace(end[-1])) end--;
 
 			int len = end - line;
 
@@ -164,7 +164,7 @@ PAL_ParseConfigLine(
 							//
 							// Skip leading spaces
 							//
-							while (*ptr && isspace(*ptr)) ptr++;
+							while (*ptr && SDL_isspace(*ptr)) ptr++;
 							pValue->sValue = ptr;
 							//
 							// Get line length

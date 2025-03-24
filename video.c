@@ -75,7 +75,9 @@ void VIDEO_SetupTouchArea(int window_w, int window_h, int draw_w, int draw_h)
 #endif
 }
 
+#if !SDL_VERSION_ATLEAST(3, 0, 0)
 #define SDL_SoftStretch SDL_UpperBlit
+#endif
 static SDL_Texture *VIDEO_CreateTexture(int width, int height)
 {
 	int texture_width, texture_height;
@@ -175,8 +177,13 @@ VIDEO_Startup(
    // Before we can render anything, we need a window and a renderer.
    //
    if (gpWindow == NULL)
-   gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+#if SDL_VERSION_ATLEAST(3,0,0)
+       gpWindow = SDL_CreateWindow("Pal", gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS);
+   //TODO: Figure Whether Borderless Support Needed?
+#else
+       gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS);
+#endif
 
    if (gpWindow == NULL)
    {
@@ -189,7 +196,11 @@ VIDEO_Startup(
 	}
 # endif
 
+#if SDL_VERSION_ATLEAST(3,0,0)
+    gpRenderer = SDL_CreateRenderer(gpWindow, NULL);
+#else
    gpRenderer = SDL_CreateRenderer(gpWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+#endif
 
    gRenderBackend.Setup();
 
@@ -250,7 +261,11 @@ VIDEO_Startup(
 
       if (overlay != NULL)
       {
+#if SDL_VERSION_ATLEAST(3,0,0)
+         SDL_SetSurfaceColorKey(overlay, true, SDL_MapRGB(SDL_GetPixelFormatDetails(overlay->format), gpPalette, 255, 0, 255));
+#else
          SDL_SetColorKey(overlay, SDL_RLEACCEL, SDL_MapRGB(overlay->format, 255, 0, 255));
+#endif
          SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, gConfig.pszScaleQuality);
          gpTouchOverlay = SDL_CreateTextureFromSurface(gpRenderer, overlay);
          SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -446,7 +461,12 @@ VIDEO_RenderCopy(
 	SDL_RenderCopy(gpRenderer, gpTexture, NULL, NULL);
 	if (gConfig.fUseTouchOverlay)
 	{
+#if SDL_VERSION_ATLEAST(3,0,0)
+        SDL_FRect fOverlayRect = { gOverlayRect.x, gOverlayRect.y, gOverlayRect.w, gOverlayRect.h };
+        SDL_RenderTexture(gpRenderer, gpTouchOverlay, NULL, &fOverlayRect);
+#else
 		SDL_RenderCopy(gpRenderer, gpTouchOverlay, NULL, &gOverlayRect);
+#endif
 	}
 	SDL_RenderPresent(gpRenderer);
 }
@@ -1286,12 +1306,19 @@ VIDEO_CreateCompatibleSizedSurface(
 	//
 	// Create the surface
 	//
+#if SDL_VERSION_ATLEAST(3,0,0)
+    SDL_Surface* dest = SDL_CreateSurface(
+        pSize ? pSize->w : pSource->w,
+        pSize ? pSize->h : pSource->h,
+        SDL_GetPixelFormatDetails(pSource->format)->format);
+#else
 	SDL_Surface *dest = SDL_CreateRGBSurface(pSource->flags,
 		pSize ? pSize->w : pSource->w,
 		pSize ? pSize->h : pSource->h,
 		pSource->format->BitsPerPixel,
 		pSource->format->Rmask, pSource->format->Gmask,
 		pSource->format->Bmask, pSource->format->Amask);
+#endif
 
 	if (dest)
 	{
