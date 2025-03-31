@@ -21,6 +21,7 @@
 
 package com.sdlpal.sdlpal;
 
+import android.app.Activity;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -37,7 +38,7 @@ import android.util.Log;
 
 import java.io.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     static {
         System.loadLibrary("SDL2");
@@ -51,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     public static boolean crashed = false;
 
     private final static int REQUEST_FILESYSTEM_ACCESS_CODE = 101;
-    private final AppCompatActivity mActivity = this;
 
     interface RequestForPermissions {
         void request();
@@ -59,7 +59,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestForPermissions() {
         // Since granting writing permission implicitly grants reading permission, no need to explicitly add reading permission here
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_FILESYSTEM_ACCESS_CODE);
+        //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, REQUEST_FILESYSTEM_ACCESS_CODE);
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.addCategory("android.intent.category.DEFAULT");
+            intent.setData(Uri.parse(String.format("package:%s",getApplicationContext().getPackageName())));
+            startActivityForResult(intent, REQUEST_FILESYSTEM_ACCESS_CODE);
+        } catch (Exception e) {
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+            startActivityForResult(intent, REQUEST_FILESYSTEM_ACCESS_CODE);
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_FILESYSTEM_ACCESS_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                StartGame();
+            } else {
+                alertUser(R.string.toast_requestpermission, new RequestForPermissions() {
+                    @Override
+                    public void request() {
+                        requestForPermissions();
+                    }
+                });
+            }
+        }
     }
 
     private void alertUser(int id, final RequestForPermissions req) {
@@ -81,49 +109,17 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_FILESYSTEM_ACCESS_CODE:
-                for(int i = 0; i < permissions.length; i++) {
-                    switch(permissions[i]) {
-                        case Manifest.permission.WRITE_EXTERNAL_STORAGE:
-                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                StartGame();
-                                break;
-                            }
-                            if (ActivityCompat.shouldShowRequestPermissionRationale(mActivity, permissions[i])) {
-                                alertUser(R.string.toast_requestpermission, new RequestForPermissions() {
-                                    @Override
-                                    public void request() {
-                                        requestForPermissions();
-                                    }
-                                });
-                            } else {
-                                alertUser(R.string.toast_grantpermission, new RequestForPermissions() {
-                                    @Override
-                                    public void request() {
-                                        Intent intent = new Intent();
-                                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                        intent.setData(uri);
-                                        startActivity(intent);
-                                    }
-                                });
-                            }
-                    }
-                }
-                break;
-        }
-    }
-
     public void onStart() {
         super.onStart();
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Environment.isExternalStorageManager() ) {
             StartGame();
         } else {
-            requestForPermissions();
+            alertUser(R.string.toast_requestpermission, new RequestForPermissions() {
+                @Override
+                public void request() {
+                    requestForPermissions();
+                }
+            });
         }
     }
 
