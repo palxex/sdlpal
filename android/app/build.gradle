@@ -7,12 +7,12 @@ android {
         checkReleaseBuilds false
     }
 
-    compileSdkVersion 36
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.sdlpal.sdlpal"
         minSdkVersion 10
-        targetSdkVersion 36
+        targetSdkVersion 28
         multiDexEnabled true
         externalNativeBuild {
             ndkBuild {
