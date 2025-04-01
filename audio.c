@@ -258,6 +258,7 @@ AUDIO_OpenDevice(
 
 #if SDL_VERSION_ATLEAST(3,0,0)
    memcpy(&spec, &gAudioDevice.spec, sizeof(SDL_AudioSpec));
+   SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, PAL_va(0, "%d", gConfig.wAudioBufferSize));
 #else
    gAudioDevice.spec.samples = gConfig.wAudioBufferSize;
    gAudioDevice.spec.callback = AUDIO_FillBuffer;

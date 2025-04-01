@@ -232,6 +232,8 @@ PAL_SplashScreen(
    DWORD          dwTime, dwBeginTime;
    BOOL           fUseCD = TRUE;
 
+   memset(rgCurrentPalette, 0xff, sizeof(SDL_Color) * 256);
+
    if (PAL_PlayAVI("2.avi")) return;
 
    if (palette == NULL)

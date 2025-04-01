@@ -80,6 +80,7 @@ void VIDEO_SetupTouchArea(int window_w, int window_h, int draw_w, int draw_h)
 #endif
 static SDL_Texture *VIDEO_CreateTexture(int width, int height)
 {
+    SDL_Texture* texture = NULL;
 	int texture_width, texture_height;
 	double ratio = (double)width / (double)height;
 	ratio *= 1.6f * (double)gConfig.dwTextureHeight / (float)gConfig.dwTextureWidth;
@@ -122,7 +123,11 @@ static SDL_Texture *VIDEO_CreateTexture(int width, int height)
 	//
 	// Create texture for screen.
 	//
-	return SDL_CreateTexture(gpRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, texture_width, texture_height);
+	texture = SDL_CreateTexture(gpRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, texture_width, texture_height);
+#if SDL_VERSION_ATLEAST(3,0,0)
+    SDL_SetTextureScaleMode(texture, (gConfig.pszScaleQuality == NULL || strcmp(gConfig.pszScaleQuality, "0") == 0) ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+#endif
+    return texture;
 }
 #endif
 
