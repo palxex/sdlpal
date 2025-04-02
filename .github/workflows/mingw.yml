@@ -16,11 +16,9 @@ jobs:
       uses: actions/setup-python@v5
     - name: Install dependencies
       run: |
-        python -m venv ~/venv
-        source ~/venv/bin/activate
-        echo ~/venv/bin >> "$GITHUB_PATH"
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade --user pip
         pip install cloudsmith-cli
+        which cloudsmith
     - uses: actions/checkout@v4
     - name: submodules
       run: |
@@ -28,6 +26,7 @@ jobs:
         git submodule init && git submodule update
     - name: make sdl
       run: |
+        cloudsmith
         cd 3rd/SDL
         mkdir $HOME/cache
         cmake -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_INSTALL_PREFIX:PATH=$HOME/cache . -G Unix\ Makefiles
