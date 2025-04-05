@@ -33,7 +33,7 @@
 #define SDL_STBIMAGE_IMPLEMENTATION
 #include "SDL_stbimage.h"
 
-#define FORCE_OPENGL_CORE_PROFILE 1
+#define FORCE_OPENGL_CORE_PROFILE 0
 #define SUPPORT_PARAMETER_UNIFORM 1
 
 #define MID_GLSLP "sdlpal.glslp"

@@ -18,11 +18,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
+#include "../src/SDL_internal.h"
+
+#if SDL_VIDEO_DRIVER_UIKIT
+
+#include "../src/video/SDL_sysvideo.h"
+#include "sdl_compat.h"
 
 #import "SDLPal_AppDelegate.h"
-#import "../src/video/uikit/SDL_uikitwindow.h"
-
-#include "../src/events/SDL_events_c.h"
 
 #ifdef main
 #undef main
@@ -68,9 +71,6 @@ int sdlpal_main(int argc, char **argv)
 @end
 
 @implementation SDLPalAppDelegate
-{
-    UIWindow *launchWindow;
-}
 
 /* convenience method */
 + (id)sharedAppDelegate
@@ -88,36 +88,12 @@ int sdlpal_main(int argc, char **argv)
     return @"SDLPalAppDelegate";
 }
 
-- (void)hideLaunchScreen
-{
-    UIWindow *window = launchWindow;
-
-    if (!window || window.hidden) {
-        return;
-    }
-
-    launchWindow = nil;
-
-    // Do a nice animated fade-out (roughly matches the real launch behavior.)
-    [UIView animateWithDuration:0.2
-        animations:^{
-          window.alpha = 0.0;
-        }
-        completion:^(BOOL finished) {
-          window.hidden = YES;
-        }];
-}
-
 - (void)postFinishLaunch
 {
-    /* Hide the launch screen the next time the run loop is run. SDL apps will
-     * have a chance to load resources while the launch screen is still up. */
-    [self performSelector:@selector(hideLaunchScreen) withObject:nil afterDelay:0.0];
-
-    // run the user's application, passing argc and argv
-    SDL_SetiOSEventPump(true);
-    exit_status = sdlpal_main(forward_argc, forward_argv);
-    SDL_SetiOSEventPump(false);
+    /* run the user's application, passing argc and argv */
+    SDL_SetiOSEventPump(SDL_TRUE);
+    exit_status = SDL_main(forward_argc, forward_argv);
+    SDL_SetiOSEventPump(SDL_FALSE);
 
     /* exit, passing the return status from the user's application */
     /* We don't actually exit to support applications that do setup in their
@@ -125,6 +101,8 @@ int sdlpal_main(int argc, char **argv)
     /* exit(exit_status); */
     [self restart];
 }
+
+#undef SDL_IPHONE_LAUNCHSCREEN
 
 - (void)launchGame {
     self.isInGame = YES;
@@ -175,19 +153,10 @@ int sdlpal_main(int argc, char **argv)
     // if in game.only support landscape
     return self.isInGame ? UIInterfaceOrientationMaskLandscape : UIInterfaceOrientationMaskAll;
 }
-
 #endif
 
-- (void)setWindow:(UIWindow *)window
-{
-    // Do nothing.
-}
-
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
-{
-    return YES;
-}
-
 @end
+
+#endif /* SDL_VIDEO_DRIVER_UIKIT */
 
 /* vi: set ts=4 sw=4 expandtab: */

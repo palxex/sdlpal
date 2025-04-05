@@ -115,7 +115,8 @@
 		C694CF871EB6197C0006F937 /* gs_instruments.dls in Resources */ = {isa = PBXBuildFile; fileRef = C694CF861EB619660006F937 /* gs_instruments.dls */; };
 		C697DF902D9840BF0030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF8F2D9840BF0030B6B2 /* sdl_compat.c */; };
 		C69D0A4825C1446A00FF3EFF /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C69D0A4725C1446A00FF3EFF /* CoreHaptics.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		C6A367ED2D98E4430019FB05 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697DFAD2D9847750030B6B2 /* SDL3.framework */; };
+		C6BE8E3A2DA1866E006AEC57 /* SDL3.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C697DFAD2D9847750030B6B2 /* SDL3.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C6BE8E3B2DA1867F006AEC57 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697DFAD2D9847750030B6B2 /* SDL3.framework */; };
 		C6CFDE9723A859F800DEB8F9 /* kiss_fft.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDD6723A859F800DEB8F9 /* kiss_fft.c */; };
 		C6CFDE9823A859F800DEB8F9 /* rate.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDD6F23A859F800DEB8F9 /* rate.c */; };
 		C6CFDE9923A859F800DEB8F9 /* opus_mdct.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDD7123A859F800DEB8F9 /* opus_mdct.c */; };
@@ -269,18 +270,10 @@
 		C6D61DF32619A6A4000622C2 /* timidity.c in Sources */ = {isa = PBXBuildFile; fileRef = C6D61DE32619A6A4000622C2 /* timidity.c */; };
 		C6D61DF72619A6B3000622C2 /* midi_timidity.c in Sources */ = {isa = PBXBuildFile; fileRef = C6D61DF52619A6B2000622C2 /* midi_timidity.c */; };
 		C6D61DF82619A6B3000622C2 /* midi_tsf.c in Sources */ = {isa = PBXBuildFile; fileRef = C6D61DF62619A6B3000622C2 /* midi_tsf.c */; };
-		C6E89A16286892C800E772A0 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6E89A15286892C800E772A0 /* CoreBluetooth.framework */; };
 		F9BC4A0C6F1B983EB45414F3 /* libPods-SDLPal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2765B76B4AC93B4F654F1289 /* libPods-SDLPal.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		C697DF992D98440A0030B6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C697DF912D98440A0030B6B2 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = BECDF66C0761BA81005FE872;
-			remoteInfo = SDL3;
-		};
 		C697DFAC2D9847750030B6B2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C622BE4E1E474AAF000C8970 /* SDL.xcodeproj */;
@@ -288,7 +281,7 @@
 			remoteGlobalIDString = BECDF66C0761BA81005FE872;
 			remoteInfo = SDL3;
 		};
-		C6A367EB2D98E43A0019FB05 /* PBXContainerItemProxy */ = {
+		C6BE8E372DA1854B006AEC57 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C622BE4E1E474AAF000C8970 /* SDL.xcodeproj */;
 			proxyType = 1;
@@ -296,6 +289,20 @@
 			remoteInfo = SDL3;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C6BE8E362DA18116006AEC57 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C6BE8E3A2DA1866E006AEC57 /* SDL3.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2765B76B4AC93B4F654F1289 /* libPods-SDLPal.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SDLPal.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -518,7 +525,7 @@
 		C629A565208643D20015C93C /* nuked_opl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nuked_opl.c; sourceTree = "<group>"; };
 		C629A568208643D20015C93C /* convertopl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convertopl.h; sourceTree = "<group>"; };
 		C629A569208643D20015C93C /* nuked_opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nuked_opl.h; sourceTree = "<group>"; };
-		C632BFD325C13BD3005C5580 /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; };
+		C632BFD325C13BD3005C5580 /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		C635056A1EA6570300186049 /* midi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = midi.h; path = ../../../midi.h; sourceTree = "<group>"; };
 		C635056B1EA6570300186049 /* midi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = midi.c; path = ../../../midi.c; sourceTree = "<group>"; };
 		C635057A1EA6578700186049 /* native_midi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = native_midi.h; sourceTree = "<group>"; };
@@ -537,7 +544,6 @@
 		C694CF861EB619660006F937 /* gs_instruments.dls */ = {isa = PBXFileReference; lastKnownFileType = file; name = gs_instruments.dls; path = /System/Library/Components/CoreAudio.component/Contents/Resources/gs_instruments.dls; sourceTree = "<group>"; };
 		C697DF8E2D9840BF0030B6B2 /* sdl_compat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdl_compat.h; sourceTree = "<group>"; };
 		C697DF8F2D9840BF0030B6B2 /* sdl_compat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sdl_compat.c; sourceTree = "<group>"; };
-		C697DF912D98440A0030B6B2 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = /Users/palxex/gst/sdlpal/3rd/SDL/Xcode/SDL/SDL.xcodeproj; sourceTree = "<absolute>"; };
 		C69D09E525C13CE900FF3EFF /* sdlpal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = sdlpal.entitlements; sourceTree = "<group>"; };
 		C69D0A4725C1446A00FF3EFF /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		C6CFDD6223A859F800DEB8F9 /* celt_lpc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = celt_lpc.h; sourceTree = "<group>"; };
@@ -788,8 +794,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C6A367ED2D98E4430019FB05 /* SDL3.framework in Frameworks */,
-				C6E89A16286892C800E772A0 /* CoreBluetooth.framework in Frameworks */,
+				C6BE8E3B2DA1867F006AEC57 /* SDL3.framework in Frameworks */,
 				C69D0A4825C1446A00FF3EFF /* CoreHaptics.framework in Frameworks */,
 				71655292195BBCD6006E1227 /* OpenGLES.framework in Frameworks */,
 				C622BE761E474CFC000C8970 /* AVFoundation.framework in Frameworks */,
@@ -985,7 +990,6 @@
 				7165505F195BB372006E1227 /* Frameworks */,
 				7165505E195BB372006E1227 /* Products */,
 				0BAAECF7C4C397CAC97402E4 /* Pods */,
-				C697DF912D98440A0030B6B2 /* SDL.xcodeproj */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1223,14 +1227,6 @@
 			);
 			name = sdl_compat;
 			path = ../../sdl_compat;
-			sourceTree = "<group>";
-		};
-		C697DF922D98440A0030B6B2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C697DF9A2D98440A0030B6B2 /* SDL3.framework */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		C697DFA72D9847750030B6B2 /* Products */ = {
@@ -1545,11 +1541,12 @@
 				71655059195BB372006E1227 /* Sources */,
 				7165505A195BB372006E1227 /* Frameworks */,
 				7165505B195BB372006E1227 /* Resources */,
+				C6BE8E362DA18116006AEC57 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				C6A367EC2D98E43A0019FB05 /* PBXTargetDependency */,
+				C6BE8E382DA1854B006AEC57 /* PBXTargetDependency */,
 			);
 			name = SDLPal;
 			productName = SDLPal;
@@ -1591,10 +1588,6 @@
 					ProductGroup = C697DFA72D9847750030B6B2 /* Products */;
 					ProjectRef = C622BE4E1E474AAF000C8970 /* SDL.xcodeproj */;
 				},
-				{
-					ProductGroup = C697DF922D98440A0030B6B2 /* Products */;
-					ProjectRef = C697DF912D98440A0030B6B2 /* SDL.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -1604,13 +1597,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		C697DF9A2D98440A0030B6B2 /* SDL3.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SDL3.framework;
-			remoteRef = C697DF992D98440A0030B6B2 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		C697DFAD2D9847750030B6B2 /* SDL3.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -1925,10 +1911,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C6A367EC2D98E43A0019FB05 /* PBXTargetDependency */ = {
+		C6BE8E382DA1854B006AEC57 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SDL3;
-			targetProxy = C6A367EB2D98E43A0019FB05 /* PBXContainerItemProxy */;
+			targetProxy = C6BE8E372DA1854B006AEC57 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2046,16 +2032,14 @@
 					../../sdl_compat,
 					../../3rd/SDL/include/build_config,
 					../../3rd/SDL/src,
+					../../3rd/SDL,
 				);
 				INFOPLIST_FILE = "SDLPal/SDLPal-Info.plist";
 				INIT_ROUTINE = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
-					"-l\"ActionSheetPicker-3.0\"",
-					"-framework",
-					"\"UIKit\"",
 					"-Wl,-e,_sdlpal_main",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.p.github.sdlpal;
@@ -2096,16 +2080,14 @@
 					../../sdl_compat,
 					../../3rd/SDL/include/build_config,
 					../../3rd/SDL/src,
+					../../3rd/SDL,
 				);
 				INFOPLIST_FILE = "SDLPal/SDLPal-Info.plist";
 				INIT_ROUTINE = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
-					"-l\"ActionSheetPicker-3.0\"",
-					"-framework",
-					"\"UIKit\"",
 					"-Wl,-e,_sdlpal_main",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.p.github.sdlpal;
