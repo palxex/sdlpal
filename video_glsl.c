@@ -496,6 +496,9 @@ SDL_Texture *load_texture(char *name, char *filename, bool filter_linear, enum w
     if( filter_linear )
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     SDL_Texture *texture = SDL_CreateTextureFromSurface(gpRenderer, surf);
+#if SDL_VERSION_ATLEAST(3,0,0)
+    SDL_SetTextureScaleMode(texture, (gConfig.pszScaleQuality == NULL || strcmp(gConfig.pszScaleQuality, "0") == 0) ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+#endif
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     SDL_GL_BindTexture(texture, NULL, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, get_gl_wrap_mode(mode, type));
@@ -857,6 +860,9 @@ SDL_Texture *VIDEO_GLSL_CreateTexture(int width, int height)
         if( param_next_pass && param_next_pass->filter_linear )
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
         param->pass_sdl_texture = SDL_CreateTexture(gpRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, param->FBO.pow_width, param->FBO.pow_height);
+#if SDL_VERSION_ATLEAST(3,0,0)
+        SDL_SetTextureScaleMode(param->pass_sdl_texture, (gConfig.pszScaleQuality == NULL || strcmp(gConfig.pszScaleQuality, "0") == 0) ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+#endif
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
         SDL_GL_BindTexture(param->pass_sdl_texture, NULL, NULL);
         if( param_next_pass ) {
@@ -876,7 +882,10 @@ SDL_Texture *VIDEO_GLSL_CreateTexture(int width, int height)
         if( framePrevTextures[i] )
             SDL_DestroyTexture(framePrevTextures[i]);
         framePrevTextures[i] = SDL_CreateTexture(gpRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, gConfig.dwTextureWidth, gConfig.dwTextureHeight);
-    }
+#if SDL_VERSION_ATLEAST(3,0,0)
+        SDL_SetTextureScaleMode(framePrevTextures[i], (gConfig.pszScaleQuality == NULL || strcmp(gConfig.pszScaleQuality, "0") == 0) ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+#endif
+     }
     return framePrevTextures[0];
 }
 
@@ -889,6 +898,9 @@ void VIDEO_GLSL_RenderCopy()
     if( gGLSLP.shader_params[0].filter_linear)
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     origTexture = SDL_CreateTextureFromSurface(gpRenderer, gpScreenReal);
+#if SDL_VERSION_ATLEAST(3,0,0)
+    SDL_SetTextureScaleMode(origTexture, (gConfig.pszScaleQuality == NULL || strcmp(gConfig.pszScaleQuality, "0") == 0) ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+#endif
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     SDL_GL_BindTexture(origTexture, NULL, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, get_gl_wrap_mode(gGLSLP.shader_params[0].wrap_mode, gGLSLP.shader_params[0].scale_type_x));
@@ -1059,7 +1071,11 @@ void VIDEO_GLSL_Setup() {
     VAOSupported = 0;
 #endif
 #endif
-    
+
+#if SDL_VERSION_ATLEAST(3,0,0) && FORCE_OPENGL_CORE_PROFILE
+    VAOSupported = 1;
+#endif
+
     struct VertexDataFormat vData[ 4 ];
     GLuint iData[ 4 ];
     //Set rendering indices

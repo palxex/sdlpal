@@ -117,8 +117,9 @@
 		C6972640202E155C00293A73 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697263C202E155C00293A73 /* OpenGL.framework */; };
 		C697DF6C2D97F7C30030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF6B2D97F7C30030B6B2 /* sdl_compat.c */; };
 		C697DF6D2D97F7C30030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF6B2D97F7C30030B6B2 /* sdl_compat.c */; };
-		C697DF782D97F93A0030B6B2 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697DF772D97F92E0030B6B2 /* SDL3.framework */; };
 		C6BF8C7420A1498A000AE188 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6BF8C7020A1498A000AE188 /* Metal.framework */; };
+		C6C8BCA42DA19F7800C11697 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */; };
+		C6C8BCA52DA19F7800C11697 /* SDL3.framework in Copy Frameworks into .app bundle */ = {isa = PBXBuildFile; fileRef = C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C6CFDCAB23A858B800DEB8F9 /* kiss_fft.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDB8823A858B700DEB8F9 /* kiss_fft.c */; };
 		C6CFDCAC23A858B800DEB8F9 /* rate.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDB9023A858B700DEB8F9 /* rate.c */; };
 		C6CFDCAD23A858B800DEB8F9 /* opus_mdct.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDB9223A858B700DEB8F9 /* opus_mdct.c */; };
@@ -295,25 +296,18 @@
 			remoteGlobalIDString = 8D1107260486CEB800E47090;
 			remoteInfo = Pal;
 		};
-		C697DF712D97F92E0030B6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C697DF6E2D97F92E0030B6B2 /* SDL.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BECDF5FE0761BA81005FE872;
-			remoteInfo = SDL3;
-		};
-		C697DF762D97F92E0030B6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C697DF6E2D97F92E0030B6B2 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = BECDF66C0761BA81005FE872;
-			remoteInfo = SDL3;
-		};
 		C697DF7E2D97F9EE0030B6B2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C63505AB1EB45F9900186049 /* SDL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BECDF66C0761BA81005FE872;
+			remoteInfo = SDL3;
+		};
+		C6BE8E212DA175A3006AEC57 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C63505AB1EB45F9900186049 /* SDL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BECDF5FE0761BA81005FE872;
 			remoteInfo = SDL3;
 		};
 /* End PBXContainerItemProxy section */
@@ -325,6 +319,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				C6C8BCA52DA19F7800C11697 /* SDL3.framework in Copy Frameworks into .app bundle */,
 			);
 			name = "Copy Frameworks into .app bundle";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -568,7 +563,6 @@
 		C697263C202E155C00293A73 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		C697DF6A2D97F7C30030B6B2 /* sdl_compat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdl_compat.h; sourceTree = "<group>"; };
 		C697DF6B2D97F7C30030B6B2 /* sdl_compat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sdl_compat.c; sourceTree = "<group>"; };
-		C697DF6E2D97F92E0030B6B2 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = /Users/palxex/gst/sdlpal/3rd/SDL/Xcode/SDL/SDL.xcodeproj; sourceTree = "<absolute>"; };
 		C6BF8C7020A1498A000AE188 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		C6CFDB8323A858B700DEB8F9 /* celt_lpc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = celt_lpc.h; sourceTree = "<group>"; };
 		C6CFDB8423A858B700DEB8F9 /* static_modes_fixed_arm_ne10.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = static_modes_fixed_arm_ne10.h; sourceTree = "<group>"; };
@@ -816,11 +810,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C697DF782D97F93A0030B6B2 /* SDL3.framework in Frameworks */,
 				C6E73CFB24DFA11500A5CE48 /* AudioUnit.framework in Frameworks */,
 				C6BF8C7420A1498A000AE188 /* Metal.framework in Frameworks */,
 				C6972640202E155C00293A73 /* OpenGL.framework in Frameworks */,
 				C63505D41EB4633000186049 /* Carbon.framework in Frameworks */,
+				C6C8BCA42DA19F7800C11697 /* SDL3.framework in Frameworks */,
 				C63505D31EB4631100186049 /* ForceFeedback.framework in Frameworks */,
 				C63505CD1EB462D600186049 /* CoreVideo.framework in Frameworks */,
 				C63505C91EB4629400186049 /* CoreAudio.framework in Frameworks */,
@@ -885,7 +879,6 @@
 				C626FFE31E6204BE00E39DD9 /* PalTests */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				C697DF6E2D97F92E0030B6B2 /* SDL.xcodeproj */,
 			);
 			name = Pal;
 			sourceTree = "<group>";
@@ -1275,14 +1268,6 @@
 			path = ../sdl_compat;
 			sourceTree = "<group>";
 		};
-		C697DF6F2D97F92E0030B6B2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C697DF772D97F92E0030B6B2 /* SDL3.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		C697DF792D97F9EE0030B6B2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -1599,7 +1584,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				C697DF722D97F92E0030B6B2 /* PBXTargetDependency */,
+				C6BE8E222DA175A3006AEC57 /* PBXTargetDependency */,
 			);
 			name = Pal;
 			productInstallPath = "$(HOME)/Applications";
@@ -1655,10 +1640,6 @@
 					ProductGroup = C697DF792D97F9EE0030B6B2 /* Products */;
 					ProjectRef = C63505AB1EB45F9900186049 /* SDL.xcodeproj */;
 				},
-				{
-					ProductGroup = C697DF6F2D97F92E0030B6B2 /* Products */;
-					ProjectRef = C697DF6E2D97F92E0030B6B2 /* SDL.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -1669,13 +1650,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		C697DF772D97F92E0030B6B2 /* SDL3.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SDL3.framework;
-			remoteRef = C697DF762D97F92E0030B6B2 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -2006,10 +1980,10 @@
 			target = 8D1107260486CEB800E47090 /* Pal */;
 			targetProxy = C604BF6C2233857A00E0A4CF /* PBXContainerItemProxy */;
 		};
-		C697DF722D97F92E0030B6B2 /* PBXTargetDependency */ = {
+		C6BE8E222DA175A3006AEC57 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SDL3;
-			targetProxy = C697DF712D97F92E0030B6B2 /* PBXContainerItemProxy */;
+			targetProxy = C6BE8E212DA175A3006AEC57 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2057,6 +2031,7 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_LDFLAGS = "-Wl,-weak_framework,Metal";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.sdlpal;
@@ -2094,6 +2069,7 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_LDFLAGS = "-Wl,-weak_framework,Metal";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.sdlpal;
