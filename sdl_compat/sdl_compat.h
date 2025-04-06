@@ -46,13 +46,6 @@
 #endif
 #endif
 
-#if SDL_VERSION_ATLEAST(2,0,0)
-# define SDL_CloseAudio() SDL_CloseAudioDevice(gAudioDevice.id)
-# define SDL_PauseAudio(pause_on) SDL_PauseAudioDevice(gAudioDevice.id, (pause_on))
-# define SDL_OpenAudio(desired, obtained) \
-    ((gAudioDevice.id = SDL_OpenAudioDevice((gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(gConfig.iAudioDevice, 0) : NULL), 0, (desired), (obtained), 0)) > 0 ? gAudioDevice.id : -1)
-#endif
-
 #if SDL_VERSION_ATLEAST(3,0,0)
 #undef SDL_PauseAudio
 extern void SDL_PauseAudio(bool);

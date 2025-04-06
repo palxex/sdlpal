@@ -39,6 +39,23 @@ typedef void(*ResampleMixFunction)(void *, const void *, int, void *, int, int, 
 
 AUDIODEVICE gAudioDevice;
 
+#if SDL_VERSION_ATLEAST(3,0,0)
+# define SDL_OpenAudio(desired, obtained) \
+    ( \
+     (gAudioDevice.id = SDL_OpenAudioDevice(iSelectedDeviceID, (desired))) && \
+     (gAudioDevice.stream = SDL_CreateAudioStream(desired, desired)) && \
+	 SDL_SetAudioStreamGetCallback(gAudioDevice.stream, AUDIO_FillBuffer_Wrapper, NULL) && \
+	 SDL_BindAudioStream( gAudioDevice.id, gAudioDevice.stream ) \
+    )
+#elif SDL_VERSION_ATLEAST(2,0,0)
+# define SDL_PauseAudio(pause_on) SDL_PauseAudioDevice(gAudioDevice.id, (pause_on))
+# define SDL_OpenAudio(desired, obtained) \
+    ((gAudioDevice.id = SDL_OpenAudioDevice((gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(gConfig.iAudioDevice, 0) : NULL), 0, (desired), (obtained), 0)) > 0 ? gAudioDevice.id : -1)
+#endif
+#if SDL_VERSION_ATLEAST(2,0,0)
+# define SDL_CloseAudio() SDL_CloseAudioDevice(gAudioDevice.id)
+#endif
+
 PAL_FORCE_INLINE
 void
 AUDIO_MixNative(
@@ -230,13 +247,16 @@ AUDIO_OpenDevice(
     }
 # if SDL_VERSION_ATLEAST(3,0,0)
 	int i, num_devices;
+	int iSelectedDeviceID = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
 	SDL_AudioDeviceID* devices = SDL_GetAudioPlaybackDevices(&num_devices);
 	if (devices) {
 		for (i = 0; i < num_devices; ++i) {
 			SDL_AudioDeviceID instance_id = devices[i];
-			UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio device %d:%s\n", i++, SDL_GetAudioDeviceName(instance_id));
+			UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio device %d:%s\n", i, SDL_GetAudioDeviceName(instance_id));
 		}
-		UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio device: %s\n", (gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(devices[gConfig.iAudioDevice]) : "default"));
+		if(gConfig.iAudioDevice >= 0 && gConfig.iAudioDevice < num_devices)
+			iSelectedDeviceID = devices[gConfig.iAudioDevice];
+		UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio device: %s\n", (iSelectedDeviceID != SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK ? SDL_GetAudioDeviceName(iSelectedDeviceID) : "default"));
 		SDL_free(devices);
 	}
 # else
@@ -266,11 +286,7 @@ AUDIO_OpenDevice(
 
    UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio spec:freq %d, format %d, channels %d, samples %d\n", gAudioDevice.spec.freq, gAudioDevice.spec.format,  gAudioDevice.spec.channels);
 
-#if SDL_VERSION_ATLEAST(3,0,0)
-   if (!(gAudioDevice.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &gAudioDevice.spec, AUDIO_FillBuffer_Wrapper, NULL)))
-#else
    if (SDL_OpenAudio(&gAudioDevice.spec, &spec) < 0)
-#endif
    {
       UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio ERROR: %s, got spec:freq %d, format %d, channels %d, samples %d\n", SDL_GetError(), spec.freq, spec.format, spec.channels);
       //
@@ -280,9 +296,6 @@ AUDIO_OpenDevice(
    }
    else
    {
-#if SDL_VERSION_ATLEAST(3,0,0)
-	  gAudioDevice.id = SDL_GetAudioStreamDevice(gAudioDevice.stream);
-#endif
       UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio succeed, got spec:freq %d, format %d, channels %d, samples %d\n", spec.freq, spec.format, spec.channels);
       gAudioDevice.pSoundBuffer = malloc(gConfig.wAudioBufferSize * gConfig.iAudioChannels * sizeof(short));
    }
