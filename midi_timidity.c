@@ -46,7 +46,7 @@ static VOID TIMIDITY_Close(
 	}
 }
 
-static VOID
+extern VOID SDLCALL
 TIMIDITY_FillBuffer(
 	VOID       *object,
 	LPBYTE      stream,

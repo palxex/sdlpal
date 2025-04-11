@@ -69,7 +69,7 @@ typedef struct tagSOUNDPLAYER
 	int					lastSFX;
 } SOUNDPLAYER, *LPSOUNDPLAYER;
 
-static const void *
+extern const void *
 SOUND_LoadWAVEData(
 	LPCBYTE                lpData,
 	DWORD                  dwLen,
@@ -156,7 +156,7 @@ typedef struct tagVOCHEADER
 } VOCHEADER, *LPVOCHEADER;
 typedef const VOCHEADER *LPCVOCHEADER;
 
-static const void *
+extern const void *
 SOUND_LoadVOCData(
 	LPCBYTE                lpData,
 	DWORD                  dwLen,
@@ -229,7 +229,7 @@ SOUND_LoadVOCData(
 	return NULL;
 }
 
-static int
+extern int
 SOUND_ResampleMix_U8_Mono_Mono(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -288,7 +288,7 @@ SOUND_ResampleMix_U8_Mono_Mono(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_U8_Mono_Stereo(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -347,7 +347,7 @@ SOUND_ResampleMix_U8_Mono_Stereo(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_U8_Stereo_Mono(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -410,7 +410,7 @@ SOUND_ResampleMix_U8_Stereo_Mono(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_U8_Stereo_Stereo(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -476,7 +476,7 @@ SOUND_ResampleMix_U8_Stereo_Stereo(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_S16_Mono_Mono(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -535,7 +535,7 @@ SOUND_ResampleMix_S16_Mono_Mono(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_S16_Mono_Stereo(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -594,7 +594,7 @@ SOUND_ResampleMix_S16_Mono_Stereo(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_S16_Stereo_Mono(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -657,7 +657,7 @@ SOUND_ResampleMix_S16_Stereo_Mono(
 	return total_bytes;
 }
 
-static int
+extern int
 SOUND_ResampleMix_S16_Stereo_Stereo(
 	void                  *resampler[2],
 	const void            *lpData,
@@ -724,7 +724,7 @@ SOUND_ResampleMix_S16_Stereo_Stereo(
 }
 
 
-static BOOL
+extern BOOL
 SOUND_Play(
    VOID  *object,
    INT    iSoundNum,
@@ -887,7 +887,7 @@ SOUND_Shutdown(
 	}
 }
 
-static VOID
+extern VOID SDLCALL
 SOUND_FillBuffer(
 	VOID      *object,
 	LPBYTE     stream,

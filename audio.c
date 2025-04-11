@@ -94,7 +94,7 @@ AUDIO_AdjustVolume(
 	}
 }
 
-static VOID SDLCALL
+VOID
 AUDIO_FillBuffer(
    LPVOID          udata,
    LPBYTE          stream,
@@ -169,7 +169,7 @@ AUDIO_FillBuffer(
 }
 
 #if SDL_VERSION_ATLEAST(3,0,0)
-static void SDLCALL AUDIO_FillBuffer_Wrapper(void* userdata, SDL_AudioStream* stream, int additional_amount, int total_amount)
+extern void SDLCALL AUDIO_FillBuffer_Wrapper(void* userdata, SDL_AudioStream* stream, int additional_amount, int total_amount)
 {
 	if (additional_amount > 0) {
 		Uint8* data = SDL_stack_alloc(Uint8, additional_amount);
@@ -306,6 +306,10 @@ AUDIO_OpenDevice(
    // Initialize the sound subsystem.
    //
    gAudioDevice.pSoundPlayer = SOUND_Init();
+
+   UTIL_LogOutput(LOGLEVEL_VERBOSE, "soundplayer %08x\n", gAudioDevice.pSoundPlayer);
+   UTIL_LogOutput(LOGLEVEL_VERBOSE, "soundplayer fillplayer %08x\n", gAudioDevice.pSoundPlayer->FillBuffer);
+
 
    //
    // Initialize the music subsystem.

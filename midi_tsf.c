@@ -83,7 +83,7 @@ static VOID TSF_LoadMIDI(LPTSFPLAYER player)
 	}
 }
 
-static VOID
+extern VOID SDLCALL
 TSF_FillBuffer(
 	VOID       *object,
 	LPBYTE      stream,

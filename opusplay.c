@@ -113,7 +113,7 @@ static BOOL OPUS_Rewind(LPOPUSPLAYER player)
     return (player->fReady = TRUE);
 }
 
-static VOID
+extern VOID SDLCALL
 OPUS_FillBuffer(
     VOID       *object,
     LPBYTE      stream,

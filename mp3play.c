@@ -49,7 +49,7 @@ static VOID MP3_Close(
 	}
 }
 
-static VOID
+extern VOID SDLCALL
 MP3_FillBuffer(
 	VOID       *object,
 	LPBYTE      stream,

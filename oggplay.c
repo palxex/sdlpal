@@ -253,7 +253,7 @@ static BOOL OGG_Rewind(LPOGGPLAYER player)
 	}
 }
 
-static VOID
+extern VOID SDLCALL
 OGG_FillBuffer(
 	VOID       *object,
 	LPBYTE      stream,
