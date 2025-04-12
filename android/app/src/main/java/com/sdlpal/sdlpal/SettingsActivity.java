@@ -24,22 +24,25 @@ package com.sdlpal.sdlpal;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatEditText;
-import android.support.v7.widget.AppCompatSpinner;
-import android.support.v7.widget.SwitchCompat;
-import android.support.v7.widget.Toolbar;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatSpinner;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
+import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import com.nononsenseapps.filepicker.*;
+import android.provider.DocumentsContract;
+import android.util.Log;
+import android.database.Cursor;
 
 import java.io.File;
 import java.util.List;
@@ -50,6 +53,8 @@ public class SettingsActivity extends AppCompatActivity {
         System.loadLibrary("SDL3");
         System.loadLibrary("main");
     }
+
+    private static final String TAG = "settings-debug";
 
     public static native boolean loadConfigFile();
     public static native boolean saveConfigFile();
@@ -212,11 +217,8 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnBrowseFolder).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mInstance, FilePickerActivity.class);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, ((EditText)findViewById(R.id.edFolder)).getText().toString());
+                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
 
                 startActivityForResult(i, BROWSE_GAMEDIR_CODE);
             }
@@ -225,11 +227,8 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnBrowseMsgFile).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mInstance, FilePickerActivity.class);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, ((EditText)findViewById(R.id.edFolder)).getText().toString());
+                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                i.setType("*/*");
 
                 startActivityForResult(i, BROWSE_MSGFILE_CODE);
             }
@@ -238,11 +237,9 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnBrowseFontFile).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mInstance, FilePickerActivity.class);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, ((EditText)findViewById(R.id.edFolder)).getText().toString());
+                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
+                i.setType("*/*");
 
                 startActivityForResult(i, BROWSE_FONTFILE_CODE);
             }
@@ -251,11 +248,9 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnBrowseShader).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mInstance, FilePickerActivity.class);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, ((EditText)findViewById(R.id.edFolder)).getText().toString());
+                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
+                i.setType("*/*");
 
                 startActivityForResult(i, BROWSE_SHADER_CODE);
             }
@@ -277,19 +272,44 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    public static String getPath(final Context context, final Uri uri) {
+        // DocumentProvider
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+
+                // TODO handle non-primary volumes
+            }
+        }
+
+        return null;
+    }
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         if (resultCode == Activity.RESULT_OK) {
             String filePath = null;
-            try {
-                List<Uri> files = Utils.getSelectedFilesFromResult(intent);
-                for (Uri uri : files) {
-                    File file = Utils.getFileForUri(uri);
-                    filePath = file.getAbsolutePath();
-                    break;
+            Uri uri = null;
+            if (resultData != null) {
+                uri = resultData.getData();
+                try {
+                    Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, 
+                                    DocumentsContract.getTreeDocumentId(uri));
+                    filePath = getPath(this, docUri);
+                } catch (java.lang.IllegalArgumentException e) {
+                    filePath = getPath(this, uri);
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
             if (filePath != null) {
                 if (requestCode == BROWSE_GAMEDIR_CODE) {
