@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.*;
 import androidx.annotation.NonNull;
+import android.app.Activity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AlertDialog;
@@ -35,6 +36,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.provider.Settings;
 import android.net.Uri;
 import android.util.Log;
+import android.provider.DocumentsContract;
+import android.content.ContentResolver;
+import androidx.documentfile.provider.DocumentFile;
+import androidx.activity.result.*;
+import androidx.activity.result.contract.*;
 
 import java.io.*;
 
@@ -45,22 +51,33 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("main");
     }
 
+    private static MainActivity mSingleton;
+    private ActivityResultLauncher<Intent> permissionRequestLauncher;
+
     private static final String TAG = "sdlpal-debug";
 
+    private static Uri docTreeUri = null;
+    private static String docUri = null;
+    private static String basePath = "";
+    private static String dataPath = "";
+    private static String cachePath = "";
+
     public static native void setAppPath(String basepath, String datapath, String cachepath);
+    public static void SetAppPath(String basepath, String datapath, String cachepath)
+    {
+        basePath = basepath;
+        dataPath = datapath;
+        cachePath = cachepath;
+        setAppPath(basePath, dataPath, cachePath);
+    }
 
     public static boolean crashed = false;
+    public static boolean blocked = false;
 
-    private final static int REQUEST_FILESYSTEM_ACCESS_CODE = 101;
     private final AppCompatActivity mActivity = this;
 
     interface RequestForPermissions {
         void request();
-    }
-
-    private void requestForPermissions() {
-        // Since granting writing permission implicitly grants reading permission, no need to explicitly add reading permission here
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_FILESYSTEM_ACCESS_CODE);
     }
 
     private void alertUser(int id, final RequestForPermissions req) {
@@ -82,76 +99,147 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_FILESYSTEM_ACCESS_CODE:
-                for(int i = 0; i < permissions.length; i++) {
-                    switch(permissions[i]) {
-                        case Manifest.permission.WRITE_EXTERNAL_STORAGE:
-                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                StartGame();
-                                break;
-                            }
-                            if (ActivityCompat.shouldShowRequestPermissionRationale(mActivity, permissions[i])) {
-                                alertUser(R.string.toast_requestpermission, new RequestForPermissions() {
-                                    @Override
-                                    public void request() {
-                                        requestForPermissions();
-                                    }
-                                });
-                            } else {
-                                alertUser(R.string.toast_grantpermission, new RequestForPermissions() {
-                                    @Override
-                                    public void request() {
-                                        Intent intent = new Intent();
-                                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                        intent.setData(uri);
-                                        startActivity(intent);
-                                    }
-                                });
-                            }
+    private static int getFileDescriptorFromUri(Uri data, String mode) {
+        try {
+            ContentResolver cr = mSingleton.getApplicationContext().getContentResolver();
+            ParcelFileDescriptor inputPFD = cr.openFileDescriptor(data, mode);
+            if (inputPFD == null) {
+                Log.e(TAG, "getFileDescriptorFromUri: Failed to get parcel file descriptor ");
+                return -1;
+            }
+            return inputPFD.detachFd();
+        } catch (Exception e) {
+            Log.w(TAG, "getFileDescriptorFromUri:" + e.toString());
+        }
+        return -1;
+    }
+
+    private static Uri getDocumentUriFromPath(String path) {
+        try {
+            Context ctx = mSingleton.getApplicationContext();
+            path = path.replace(basePath, "/");
+            path = path.replace("/","%2F");
+            path = path.replace("%2F%2F","%2F");
+            path = docUri + path;
+            String documentId = DocumentsContract.getDocumentId(Uri.parse(path));
+            Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(docTreeUri, documentId);
+            return documentUri;
+        } catch (Exception e) {
+            Log.w(TAG, "Exception: getDocumentUriFromPath:" + e.toString());
+        }
+        return null;
+    }
+
+    public static int SAF_access(String path, int mode) {
+        if( path.startsWith("/data/") ) {
+            File file = new File(path);
+            return file.exists() ? 0 : -1;
+        }
+        return getFileDescriptorFromUri(getDocumentUriFromPath(path), "r") != -1 ? 0 : -1;
+    }
+
+    public static int SAF_fopen(String path, String mode) {
+        Uri uri = getDocumentUriFromPath(path);
+        mode = mode.substring(0,1);
+        try {
+            File file = new File(path);
+            if( mode.equals("w") && !file.exists() ){
+                if( path.startsWith("/data") ) {
+                    file.createNewFile();
+                    file.setReadable(true);
+                    file.setWritable(true);
+                }else if( path.startsWith("/storage") ) {
+                    DocumentFile documentFile = DocumentFile.fromTreeUri(mSingleton.getApplicationContext(), docTreeUri);
+                    if (documentFile != null) {
+                        DocumentFile newFile = documentFile.createFile("application/octet-stream", file.getName());
+                        if (newFile != null) {
+                            uri = newFile.getUri();
+                        } 
                     }
                 }
-                break;
+            }
+            if(path.startsWith("/data"))
+                uri = Uri.fromFile( file );
+        }catch (Exception e) {
+            Log.w(TAG, "Exception: SAF_fopen create file for writing:" + e.toString());
         }
+        return getFileDescriptorFromUri(uri, mode);
+    }
+
+    public static void setPersistedUri(Uri uri) {
+        if (uri != null) {
+            docTreeUri = uri;
+            docUri = uri.toString().replace("tree", "document");
+        }
+    }
+
+    protected void loadPersistedUriFromCache() {
+        File persistFile = new File(cachePath + "/persisted");
+        FileInputStream in;
+        try {
+            int length = (int) persistFile.length();
+            byte[] bytes = new byte[length];
+            in = new FileInputStream(persistFile);
+            in.read(bytes);
+            String contents = new String(bytes);
+            setPersistedUri(Uri.parse(contents)); 
+            in.close();
+        }catch(FileNotFoundException e) {
+            blocked = true;
+            alertUser(R.string.toast_requestpermission, new RequestForPermissions() {
+                                                            @Override
+                                                            public void request() {
+                                                                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                                                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                                                                mSingleton.permissionRequestLauncher.launch(i);
+                                                            }
+                                                        });
+        }catch(Exception e) {
+            Log.w(TAG, "Exception: loadPersistedUriFromCache:"+e.toString());
+        }
+    }
+
+    public static void savePersistedUriToCache(Uri uri) {
+        if (docTreeUri != null) {
+            File persistFile = new File(cachePath + "/persisted");
+            FileOutputStream out;
+            try {
+                out = new FileOutputStream(persistFile);
+                out.write(uri.toString().getBytes());
+                out.close();
+            } catch(Exception e) {
+                Log.w(TAG, "Exception: savePersistedUriToCache:"+e.toString());
+            }
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        mSingleton = this;
+        super.onCreate(savedInstanceState);
+        permissionRequestLauncher = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(),
+        new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    Uri uri = data.getData();
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    setPersistedUri(uri);
+                    savePersistedUriToCache(uri);
+                    StartGame();
+                }
+            }
+        });
     }
 
     public void onStart() {
         super.onStart();
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ) {
-            StartGame();
-        } else {
-            requestForPermissions();
-        }
-    }
-
-    private boolean traverseDirectory(String path) {
-        File dir = new File(path);
-        boolean iteration = true;
-        if (dir.exists()) {
-            File[] files = dir.listFiles();
-            if (files.length == 0) {
-                return true;
-            } else {
-                for (File file: files) {
-                    iteration = iteration & (file.isDirectory() ? traverseDirectory(file.getAbsolutePath()) : file.exists());
-                }
-            }
-        }
-        return iteration;
-    }
-
-    public void StartGame() {
         String dataPath = getApplicationContext().getFilesDir().getPath();
         String cachePath = getApplicationContext().getCacheDir().getPath();
         String sdcardState = Environment.getExternalStorageState();
         String sdlpalPath = Environment.getExternalStorageDirectory().getPath() + "/sdlpal/";
-
-        // hack; on LOS14.1, everytime after rebooted, native file operation will not work until java code accessed same file once, even permission granted.
-        traverseDirectory(sdlpalPath);
 
         String extPath = getApplicationContext().getExternalFilesDir(null).getPath();
 		File extFolder = new File(sdlpalPath);
@@ -166,11 +254,18 @@ public class MainActivity extends AppCompatActivity {
 		}else
         	Log.v(TAG,"not exist!");
         if (sdcardState.equals(Environment.MEDIA_MOUNTED)){
-            setAppPath(sdlpalPath, dataPath, cachePath);
+            SetAppPath(sdlpalPath, dataPath, cachePath);
         } else {
-            setAppPath("/sdcard/sdlpal/", dataPath, cachePath);
+            SetAppPath("/sdcard/sdlpal/", dataPath, cachePath);
         }
+        loadPersistedUriFromCache();
 
+        if (!blocked)
+            StartGame();
+    }
+
+
+    public void StartGame() {
         File runningFile = new File(cachePath + "/running");
         crashed = runningFile.exists();
 
