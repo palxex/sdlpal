@@ -106,6 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String AspectRatios[] = { "16:10", "4:3" };
 
     private SettingsActivity mInstance = this;
+    private static SettingsActivity mSingleton = null;
 
     private static final int BROWSE_GAMEDIR_CODE = 30001;
     private static final int BROWSE_MSGFILE_CODE = 30002;
@@ -114,6 +115,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mSingleton = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -195,6 +197,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                 if (!setConfigs()) return;
                 setConfigBoolean(LaunchSetting, false);
+                Log.v(TAG, "Save config file");
                 saveConfigFile();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(mInstance);
@@ -218,6 +221,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                 i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
 
                 startActivityForResult(i, BROWSE_GAMEDIR_CODE);
@@ -303,13 +307,12 @@ public class SettingsActivity extends AppCompatActivity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-                try {
-                    Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, 
-                                    DocumentsContract.getTreeDocumentId(uri));
-                    filePath = getPath(this, docUri);
-                } catch (java.lang.IllegalArgumentException e) {
-                    filePath = getPath(this, uri);
-                }
+                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                if( requestCode == BROWSE_GAMEDIR_CODE ) {
+                    MainActivity.setPersistedUri(uri);
+                    MainActivity.savePersistedUriToCache(uri);
+                } 
+                filePath = getPath(this, uri);
             }
             if (filePath != null) {
                 if (requestCode == BROWSE_GAMEDIR_CODE) {
