@@ -62,6 +62,14 @@ public class MainActivity extends AppCompatActivity {
     private static String dataPath = "";
     private static String cachePath = "";
 
+    public static String getBasePath() {
+        return basePath;
+    }
+
+    public static void setBasePath(String basepath) {
+        basePath = basepath;
+    }
+
     public static native void setAppPath(String basepath, String datapath, String cachepath);
     public static void SetAppPath(String basepath, String datapath, String cachepath)
     {

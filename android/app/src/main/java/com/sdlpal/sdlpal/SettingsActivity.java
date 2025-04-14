@@ -317,6 +317,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (filePath != null) {
                 if (requestCode == BROWSE_GAMEDIR_CODE) {
                     ((EditText) findViewById(R.id.edFolder)).setText(filePath);
+                    MainActivity.setBasePath(filePath);
                 } else if (requestCode == BROWSE_MSGFILE_CODE) {
                     ((EditText) findViewById(R.id.edMsgFile)).setText(filePath);
                 } else if (requestCode == BROWSE_FONTFILE_CODE) {
@@ -359,11 +360,8 @@ public class SettingsActivity extends AppCompatActivity {
         ((SeekBar)findViewById(R.id.sbSFXVol)).setProgress(getConfigInt(SoundVolume, true));
         ((SeekBar)findViewById(R.id.sbQuality)).setProgress(getConfigInt(ResampleQuality, true));
 
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
-            ((EditText)findViewById(R.id.edFolder)).setText(Environment.getExternalStorageDirectory().getPath() + "/sdlpal/");
-        } else {
-            ((EditText)findViewById(R.id.edFolder)).setText("/sdcard/sdlpal/");
-        }
+        ((EditText)findViewById(R.id.edFolder)).setText(MainActivity.getBasePath());
+
         ((EditText)findViewById(R.id.edMsgFile)).setText("");
         ((EditText)findViewById(R.id.edFontFile)).setText("");
         ((EditText)findViewById(R.id.edLogFile)).setText("");
