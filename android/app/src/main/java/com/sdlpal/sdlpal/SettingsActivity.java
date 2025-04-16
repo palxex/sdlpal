@@ -222,7 +222,7 @@ public class SettingsActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                 i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, MainActivity.getDocTreeUri());
 
                 startActivityForResult(i, BROWSE_GAMEDIR_CODE);
             }
@@ -282,6 +282,18 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static String getPath(final Context context, final Uri uri) {
         // DocumentProvider
+        if (DocumentsContract.isTreeUri(uri)) {
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getTreeDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }else{
+                    return Environment.getExternalStorageDirectory().getPath().replace("emulated/0",type) + "/" + split[1];
+                }
+            }
+        }else
         if (DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
@@ -291,9 +303,9 @@ public class SettingsActivity extends AppCompatActivity {
 
                 if ("primary".equalsIgnoreCase(type)) {
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }else{
+                    return Environment.getExternalStorageDirectory().getPath().replace("emulated/0",type) + "/" + split[1];
                 }
-
-                // TODO handle non-primary volumes
             }
         }
 
@@ -311,7 +323,7 @@ public class SettingsActivity extends AppCompatActivity {
                 if( requestCode == BROWSE_GAMEDIR_CODE ) {
                     MainActivity.setPersistedUri(uri);
                     MainActivity.savePersistedUriToCache(uri);
-                } 
+                }
                 filePath = getPath(this, uri);
             }
             if (filePath != null) {

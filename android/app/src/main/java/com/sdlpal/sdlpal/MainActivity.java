@@ -181,6 +181,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public static Uri getDocTreeUri() {
+        return docTreeUri;
+    }
+
     protected void loadPersistedUriFromCache() {
         File persistFile = new File(cachePath + "/persisted");
         FileInputStream in;
