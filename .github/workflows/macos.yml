@@ -8,18 +8,16 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
     - name: submodules
       run: |
         sed -i.bak 's#\.\./#https://github.com/sdlpal/#g' .gitmodules
         git submodule init && git submodule update
     - name: Install Dependencies
-      run: python3 -m ensurepip && pip3 install cloudsmith-cli && brew install coreutils
+      run: brew install coreutils pipx && pipx install cloudsmith-cli
     - name: make
       run: |
         bash scripts/gengitrev
