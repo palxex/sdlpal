@@ -14,9 +14,9 @@ mkdir -p $APP.AppDir
 cd $APP.AppDir
 
 mkdir -p ./usr/{bin,share/applications,share/icons/hicolor/256x256/apps}
-cp $TRAVIS_BUILD_DIR/unix/sdlpal ./usr/bin/
-cp $TRAVIS_BUILD_DIR/unix/sdlpal.desktop ./usr/share/applications/
-convert $TRAVIS_BUILD_DIR/Icon.png -resize 256x256 sdlpal.png
+cp $BUILD_DIR/unix/sdlpal ./usr/bin/
+cp $BUILD_DIR/unix/sdlpal.desktop ./usr/share/applications/
+convert $BUILD_DIR/Icon.png -resize 256x256 sdlpal.png
 cp sdlpal.png ./usr/share/icons/hicolor/256x256/apps/
 
 cat > AppRun <<\EOF
@@ -36,10 +36,11 @@ chmod +x AppRun
 cd .. # Go out of AppImage
 wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
 chmod a+x linuxdeployqt-continuous-x86_64.AppImage
-./linuxdeployqt-continuous-x86_64.AppImage $APP.AppDir/usr/share/applications/*.desktop -appimage
+./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract
+./squashfs-root/AppRun $APP.AppDir/usr/share/applications/*.desktop -appimage
 
 ########################################################################
 # move to deploy folder, waiting upload
 ########################################################################
 
-mv SDLPal*.AppImage* $TRAVIS_BUILD_DIR/deploy
+mv SDLPal*.AppImage* $BUILD_DIR/deploy

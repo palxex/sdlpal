@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Install Dependencies
-      run: sudo apt-get install libsdl2-dev libfltk1.3-dev upx-ucl python3-pip fuse imagemagick && pip3 install --user cloudsmith-cli
+      run: sudo apt-get install libsdl2-dev libfltk1.3-dev upx-ucl pipx fuse imagemagick && pipx install cloudsmith-cli && pipx ensurepath
     - uses: actions/checkout@v4
     - name: submodules
       run: |
@@ -20,7 +20,7 @@ jobs:
     - name: make
       run: cd unix && make CCFLAGS="-DAPPIMAGE=1"
     - name: appimage
-      run: mkdir deploy && cd unix && TRAVIS_BUILD_DIR=$GITHUB_WORKSPACE bash appimage.sh
+      run: mkdir deploy && cd unix && BUILD_DIR=$GITHUB_WORKSPACE bash appimage.sh
     - name: check
       run: rm -f main.unix.* && cd unix && make check
     - name: deploy
