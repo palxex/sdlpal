@@ -84,6 +84,7 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String CDFormat = "CD";
     private static final String GamePath = "GamePath";
     private static final String SavePath = "SavePath";
+    private static final String ShaderPath = "ShaderPath";
     private static final String MessageFileName = "MessageFileName";
     private static final String LogFileName = "LogFileName";
     private static final String FontFileName = "FontFileName";
@@ -309,7 +310,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        return null;
+        return "";
     }
 
     @Override
@@ -319,12 +320,24 @@ public class SettingsActivity extends AppCompatActivity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                if( requestCode == BROWSE_GAMEDIR_CODE ) {
-                    MainActivity.setPersistedUri(uri);
-                    MainActivity.savePersistedUriToCache(uri);
-                }
                 filePath = getPath(this, uri);
+                if( requestCode == BROWSE_GAMEDIR_CODE ) {
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    MainActivity.setPersistedUri(uri);
+                }else{
+                    if( filePath.isEmpty() || !filePath.startsWith(MainActivity.getBasePath()) ) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setMessage(R.string.msg_path_unsuitable);
+                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        });
+                        builder.create().show();
+                        return;
+                    }
+                }
             }
             if (filePath != null) {
                 if (requestCode == BROWSE_GAMEDIR_CODE) {
@@ -464,17 +477,8 @@ public class SettingsActivity extends AppCompatActivity {
         setConfigInt(ResampleQuality, ((SeekBar)findViewById(R.id.sbQuality)).getProgress());
 
         setConfigString(GamePath, ((EditText)findViewById(R.id.edFolder)).getText().toString());
-        if (isDirWritable(((EditText)findViewById(R.id.edFolder)).getText().toString())) {
-            setConfigString(SavePath, ((EditText)findViewById(R.id.edFolder)).getText().toString());
-        } else {
-            String savePath = Environment.getExternalStorageDirectory().getPath() + "/sdlpal/";
-            if (isDirWritable(savePath)) {
-                setConfigString(SavePath, savePath);
-            } else {
-                savePath = getApplicationContext().getFilesDir().getPath();
-                setConfigString(SavePath, savePath);
-            }
-        }
+        setConfigString(SavePath, ((EditText)findViewById(R.id.edFolder)).getText().toString());
+        setConfigString(ShaderPath, ((EditText)findViewById(R.id.edFolder)).getText().toString());
         setConfigString(MessageFileName, ((SwitchCompat)findViewById(R.id.swMsgFile)).isChecked() ? ((EditText)findViewById(R.id.edMsgFile)).getText().toString() : null);
         setConfigString(FontFileName, ((SwitchCompat)findViewById(R.id.swFontFile)).isChecked() ? ((EditText)findViewById(R.id.edFontFile)).getText().toString() : null);
         setConfigString(LogFileName, ((SwitchCompat)findViewById(R.id.swLogFile)).isChecked() ? ((EditText)findViewById(R.id.edLogFile)).getText().toString() : null);
