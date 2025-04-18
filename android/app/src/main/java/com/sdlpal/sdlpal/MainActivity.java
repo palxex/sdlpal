@@ -174,11 +174,15 @@ public class MainActivity extends AppCompatActivity {
         return getFileDescriptorFromUri(uri, mode);
     }
 
-    public static void setPersistedUri(Uri uri) {
+    protected static void setPersistedUri(Uri uri, boolean save) {
         if (uri != null) {
             docTreeUri = uri;
             docUri = uri.toString().replace("tree", "document");
+            savePersistedUriToCache();
         }
+    }
+    public static void setPersistedUri(Uri uri) {
+        setPersistedUri(uri, true);
     }
 
     public static Uri getDocTreeUri() {
@@ -194,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             in = new FileInputStream(persistFile);
             in.read(bytes);
             String contents = new String(bytes);
-            setPersistedUri(Uri.parse(contents)); 
+            setPersistedUri(Uri.parse(contents), false); 
             in.close();
         }catch(FileNotFoundException e) {
             blocked = true;
@@ -211,13 +215,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static void savePersistedUriToCache(Uri uri) {
+    protected static void savePersistedUriToCache() {
         if (docTreeUri != null) {
             File persistFile = new File(cachePath + "/persisted");
             FileOutputStream out;
             try {
                 out = new FileOutputStream(persistFile);
-                out.write(uri.toString().getBytes());
+                out.write(docTreeUri.toString().getBytes());
                 out.close();
             } catch(Exception e) {
                 Log.w(TAG, "Exception: savePersistedUriToCache:"+e.toString());
@@ -239,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
                     Uri uri = data.getData();
                     getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     setPersistedUri(uri);
-                    savePersistedUriToCache(uri);
                     StartGame();
                 }
             }
@@ -257,14 +260,6 @@ public class MainActivity extends AppCompatActivity {
 		File extFolder = new File(sdlpalPath);
 		if( !extFolder.exists() )
 			extFolder.mkdirs();
-		File forceFile = new File(extPath + "/.force_external_data");
-        Log.v(TAG,"checking redirect file path:"+forceFile.getPath());
-		if( forceFile.exists() ) {
-        	Log.v(TAG,"exist!");
-			dataPath = sdlpalPath;
-			cachePath = sdlpalPath;
-		}else
-        	Log.v(TAG,"not exist!");
         if (sdcardState.equals(Environment.MEDIA_MOUNTED)){
             SetAppPath(sdlpalPath, dataPath, cachePath);
         } else {
