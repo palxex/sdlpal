@@ -409,6 +409,10 @@ FILE *SAF_fopen(const char *path, const char *mode)
     env->DeleteLocalRef(str);
     env->DeleteLocalRef(str2);
     env->DeleteLocalRef(clazz);
+    //fix android 10+ w mode dont truncate problem
+    if(strncmp(mode,"w",1) == 0) {
+        ftruncate(fd, 0);
+    }
     FILE *fp = fdopen(fd, mode);
     return fp;
 }
