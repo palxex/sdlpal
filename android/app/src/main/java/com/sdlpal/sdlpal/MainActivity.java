@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
-    private static Uri getDocumentUriFromPath(String path) {
+    public static Uri getDocumentUriFromPath(String path) {
         try {
             Context ctx = mSingleton.getApplicationContext();
             path = path.replace(basePath, "/");

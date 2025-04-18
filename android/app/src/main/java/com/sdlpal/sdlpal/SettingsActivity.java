@@ -233,6 +233,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, MainActivity.getDocumentUriFromPath(MainActivity.getBasePath()+((EditText)findViewById(R.id.edMsgFile)).getText().toString()));
                 i.setType("*/*");
 
                 startActivityForResult(i, BROWSE_MSGFILE_CODE);
@@ -243,7 +244,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, MainActivity.getDocumentUriFromPath(MainActivity.getBasePath()+((EditText)findViewById(R.id.edFontFile)).getText().toString()));
                 i.setType("*/*");
 
                 startActivityForResult(i, BROWSE_FONTFILE_CODE);
@@ -254,7 +255,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.fromFile(new File(((EditText)findViewById(R.id.edFolder)).getText().toString())));
+                i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, MainActivity.getDocumentUriFromPath(MainActivity.getBasePath()+((EditText)findViewById(R.id.edShader)).getText().toString()));
                 i.setType("*/*");
 
                 startActivityForResult(i, BROWSE_SHADER_CODE);
@@ -324,8 +325,12 @@ public class SettingsActivity extends AppCompatActivity {
                 if( requestCode == BROWSE_GAMEDIR_CODE ) {
                     getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     MainActivity.setPersistedUri(uri);
+                    MainActivity.setBasePath(filePath);
+                    loadConfigFile();
+                    resetConfigs();
                 }else{
-                    if( filePath.isEmpty() || !filePath.startsWith(MainActivity.getBasePath()) ) {
+                    String basePath = MainActivity.getBasePath();
+                    if( filePath.isEmpty() || !filePath.startsWith(basePath) ) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setMessage(R.string.msg_path_unsuitable);
                         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -337,12 +342,15 @@ public class SettingsActivity extends AppCompatActivity {
                         builder.create().show();
                         return;
                     }
+                    filePath = filePath.replace(basePath, "");
+                    if(filePath.startsWith("/")) {
+                        filePath = filePath.substring(1);
+                    }
                 }
             }
             if (filePath != null) {
                 if (requestCode == BROWSE_GAMEDIR_CODE) {
                     ((EditText) findViewById(R.id.edFolder)).setText(filePath);
-                    MainActivity.setBasePath(filePath);
                 } else if (requestCode == BROWSE_MSGFILE_CODE) {
                     ((EditText) findViewById(R.id.edMsgFile)).setText(filePath);
                 } else if (requestCode == BROWSE_FONTFILE_CODE) {
