@@ -43,6 +43,7 @@ import android.widget.Spinner;
 import android.provider.DocumentsContract;
 import android.util.Log;
 import android.database.Cursor;
+import android.media.AudioManager;
 
 import java.io.File;
 import java.util.List;
@@ -97,7 +98,7 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String TextureWidth = "TextureWidth";
     private static final String TextureHeight = "TextureHeight";
 
-    private static final int AudioSampleRates[] = { 11025, 22050, 44100 };
+    private static final int AudioSampleRates[] = { 11025, 22050, 44100, 48000 };
     private static final int AudioBufferSizes[] = { 512, 1024, 2048, 4096, 8192 };
     private static final int OPLSampleRates[] = { 11025, 12429, 22050, 24858, 44100, 49716 };
     private static final String CDFormats[] = { "None", "MP3", "OGG", "OPUS" };
@@ -114,10 +115,18 @@ public class SettingsActivity extends AppCompatActivity {
     private static final int BROWSE_FONTFILE_CODE = 30003;
     private static final int BROWSE_SHADER_CODE = 30004;
 
+    private static int nativeSampleRate;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mSingleton = this;
         super.onCreate(savedInstanceState);
+
+        AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager != null) {
+            nativeSampleRate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE) != null ? Integer.parseInt(audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)) : 48000;
+        }
+
         setContentView(R.layout.activity_settings);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -409,7 +418,7 @@ public class SettingsActivity extends AppCompatActivity {
         ((SwitchCompat)findViewById(R.id.swStereo)).setChecked(getConfigBoolean(Stereo, true));
 
         ((AppCompatSpinner)findViewById(R.id.spLogLevel)).setSelection(getConfigInt(LogLevel, true));
-        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(getConfigInt(SampleRate, true), AudioSampleRates, 2));    // 44100Hz
+        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(nativeSampleRate, AudioSampleRates, 3));    // 48000Hz
         ((AppCompatSpinner)findViewById(R.id.spBuffer)).setSelection(findMatchedIntIndex(getConfigInt(AudioBufferSize, true), AudioBufferSizes, 1));    // 1024
         ((AppCompatSpinner)findViewById(R.id.spCDFmt)).setSelection(findMatchedStringIndex(getConfigString(CDFormat, true), CDFormats, 1));     // None
         ((AppCompatSpinner)findViewById(R.id.spMusFmt)).setSelection(findMatchedStringIndex(getConfigString(MusicFormat, true), MusicFormats, 1));    // RIX
@@ -453,7 +462,7 @@ public class SettingsActivity extends AppCompatActivity {
         ((SwitchCompat)findViewById(R.id.swEnableHDR)).setChecked(getConfigBoolean(EnableHDR, false));
 
         ((AppCompatSpinner)findViewById(R.id.spLogLevel)).setSelection(getConfigInt(LogLevel, false));
-        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(getConfigInt(SampleRate, false), AudioSampleRates, 2));
+        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(getConfigInt(SampleRate, false), AudioSampleRates, 3));
         ((AppCompatSpinner)findViewById(R.id.spBuffer)).setSelection(findMatchedIntIndex(getConfigInt(AudioBufferSize, false), AudioBufferSizes, 1));
         ((AppCompatSpinner)findViewById(R.id.spCDFmt)).setSelection(findMatchedStringIndex(getConfigString(CDFormat, false), CDFormats, 1));
         ((AppCompatSpinner)findViewById(R.id.spMusFmt)).setSelection(findMatchedStringIndex(getConfigString(MusicFormat, false), MusicFormats, 1));
