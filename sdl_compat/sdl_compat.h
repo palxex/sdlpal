@@ -27,7 +27,12 @@
 #define GL_GLEXT_PROTOTYPES
 #endif
 
+
 #if USE_SDL3
+
+#define SDL_OK      (1)
+#define SDL_FAIL    (0)
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
 #if __IOS__
@@ -35,6 +40,10 @@
 #include <SDL3/SDL_opengles2.h>
 #endif
 #else
+
+#define SDL_OK      (0)
+#define SDL_FAIL    (-1)
+
 #include <SDL.h>
 #include <SDL_endian.h>
 #include <SDL_events.h>

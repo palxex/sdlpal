@@ -321,7 +321,7 @@ TerminateOnError(
 	  int btnid;
 #if PAL_HAS_CONFIG_PAGE
 	  sprintf(buffer, "%sLaunch setting dialog on next start?\n", string);
-	  if (SDL_ShowMessageBox(&mbd, &btnid) == 0 && btnid == 0)
+	  if (SDL_ShowMessageBox(&mbd, &btnid) == SDL_OK && btnid == 0)
 	  {
 		  gConfig.fLaunchSetting = TRUE;
 		  PAL_SaveConfig();
