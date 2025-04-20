@@ -272,6 +272,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         resetConfigs();
 
+        //1st time override for android
+        ((EditText)findViewById(R.id.edFolder)).setText(MainActivity.getBasePath());
+
         if (PalActivity.crashed) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(R.string.msg_crash);
@@ -294,13 +297,16 @@ public class SettingsActivity extends AppCompatActivity {
             if (resultData != null) {
                 uri = resultData.getData();
                 filePath = MainActivity.getPath(uri);
+                String basePath = MainActivity.getBasePath();
                 if( requestCode == BROWSE_GAMEDIR_CODE ) {
-                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    MainActivity.setPersistedUri(uri);
-                    loadConfigFile();
-                    resetConfigs();
+                    if( !basePath.equals(filePath) ) {
+                        getContentResolver().releasePersistableUriPermission(MainActivity.getDocTreeUri(), Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        MainActivity.setPersistedUri(uri);
+                        loadConfigFile();
+                        resetConfigs();
+                    }
                 }else{
-                    String basePath = MainActivity.getBasePath();
                     if( filePath.isEmpty() || !filePath.startsWith(basePath) ) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setMessage(R.string.msg_path_unsuitable);
@@ -424,7 +430,7 @@ public class SettingsActivity extends AppCompatActivity {
         ((SwitchCompat)findViewById(R.id.swEnableHDR)).setChecked(getConfigBoolean(EnableHDR, false));
 
         ((AppCompatSpinner)findViewById(R.id.spLogLevel)).setSelection(getConfigInt(LogLevel, false));
-        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(nativeSampleRate, AudioSampleRates, 3));
+        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(getConfigInt(SampleRate, false), AudioSampleRates, 3));
         ((AppCompatSpinner)findViewById(R.id.spBuffer)).setSelection(findMatchedIntIndex(getConfigInt(AudioBufferSize, false), AudioBufferSizes, 1));
         ((AppCompatSpinner)findViewById(R.id.spCDFmt)).setSelection(findMatchedStringIndex(getConfigString(CDFormat, false), CDFormats, 1));
         ((AppCompatSpinner)findViewById(R.id.spMusFmt)).setSelection(findMatchedStringIndex(getConfigString(MusicFormat, false), MusicFormats, 1));
