@@ -186,19 +186,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static int SAF_fopen(String path, String mode) {
+        Context context = mSingleton.getApplicationContext();
         Uri uri = getDocumentUriFromPath(path);
         mode = mode.substring(0,1);
         try {
             File file = new File(path);
-            if( mode.equals("w") && !file.exists() ){
+            DocumentFile documentFile = DocumentFile.fromSingleUri(context, uri);
+            if( mode.equals("w") && documentFile != null && !documentFile.exists() ) {
                 if( path.startsWith("/data") ) {
                     file.createNewFile();
                     file.setReadable(true);
                     file.setWritable(true);
                 }else if( path.startsWith("/storage") ) {
-                    DocumentFile documentFile = DocumentFile.fromTreeUri(mSingleton.getApplicationContext(), docTreeUri);
+                    DocumentFile baseDocument = DocumentFile.fromTreeUri(context, docTreeUri);
                     if (documentFile != null) {
-                        DocumentFile newFile = documentFile.createFile("application/octet-stream", file.getName());
+                        DocumentFile newFile = baseDocument.createFile("application/octet-stream", file.getName());
                         if (newFile != null) {
                             uri = newFile.getUri();
                         } 
