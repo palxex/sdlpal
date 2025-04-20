@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         return basePath;
     }
 
-    public static void setBasePath(String basepath) {
-        basePath = basepath;
+    private static void setBasePath(String basepath) {
+        SetAppPath(basepath, dataPath, cachePath);
     }
 
     public static native void setAppPath(String basepath, String datapath, String cachepath);
@@ -124,18 +124,57 @@ public class MainActivity extends AppCompatActivity {
 
     public static Uri getDocumentUriFromPath(String path) {
         try {
+            if(basePath.isEmpty())
+                throw new Exception("basePath is empty");
             Context ctx = mSingleton.getApplicationContext();
-            path = path.replace(basePath, "/");
+            path = path.replace(basePath, "");
             path = path.replace("/","%2F");
-            path = path.replace("%2F%2F","%2F");
-            path = docUri + path;
-            String documentId = DocumentsContract.getDocumentId(Uri.parse(path));
+            String pathUri = docUri + "%2F" + path;
+            pathUri = pathUri.replace("%2F%2F","%2F");
+            String documentId = DocumentsContract.getDocumentId(Uri.parse(pathUri));
             Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(docTreeUri, documentId);
             return documentUri;
         } catch (Exception e) {
             Log.w(TAG, "Exception: getDocumentUriFromPath:" + e.toString());
         }
         return null;
+    }
+
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    public static String getPath(final Uri uri) {
+        Context context = mSingleton.getApplicationContext();
+        // DocumentProvider
+        if (DocumentsContract.isTreeUri(uri)) {
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getTreeDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }else{
+                    return Environment.getExternalStorageDirectory().getPath().replace("emulated/0",type) + "/" + split[1];
+                }
+            }
+        }else
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }else{
+                    return Environment.getExternalStorageDirectory().getPath().replace("emulated/0",type) + "/" + split[1];
+                }
+            }
+        }
+
+        return "";
     }
 
     public static int SAF_access(String path, int mode) {
@@ -175,10 +214,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected static void setPersistedUri(Uri uri, boolean save) {
-        if (uri != null) {
-            docTreeUri = uri;
-            docUri = uri.toString().replace("tree", "document");
-            savePersistedUriToCache();
+        try{
+            if (uri != null) {
+                docTreeUri = uri;
+                docUri = uri.toString().replace("tree", "document");
+                String filePath = getPath(uri);
+                setBasePath(filePath);
+                if(save)
+                    savePersistedUriToCache();
+            }
+        }catch(Exception e) {
+            Log.v(TAG,"setPersistedUri exception:" + e.toString());
         }
     }
     public static void setPersistedUri(Uri uri) {
@@ -198,8 +244,10 @@ public class MainActivity extends AppCompatActivity {
             in = new FileInputStream(persistFile);
             in.read(bytes);
             String contents = new String(bytes);
-            setPersistedUri(Uri.parse(contents), false); 
+            Uri uri = Uri.parse(contents);
+            setPersistedUri(uri, false); 
             in.close();
+            basePath = getPath(uri);
         }catch(FileNotFoundException e) {
             blocked = true;
             alertUser(R.string.toast_requestpermission, new RequestForPermissions() {
@@ -231,8 +279,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mSingleton = this;
         super.onCreate(savedInstanceState);
+        mSingleton = this;
         permissionRequestLauncher = registerForActivityResult(
         new ActivityResultContracts.StartActivityForResult(),
         new ActivityResultCallback<ActivityResult>() {
@@ -251,21 +299,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void onStart() {
         super.onStart();
-        String dataPath = getApplicationContext().getFilesDir().getPath();
-        String cachePath = getApplicationContext().getCacheDir().getPath();
-        String sdcardState = Environment.getExternalStorageState();
-        String sdlpalPath = Environment.getExternalStorageDirectory().getPath() + "/sdlpal/";
-
-        String extPath = getApplicationContext().getExternalFilesDir(null).getPath();
-		File extFolder = new File(sdlpalPath);
-		if( !extFolder.exists() )
-			extFolder.mkdirs();
-        if (sdcardState.equals(Environment.MEDIA_MOUNTED)){
-            SetAppPath(sdlpalPath, dataPath, cachePath);
-        } else {
-            SetAppPath("/sdcard/sdlpal/", dataPath, cachePath);
-        }
+        cachePath = getApplicationContext().getCacheDir().getPath();
         loadPersistedUriFromCache();
+        String dataPath = getApplicationContext().getFilesDir().getPath();
+        String sdlpalPath = basePath;
+
+        if (SettingsActivity.loadConfigFile()) {
+            String gamePath =  SettingsActivity.getConfigString(SettingsActivity.GamePath, true);
+            if (gamePath != null && !gamePath.isEmpty())
+                sdlpalPath = gamePath;
+        }
+        SetAppPath(sdlpalPath, dataPath, cachePath);
 
         if (!blocked)
             StartGame();

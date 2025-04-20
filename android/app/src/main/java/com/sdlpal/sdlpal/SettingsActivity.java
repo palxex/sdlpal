@@ -83,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String MusicVolume = "MusicVolume";
     private static final String SoundVolume = "SoundVolume";
     private static final String CDFormat = "CD";
-    private static final String GamePath = "GamePath";
+    public  static final String GamePath = "GamePath";
     private static final String SavePath = "SavePath";
     private static final String ShaderPath = "ShaderPath";
     private static final String MessageFileName = "MessageFileName";
@@ -207,7 +207,6 @@ public class SettingsActivity extends AppCompatActivity {
 
                 if (!setConfigs()) return;
                 setConfigBoolean(LaunchSetting, false);
-                Log.v(TAG, "Save config file");
                 saveConfigFile();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(mInstance);
@@ -287,42 +286,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    public static boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-
-    public static String getPath(final Context context, final Uri uri) {
-        // DocumentProvider
-        if (DocumentsContract.isTreeUri(uri)) {
-            if (isExternalStorageDocument(uri)) {
-                final String docId = DocumentsContract.getTreeDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }else{
-                    return Environment.getExternalStorageDirectory().getPath().replace("emulated/0",type) + "/" + split[1];
-                }
-            }
-        }else
-        if (DocumentsContract.isDocumentUri(context, uri)) {
-            // ExternalStorageProvider
-            if (isExternalStorageDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }else{
-                    return Environment.getExternalStorageDirectory().getPath().replace("emulated/0",type) + "/" + split[1];
-                }
-            }
-        }
-
-        return "";
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         if (resultCode == Activity.RESULT_OK) {
@@ -330,11 +293,10 @@ public class SettingsActivity extends AppCompatActivity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-                filePath = getPath(this, uri);
+                filePath = MainActivity.getPath(uri);
                 if( requestCode == BROWSE_GAMEDIR_CODE ) {
                     getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     MainActivity.setPersistedUri(uri);
-                    MainActivity.setBasePath(filePath);
                     loadConfigFile();
                     resetConfigs();
                 }else{
@@ -462,7 +424,7 @@ public class SettingsActivity extends AppCompatActivity {
         ((SwitchCompat)findViewById(R.id.swEnableHDR)).setChecked(getConfigBoolean(EnableHDR, false));
 
         ((AppCompatSpinner)findViewById(R.id.spLogLevel)).setSelection(getConfigInt(LogLevel, false));
-        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(getConfigInt(SampleRate, false), AudioSampleRates, 3));
+        ((AppCompatSpinner)findViewById(R.id.spSample)).setSelection(findMatchedIntIndex(nativeSampleRate, AudioSampleRates, 3));
         ((AppCompatSpinner)findViewById(R.id.spBuffer)).setSelection(findMatchedIntIndex(getConfigInt(AudioBufferSize, false), AudioBufferSizes, 1));
         ((AppCompatSpinner)findViewById(R.id.spCDFmt)).setSelection(findMatchedStringIndex(getConfigString(CDFormat, false), CDFormats, 1));
         ((AppCompatSpinner)findViewById(R.id.spMusFmt)).setSelection(findMatchedStringIndex(getConfigString(MusicFormat, false), MusicFormats, 1));
