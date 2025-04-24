@@ -104,6 +104,9 @@ int SDL_GL_BindTexture(SDL_Texture* texture, float* texw, float* texh)
             glActiveTextureARB(GL_TEXTURE0_ARB);
         }
         glBindTexture((GLenum)target, (GLuint)tex);
+
+        glTexParameteri((GLenum)target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri((GLenum)target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
         if (texw) {
             *texw = SDL_GetFloatProperty(props, SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT, 1.0f);
@@ -131,6 +134,9 @@ int SDL_GL_BindTexture(SDL_Texture* texture, float* texw, float* texh)
             glActiveTexture(GL_TEXTURE0);
         }
         glBindTexture((GLenum) target, (GLuint) tex);
+
+        glTexParameteri((GLenum)target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri((GLenum)target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         if (texw) {
             *texw = 1.0f;
