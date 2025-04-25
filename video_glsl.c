@@ -964,10 +964,11 @@ void VIDEO_GLSL_Init() {
     SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &orig_profile);
 #if GLES
     SDL_SetHint( SDL_HINT_RENDER_DRIVER, "opengles2");
-#   if SDL_VIDEO_OPENGL_EGL && (SDL_VIDEO_DRIVER_EMSCRIPTEN || SDL_VIDEO_DRIVER_WINRT)
+//! on SDL3 only GLES3 renders well
+#if SDL_VERSION_ATLEAST(3,0,0)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#   endif
+#endif
 #else
     SDL_SetHint( SDL_HINT_RENDER_DRIVER, "opengl");
 #   if FORCE_OPENGL_CORE_PROFILE

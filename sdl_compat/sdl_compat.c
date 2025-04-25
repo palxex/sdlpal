@@ -82,7 +82,7 @@ int SDL_GL_BindTexture(SDL_Texture* texture, float* texw, float* texh)
     /* always flush the renderer here; good enough. SDL only flushed if the texture might have changed, but we'll be conservative. */
     SDL_FlushRenderer(renderer);
 
-#if !__IOS__
+#if !GLES
     if ((tex = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER, -1)) != -1) {  // opengl renderer.
         const Sint64 target = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER, 0);
         const Sint64 uv = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER, 0);
