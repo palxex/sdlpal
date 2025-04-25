@@ -18,10 +18,10 @@ CPPFILES = $(wildcard ../adplug/*.cpp) $(wildcard ../*.cpp) emscripten_adapter.c
 OBJFILES = $(CFILES:.c=$(INTER).o) $(CPPFILES:.cpp=$(INTER).o)
 DEPFILES = $(OBJFILES:.o=.d)
 
-CFLAGS = -gsource-map -Wall -O2 -fno-strict-aliasing -I. -I.. -DUSE_SDL3=1 -I../sdl_compat -I../timidity -DPAL_HAS_PLATFORM_SPECIFIC_UTILS $(DEPFLAGS) $(EMPORTS) $(GENERATED)
+CFLAGS = -gsource-map -Wall -O2 -pthread -fno-strict-aliasing -I. -I.. -DUSE_SDL3=1 -I../sdl_compat -I../timidity -DPAL_HAS_PLATFORM_SPECIFIC_UTILS $(DEPFLAGS) $(EMPORTS) $(GENERATED)
 CPPFLAGS = $(CFLAGS) -std=c++11
-override LDFLAGS += -gsource-map -O2 $(EMPORTS) -s TOTAL_MEMORY=134217728 -s TOTAL_STACK=5242880 --emrun -lidbfs.js -s ASYNCIFY=1 -sEXIT_RUNTIME=1 \
-	-s EXPORTED_FUNCTIONS="['_EMSCRIPTEN_main']" -s 'EXPORTED_RUNTIME_METHODS=["cwrap"]' -s USE_WEBGL2=1 -s FULL_ES3=1 -s ASSERTIONS=1 --source-map-base http://localhost:8080/
+override LDFLAGS += -gsource-map -O2 -pthread $(EMPORTS) -s TOTAL_MEMORY=134217728 -s TOTAL_STACK=5242880 --emrun -lidbfs.js -s ASYNCIFY=1 -sEXIT_RUNTIME=1 \
+	-s EXPORTED_FUNCTIONS="['_EMSCRIPTEN_main']" -s 'EXPORTED_RUNTIME_METHODS=["cwrap"]' -s USE_WEBGL2=1 -s FULL_ES3=1 -s ASSERTIONS=1 
 
 POSTCOMPILE = @mv -f $*$(INTER).Td $*$(INTER).d && touch $@
 
@@ -40,7 +40,7 @@ $(TARGET):$(OBJFILES)
 	@em++ -o $(TARGET) $(OBJFILES) $(LDFLAGS)
 
 exec:$(TARGET)
-	emrun --no_browser --hostname 0.0.0.0 --port 8080 $(TARGET)
+	emrun sdlpal.html
 
 clean:
 	rm -f $(TARGET) $(EMFILES) $(OBJFILES) $(DEPFILES)

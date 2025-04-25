@@ -286,7 +286,7 @@ AUDIO_OpenDevice(
 
    UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio spec:freq %d, format %d, channels %d, samples %d\n", gAudioDevice.spec.freq, gAudioDevice.spec.format,  gAudioDevice.spec.channels);
 
-   if (SDL_OpenAudio(&gAudioDevice.spec, &spec) < 0)
+   if (SDL_OpenAudio(&gAudioDevice.spec, &spec) != SDL_OK)
    {
       UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio ERROR: %s, got spec:freq %d, format %d, channels %d, samples %d\n", SDL_GetError(), spec.freq, spec.format, spec.channels);
       //
@@ -297,7 +297,13 @@ AUDIO_OpenDevice(
    else
    {
       UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio succeed, got spec:freq %d, format %d, channels %d, samples %d\n", spec.freq, spec.format, spec.channels);
-      gAudioDevice.pSoundBuffer = malloc(gConfig.wAudioBufferSize * gConfig.iAudioChannels * sizeof(short));
+//hackhack
+#if SDL_VERSION_ATLEAST(3,0,0) && __EMSCRIPTEN__
+# define MULTIPLIER 10
+#else
+# define MULTIPLIER 1
+#endif
+      gAudioDevice.pSoundBuffer = malloc(gConfig.wAudioBufferSize * MULTIPLIER * gConfig.iAudioChannels * sizeof(short));
    }
 
    gAudioDevice.fOpened = TRUE;

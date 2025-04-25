@@ -196,8 +196,8 @@ static void SDLCALL AudioCVTFilter(SDL_AudioCVT* cvt, SDL_AudioFormat src_format
     dst_len = cvt->len * cvt->len_mult;
 
     /* Run the audio converter */
-    if (SDL_PutAudioStreamData(stream2, cvt->buf, src_len) < 0 ||
-        SDL_FlushAudioStream(stream2) < 0) {
+    if (SDL_PutAudioStreamData(stream2, cvt->buf, src_len) != SDL_OK ||
+        SDL_FlushAudioStream(stream2) != SDL_OK) {
         goto exit;
     }
 
