@@ -168,7 +168,7 @@ PAL_Shutdown(
 #else
    SDL_Quit();
    UTIL_Platform_Quit();
-#ifndef __WINRT__
+#if !__WINRT__ && !__IOS__
    exit(0);
 #endif
    return;

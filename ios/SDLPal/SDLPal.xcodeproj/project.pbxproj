@@ -107,13 +107,13 @@
 		C63505731EA6570300186049 /* midi.c in Sources */ = {isa = PBXBuildFile; fileRef = C635056B1EA6570300186049 /* midi.c */; };
 		C635057F1EA6578700186049 /* native_midi_common.c in Sources */ = {isa = PBXBuildFile; fileRef = C635057B1EA6578700186049 /* native_midi_common.c */; };
 		C63505801EA6578700186049 /* native_midi.m in Sources */ = {isa = PBXBuildFile; fileRef = C635057D1EA6578700186049 /* native_midi.m */; };
-		C639993920459A8A005B20CE /* video_glsl.c in Sources */ = {isa = PBXBuildFile; fileRef = C639993820459A8A005B20CE /* video_glsl.c */; };
+		C639993920459A8A005B20CE /* video_glsl.c in Sources */ = {isa = PBXBuildFile; fileRef = C639993820459A8A005B20CE /* video_glsl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		C65060B720FAA77B00397B73 /* glslp.c in Sources */ = {isa = PBXBuildFile; fileRef = C65060B220FAA77B00397B73 /* glslp.c */; };
 		C66C6CA41ECCB73100CE10C1 /* SDLPal_AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C66C6CA31ECCB73100CE10C1 /* SDLPal_AppDelegate.m */; };
 		C66F6FD81FB16CB200F3F0DA /* iOS Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C66F6FD51FB16CB200F3F0DA /* iOS Launch Screen.storyboard */; };
 		C6743A841ECCAFA700AEF782 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C6743A831ECCAFA700AEF782 /* SettingsTableViewController.m */; };
 		C694CF871EB6197C0006F937 /* gs_instruments.dls in Resources */ = {isa = PBXBuildFile; fileRef = C694CF861EB619660006F937 /* gs_instruments.dls */; };
-		C697DF902D9840BF0030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF8F2D9840BF0030B6B2 /* sdl_compat.c */; };
+		C697DF902D9840BF0030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF8F2D9840BF0030B6B2 /* sdl_compat.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		C69D0A4825C1446A00FF3EFF /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C69D0A4725C1446A00FF3EFF /* CoreHaptics.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		C6BE8E3A2DA1866E006AEC57 /* SDL3.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C697DFAD2D9847750030B6B2 /* SDL3.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C6BE8E3B2DA1867F006AEC57 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697DFAD2D9847750030B6B2 /* SDL3.framework */; };
