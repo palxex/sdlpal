@@ -461,7 +461,7 @@ void setupShaderParams(int pass){
 }
 
 GLint get_gl_clamp_to_border() {
-#ifdef __IOS__
+#if __IOS__ || __EMSCRIPTEN__
     return GL_CLAMP_TO_EDGE;
 #else
     return GL_CLAMP_TO_BORDER;
@@ -481,6 +481,7 @@ GLint get_gl_wrap_mode(enum wrap_mode mode, enum scale_type type) {
             gl_wrap_mode = get_gl_clamp_to_border();
             break;
         default:
+            UTIL_LogOutput(LOGLEVEL_ERROR, "Unknown wrap mode %d\n", mode);
             gl_wrap_mode = GL_INVALID_ENUM;
             break;
     }
