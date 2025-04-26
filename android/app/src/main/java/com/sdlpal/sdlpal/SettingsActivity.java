@@ -132,6 +132,8 @@ public class SettingsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setSubtitle(getResources().getString(R.string.title_settings) + " (" + getGitRevision() + ")");
 
+        findViewById(R.id.edFolder).setFocusable(false);
+
         ((SwitchCompat)findViewById(R.id.swMsgFile)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
