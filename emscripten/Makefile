@@ -18,10 +18,10 @@ CPPFILES = $(wildcard ../adplug/*.cpp) $(wildcard ../*.cpp) emscripten_adapter.c
 OBJFILES = $(CFILES:.c=$(INTER).o) $(CPPFILES:.cpp=$(INTER).o)
 DEPFILES = $(OBJFILES:.o=.d)
 
-CFLAGS = -gsource-map -Wall -O2 -pthread -fno-strict-aliasing -I. -I.. -DUSE_SDL3=1 -I../sdl_compat -I../timidity -DPAL_HAS_PLATFORM_SPECIFIC_UTILS $(DEPFLAGS) $(EMPORTS) $(GENERATED)
+CFLAGS = -gsource-map -Wall -O2 -fno-strict-aliasing -I. -I.. -DUSE_SDL3=1 -I../sdl_compat -I../timidity -DPAL_HAS_PLATFORM_SPECIFIC_UTILS $(DEPFLAGS) $(EMPORTS) $(GENERATED)
 CPPFLAGS = $(CFLAGS) -std=c++11
-override LDFLAGS += -gsource-map -O2 -pthread $(EMPORTS) -s TOTAL_MEMORY=134217728 -s TOTAL_STACK=5242880 --emrun -lidbfs.js -s ASYNCIFY=1 -sEXIT_RUNTIME=1 \
-	-s EXPORTED_FUNCTIONS="['_EMSCRIPTEN_main']" -s 'EXPORTED_RUNTIME_METHODS=["cwrap"]' -sMAX_WEBGL_VERSION=2 -sFULL_ES3
+override LDFLAGS += `$(SDL_CONFIG) --libs` -gsource-map -O2 $(EMPORTS) --emrun -lidbfs.js -s ASYNCIFY=1 -sEXIT_RUNTIME=1 \
+	-s EXPORTED_FUNCTIONS="['_EMSCRIPTEN_main']" -s 'EXPORTED_RUNTIME_METHODS=["cwrap"]' -sMAX_WEBGL_VERSION=2 -sFULL_ES3 -s TOTAL_STACK=5242880
 
 POSTCOMPILE = @mv -f $*$(INTER).Td $*$(INTER).d && touch $@
 

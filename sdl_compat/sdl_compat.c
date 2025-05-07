@@ -38,7 +38,7 @@ SDL_Surface* SDL_CreateRGBSurfaceWithFormatFrom(void* pixels, int width, int hei
 SDL_DECLSPEC int SDLCALL
 SDL_SoftStretch(SDL_Surface* src, const SDL_Rect* srcrect, SDL_Surface* dst, const SDL_Rect* dstrect)
 {
-    return SDL_StretchSurface(src, srcrect, dst, dstrect, SDL_SCALEMODE_NEAREST) ? 0 : -1;
+    return SDL_BlitSurface(src, srcrect, dst, dstrect) ? 0 : -1;
 }
 
 SDL_DECLSPEC int SDLCALL
