@@ -1,4 +1,4 @@
-name: MinGW32 CI
+name: MSVC CI
 
 on:
   push:
@@ -12,50 +12,47 @@ jobs:
     runs-on: windows-2025
     defaults:
       run:
-        shell: msys2 {0}
+        shell: pwsh
     steps:
-    - uses: msys2/setup-msys2@v2
+    - uses: actions/setup-python@v5
       with:
-        msystem: UCRT64
-        install: >-
-          base-devel
-          zip
-          upx
-          mingw-w64-ucrt-x86_64-toolchain
-          mingw-w64-ucrt-x86_64-fltk
-          mingw-w64-ucrt-x86_64-python-pipx
+        python-version: '3.13'
     - name: Install Dependencies
-      run: pipx install cloudsmith-cli
+      run: |
+        pip install pipx
+        pipx install cloudsmith-cli
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Install UPX
+      uses: crazy-max/ghaction-upx@v3
+      with:
+        install-only: true
     - uses: actions/checkout@v4
     - name: submodules
       run: |
         sed -i 's#\.\./#https://github.com/sdlpal/#g' .gitmodules
         git submodule init && git submodule update
-    - name: make sdl
-      run: |
-        cd 3rd/SDL
-        mkdir $HOME/cache
-        cmake -DCMAKE_SYSTEM_NAME=Windows -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_INSTALL_PREFIX:PATH=$HOME/cache . -G Unix\ Makefiles
-        cmake --build . --config Release -v
-        cmake --install .
-        echo "PKG_CONFIG_PATH=$HOME/cache/lib/pkgconfig" >> "$GITHUB_ENV"
-    - name: make
+    - name: build
       run: |
         cd win32
-        make
-        strip -s sdlpal.exe
+        msbuild /nologo /m sdlpal.sln /p:Configuration=Release /p:Platform=x64
+        cp x64\Release\sdlpal.exe sdlpal.exe
         upx --best --lzma sdlpal.exe
-        zip sdlpal-win32-mingw.zip sdlpal.exe
+        Compress-Archive -path sdlpal.exe -DestinationPath sdlpal-win32-msvc.zip 
         mkdir ../deploy/
-        mv sdlpal-win32-mingw.zip ../deploy/
+        mv sdlpal-win32-msvc.zip ../deploy/
         cd ..
     - name: deploy
       if: github.repository == 'sdlpal/sdlpal' && github.event_name != 'pull_request'
       env:
         CLOUDSMITH_API_KEY: ${{secrets.CLOUDSMITH_API_KEY}}
-      run: pipx ensurepath && cloudsmith push raw sdlpal/sdlpal
-           --version `awk -F\" '{print $2;}' generated.h` --name MinGW32
-           --republish deploy/*.zip --tags "branch/`echo $GITHUB_REF | sed s#refs/heads/##`"
+      run: |
+        pipx ensurepath
+        $COMMIT_DATE=((git show -s --format=%cs)|out-string).trim()
+        $REV=((git rev-list --count HEAD)|out-string).trim()
+        $COMMIT_ID=((git rev-parse --short HEAD)|out-string).trim()
+        $VERSION="v$COMMIT_DATE-r$REV-g$COMMIT_ID"
+        cloudsmith upload raw sdlpal/sdlpal "sdlpal-win32-msvc.zip" --version $VERSION --name win32-msvc --republish --tags "branch/$env:GITHUB_REF_NAME"
     - uses: actions/upload-artifact@v4
       with:
         path: deploy
