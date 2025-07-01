@@ -52,6 +52,10 @@ void SDL_LogToFile(void* userdata, int category, SDL_LogPriority priority, const
         fclose(logFile);
     }
 }
+void stdout_log(LOGLEVEL level, const char *full_log, const char *user_log)
+{
+   printf(full_log);
+}
 
 static VOID
 PAL_Init(
@@ -91,6 +95,9 @@ PAL_Init(
 	   TerminateOnError("Could not initialize global data: %d.\n", e);
    }
 
+   // AUDIO_OpenDevice();
+   // UTIL_LogOutput(LOGLEVEL_DEBUG, "Going to Play: %d\n", NUM_RIX_TITLE);
+   // while(1) SDL_Delay(1000);
    e = VIDEO_Startup();
    if (e != 0)
    {
@@ -491,6 +498,7 @@ main(
 
 --*/
 {
+	//UTIL_LogAddOutputCallback(stdout_log, gConfig.iLogLevel);
 #if !defined( __EMSCRIPTEN__ ) && !defined(__WINRT__) && !defined(__N3DS__)
    memset(gExecutablePath,0,PAL_MAX_PATH);
    strncpy(gExecutablePath, argv[0], PAL_MAX_PATH);
@@ -510,6 +518,7 @@ main(
    }
 #endif
 
+   UTIL_LogOutput(LOGLEVEL_DEBUG, "going to init SDL\n");
 #if !defined(UNIT_TEST) || defined(UNIT_TEST_GAME_INIT)
    //
    // Initialize SDL
@@ -519,6 +528,7 @@ main(
 	   TerminateOnError("Could not initialize SDL: %s.\n", SDL_GetError());
    }
 
+   UTIL_LogOutput(LOGLEVEL_DEBUG, "going to load config\n");
    PAL_LoadConfig(TRUE);
 
    //
@@ -527,6 +537,7 @@ main(
    if (UTIL_Platform_Init(argc, argv) != 0)
 	   return -1;
 
+   UTIL_LogOutput(LOGLEVEL_DEBUG, "going to show config page\n");
    //
    // Should launch setting?
    // Generally, the condition should never be TRUE as the UTIL_Platform_Init is assumed
@@ -544,6 +555,7 @@ main(
    if (gConfig.pszLogFile)
 	   UTIL_LogAddOutputCallback(UTIL_LogToFile, gConfig.iLogLevel);
 
+   UTIL_LogOutput(LOGLEVEL_DEBUG, "going to init the game engine\n");
    //
    // Initialize everything
    //

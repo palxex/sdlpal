@@ -30,10 +30,42 @@
 #include "aviplay.h"
 #include <math.h>
 
+#include <dos.h>
+#include <dpmi.h>
+#include <go32.h>
+#include <stdio.h>
+#include <sys/segments.h>
+#include <conio.h>
+
+#define PIT_FREQ     1193180UL
+#define TARGET_HZ    70
+#define DIVISOR      (PIT_FREQ / TARGET_HZ)
+
+_go32_dpmi_seginfo old_timer, new_timer;
+
 /* WASAPI need fewer samples for less gapping */
 #ifndef PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI
 # define PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI   512
 #endif
+
+static void timer_handler() {
+
+    extern VOID RIX_Update(VOID *object);
+    RIX_Update(gAudioDevice.pMusPlayer);  // Update RIX player
+
+    asm volatile ("int $0x1C");     // Call BIOS timer
+#ifdef __GNUC__
+	outportb(0x20,0x20);
+#else
+	old();
+#endif
+}
+
+static void set_pit(unsigned divisor) {
+    outportb(0x43, 0x36);           // Mode 3, square wave
+    outportb(0x40, divisor & 0xFF);
+    outportb(0x40, divisor >> 8);
+}
 
 typedef void(*ResampleMixFunction)(void *, const void *, int, void *, int, int, uint8_t);
 
@@ -374,6 +406,18 @@ AUDIO_OpenDevice(
 
    SDL_PauseAudio(0);
 
+   gAudioDevice.pMusPlayer = RIX_Init(UTIL_GetFullPathName(PAL_BUFFER_SIZE_ARGS(0), gConfig.pszGamePath, "mus.mkf"));
+   gAudioDevice.pMusPlayer->Play(gAudioDevice.pMusPlayer, 5, 1, 0);
+    // Save original INT 08h
+    _go32_dpmi_get_protected_mode_interrupt_vector(0x08, &old_timer);
+
+    new_timer.pm_offset = (unsigned long)timer_handler;
+    new_timer.pm_selector = _go32_my_cs();
+    _go32_dpmi_allocate_iret_wrapper(&new_timer);
+    _go32_dpmi_set_protected_mode_interrupt_vector(0x08, &new_timer);
+
+    set_pit(DIVISOR);
+    
    return 0;
 }
 
@@ -436,6 +480,11 @@ AUDIO_CloseDevice(
    }
 
    gAudioDevice.fOpened = FALSE;
+
+    // Restore original INT 08h
+    _go32_dpmi_set_protected_mode_interrupt_vector(0x08, &old_timer);
+    UTIL_LogOutput(LOGLEVEL_DEBUG, "Timer uninstalled. \n");
+    return;
 }
 
 SDL_AudioSpec*

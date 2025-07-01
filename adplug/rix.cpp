@@ -25,6 +25,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include "rix.h"
+//#include "util.h"
+#define UTIL_LogOutput(args...)  
 
 using namespace std;
 
@@ -180,6 +182,7 @@ bool CrixPlayer::load(const std::string &filename, const CFileProvider &cfp)
 
 bool CrixPlayer::update()
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "going start update!\n");
 	int_08h_entry();
 	return !play_end;
 }
@@ -189,6 +192,7 @@ void CrixPlayer::rewind(int subsong)
 }
 void CrixPlayer::rewindReInit(int subsong, bool reinit)
 {
+		UTIL_LogOutput(LOGLEVEL_DEBUG,"rewind subsong %d for reinit %d!\n",subsong, reinit);
 	play_end = 0;
 	pos = 0;
 
@@ -251,6 +255,7 @@ void CrixPlayer::rewindReInit(int subsong, bool reinit)
 		set_new_int();
 		data_initial();
 	}
+		UTIL_LogOutput(LOGLEVEL_DEBUG,"rewinded I 0x%x!\n",I);
 }
 
 unsigned int CrixPlayer::getsubsongs()
@@ -350,26 +355,33 @@ RELEASE_INLINE void CrixPlayer::ad_bop(uint16_t reg,uint16_t value)
 {
   //if(reg == 2 || reg == 3)
   //  AdPlug_LogWrite("switch OPL2/3 mode!\n");
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "ad_bop! reg: %x value :%x %d\n", reg, value);
   opl->write(reg & 0xff, value & 0xff);
 }
 /*--------------------------------------------------------------*/
 RELEASE_INLINE void CrixPlayer::int_08h_entry()
   {   
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "int_08h_entry!\n");
     uint16_t band_sus = 1;   
     while(band_sus)   
       {   
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "sustain loop! remains %d\n", band_sus);
         if(sustain <= 0)   
           {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "sustain minus! going into rix_proc\n");
             band_sus = rix_proc();   
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix proc return %d\n", band_sus);
             if(band_sus) sustain += band_sus; 
             else
               {   
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix proc return 0! play end!\n");
                 play_end=1;   
                 break;   
               }   
           }   
         else   
           {   
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "sustain still >0! going to reloop\n");
             if(band_sus) sustain -= 14; /* aging */   
             break;   
           }   
@@ -378,6 +390,7 @@ RELEASE_INLINE void CrixPlayer::int_08h_entry()
 /*--------------------------------------------------------------*/ 
 RELEASE_INLINE uint16_t CrixPlayer::rix_proc()
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix_proc!\n");
   uint8_t ctrl = 0;
   if(music_on == 0||pause_flag == 1) return 0;
   band = 0;
@@ -395,11 +408,13 @@ RELEASE_INLINE uint16_t CrixPlayer::rix_proc()
 	  break;
 	default:    band = (ctrl<<8)+band_low; break;
 	}
+  if(band != 0)	UTIL_LogOutput(LOGLEVEL_DEBUG, "leaves %d cycle!\n");
       if(band != 0) return band;
     }
   music_ctrl();
   I = mus_block+1;
   band = 0; music_on = 1;
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "next time restart!\n");
   return 0;
 }
 /*--------------------------------------------------------------*/
@@ -414,6 +429,7 @@ RELEASE_INLINE void CrixPlayer::rix_get_ins()
 /*--------------------------------------------------------------*/
 RELEASE_INLINE void CrixPlayer::rix_90_pro(uint16_t ctrl_l)
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix 90 proc %d! processing instruments\n", ctrl_l);
   if(rhythm == 0 || ctrl_l < 6)
     {
       ins_to_reg(modify[ctrl_l*2],insbuf,insbuf[26]);
@@ -435,6 +451,7 @@ RELEASE_INLINE void CrixPlayer::rix_90_pro(uint16_t ctrl_l)
 /*--------------------------------------------------------------*/
 RELEASE_INLINE void CrixPlayer::rix_A0_pro(uint16_t ctrl_l,uint16_t index)
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix a0 proc %d!\n", index);
   if(rhythm == 0 || ctrl_l <= 6)
     {
       prepare_a0b0(ctrl_l,index>0x3FFF?0x3FFF:index);
@@ -488,6 +505,7 @@ RELEASE_INLINE void CrixPlayer::ad_a0b0l_reg(uint16_t index,uint16_t p2,uint16_t
 /*--------------------------------------------------------------*/
 RELEASE_INLINE void CrixPlayer::rix_B0_pro(uint16_t ctrl_l,uint16_t index)
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix a0 proc %d!\n", index);
   int temp = 0;
   if(rhythm == 0 || ctrl_l < 6) temp = modify[ctrl_l*2+1];
   else
@@ -501,6 +519,7 @@ RELEASE_INLINE void CrixPlayer::rix_B0_pro(uint16_t ctrl_l,uint16_t index)
 /*--------------------------------------------------------------*/
 RELEASE_INLINE void CrixPlayer::rix_C0_pro(uint16_t ctrl_l,uint16_t index)
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "rix c0 proc %d!\n", index);
   uint16_t i = index>=12?index-12:0;
   if(ctrl_l < 6 || rhythm == 0)
     {

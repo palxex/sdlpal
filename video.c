@@ -193,6 +193,8 @@ VIDEO_Startup(
 	
    gRenderBackend.Init();
 
+//!All platforms that only have fullscreen exclusive mode
+#if defined( __DJGPP__ ) || defined(__SWITCH__) || defined(__N3DS__) || defined(__IOS__) || defined(__ANDROID__) 
    UTIL_LogOutput(LOGLEVEL_DEBUG, "Probing Video Modes\n");
    for( int i=0; i<SDL_GetNumVideoDisplays(); i++ )
    {
@@ -210,6 +212,7 @@ VIDEO_Startup(
          }
       }
    }
+#endif
 
    //
    // Before we can render anything, we need a window and a renderer.

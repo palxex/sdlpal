@@ -24,9 +24,12 @@
 #include "palcfg.h"
 #include "players.h"
 #include "audio.h"
+//#include "util.h"
+#define UTIL_LogOutput(args...)  
 
 #include "resampler.h"
 #include "adplug/opl.h"
+#include "adplug/realopl.h"
 #include "adplug/emuopls.h"
 #include "adplug/surroundopl.h"
 #include "adplug/convertopl.h"
@@ -49,6 +52,47 @@ typedef struct tagRIXPLAYER :
    BOOL                       fNextLoop;
    BOOL                       fReady;
 } RIXPLAYER, *LPRIXPLAYER;
+
+extern "C"
+VOID RIX_Update(
+	VOID *object
+)
+/*++
+	Purpose:
+	Update the RIX player. Called by the DOS SDL callback function only (audio.c: interrupt_thread).
+	Parameters:
+	[IN] object - pointer to the RIX player object.
+	Return value:
+	None.
+--*/
+{
+	LPRIXPLAYER pRixPlayer = (LPRIXPLAYER)object;
+	if (pRixPlayer == NULL || !pRixPlayer->fReady)
+	{
+		//
+		// Not initialized
+		//
+		//UTIL_LogOutput(LOGLEVEL_DEBUG, "RIX_Update not initialized!\n");
+		return;
+	}
+	//UTIL_LogOutput(LOGLEVEL_DEBUG, "RIX_Update called for music %d\n", pRixPlayer->iMusic);
+	if (!pRixPlayer->rix->update())
+	{
+		//UTIL_LogOutput(LOGLEVEL_DEBUG, "rix update failed!\n");
+		if (!pRixPlayer->fLoop)
+		{
+			//UTIL_LogOutput(LOGLEVEL_DEBUG, "not loop, end\n");
+			//
+			// Not loop, simply terminate the music
+			//
+			pRixPlayer->iMusic = -1;
+			return;
+		}
+		//UTIL_LogOutput(LOGLEVEL_DEBUG, "loop, rewind and play %d\n",pRixPlayer->iMusic);
+		pRixPlayer->rix->rewindReInit(pRixPlayer->iMusic, false);
+	}//else
+		//UTIL_LogOutput(LOGLEVEL_DEBUG, "one cycle done!\n");
+}
 
 static VOID
 RIX_FillBuffer(
@@ -361,6 +405,14 @@ RIX_Play(
 	pRixPlayer->fNextLoop = fLoop;
 	pRixPlayer->fReady = TRUE;
 
+	if (gConfig.eOPLCore == OPLCORE_REAL)
+	{
+		pRixPlayer->iMusic = iNumRIX;
+		pRixPlayer->fLoop = fLoop;
+		UTIL_LogOutput(LOGLEVEL_DEBUG,"first rewind %d!\n",pRixPlayer->iMusic);
+		pRixPlayer->rix->rewind(pRixPlayer->iMusic);
+	}
+
 	return TRUE;
 }
 
@@ -397,6 +449,11 @@ RIX_Init(
 		pRixPlayer->Play = RIX_Play;
 	}
 
+	if (gConfig.eOPLCore == OPLCORE_REAL)
+	{
+		pRixPlayer->opl = new CRealopl();
+	}else
+	{
 	auto chip = (Copl::ChipType)gConfig.eOPLChip;
 	if (chip == Copl::TYPE_OPL2 && gConfig.fUseSurroundOPL)
 	{
@@ -429,7 +486,7 @@ RIX_Init(
 		delete pRixPlayer;
 		return NULL;
 	}
-
+	}
 	pRixPlayer->rix = new CrixPlayer(pRixPlayer->opl);
 	if (pRixPlayer->rix == NULL)
 	{

@@ -1,7 +1,5 @@
 # Makefile for DOS platforms with DJGPP under linux
 
-MAKEFLAGS += -j
-
 TARGET = sdlpal.exe
 TEST_TARGET = sdlpal-tests.exe
 
