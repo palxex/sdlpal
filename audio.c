@@ -30,10 +30,28 @@
 #include "aviplay.h"
 #include <math.h>
 
+#include <time.h>
+
 /* WASAPI need fewer samples for less gapping */
 #ifndef PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI
 # define PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI   512
 #endif
+
+void timer_handler() {
+    static uclock_t interval_ticks = UCLOCKS_PER_SEC / 70;
+    static uclock_t next_time = 0;
+
+    if(next_time == 0) {
+        next_time = uclock() + interval_ticks;
+    }
+
+    if( uclock() > next_time ) {
+        next_time += interval_ticks;
+         extern VOID RIX_Update(VOID *object);
+         RIX_Update(gAudioDevice.pMusPlayer);  // Update RIX player
+    }
+}
+
 
 typedef void(*ResampleMixFunction)(void *, const void *, int, void *, int, int, uint8_t);
 

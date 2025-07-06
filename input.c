@@ -1291,6 +1291,8 @@ PAL_PollEvent(
    SDL_Event evt;
 
    int ret = SDL_PollEvent(&evt);
+   extern void timer_handler();
+   timer_handler();
    if (ret != 0 && !input_event_filter(&evt, &g_InputState))
    {
       PAL_EventFilter(&evt);

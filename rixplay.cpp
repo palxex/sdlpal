@@ -27,6 +27,7 @@
 
 #include "resampler.h"
 #include "adplug/opl.h"
+#include "adplug/realopl.h"
 #include "adplug/emuopls.h"
 #include "adplug/surroundopl.h"
 #include "adplug/convertopl.h"
@@ -49,6 +50,41 @@ typedef struct tagRIXPLAYER :
    BOOL                       fNextLoop;
    BOOL                       fReady;
 } RIXPLAYER, *LPRIXPLAYER;
+
+extern "C"
+VOID RIX_Update(
+	VOID *object
+)
+/*++
+	Purpose:
+	Update the RIX player. Called by the DOS SDL callback function only (audio.c: interrupt_thread).
+	Parameters:
+	[IN] object - pointer to the RIX player object.
+	Return value:
+	None.
+--*/
+{
+	LPRIXPLAYER pRixPlayer = (LPRIXPLAYER)object;
+	if (pRixPlayer == NULL || !pRixPlayer->fReady)
+	{
+		//
+		// Not initialized
+		//
+		return;
+	}
+	if (!pRixPlayer->rix->update())
+	{
+		if (!pRixPlayer->fLoop)
+		{
+			//
+			// Not loop, simply terminate the music
+			//
+			pRixPlayer->iMusic = -1;
+			return;
+		}
+		pRixPlayer->rix->rewindReInit(pRixPlayer->iMusic, false);
+	}
+}
 
 static VOID
 RIX_FillBuffer(
@@ -356,9 +392,19 @@ RIX_Play(
 		pRixPlayer->iTotalFadeInSamples = (int)round(flFadeTime / 2.0f * gConfig.iSampleRate) * gConfig.iAudioChannels;
 	}
 
+	if (gConfig.eOPLCore == OPLCORE_REAL)
+	{
+		pRixPlayer->iMusic = iNumRIX;
+		pRixPlayer->fLoop = fLoop;
+		pRixPlayer->rix->rewind(pRixPlayer->iMusic);
+	}
+	else
+	{
 	pRixPlayer->iNextMusic = iNumRIX;
 	pRixPlayer->FadeType = RIXPLAYER::FADE_OUT;
 	pRixPlayer->fNextLoop = fLoop;
+	}
+
 	pRixPlayer->fReady = TRUE;
 
 	return TRUE;
@@ -397,6 +443,11 @@ RIX_Init(
 		pRixPlayer->Play = RIX_Play;
 	}
 
+	if (gConfig.eOPLCore == OPLCORE_REAL)
+	{
+		pRixPlayer->opl = new CRealopl();
+	}else
+	{
 	auto chip = (Copl::ChipType)gConfig.eOPLChip;
 	if (chip == Copl::TYPE_OPL2 && gConfig.fUseSurroundOPL)
 	{
@@ -429,7 +480,7 @@ RIX_Init(
 		delete pRixPlayer;
 		return NULL;
 	}
-
+	}
 	pRixPlayer->rix = new CrixPlayer(pRixPlayer->opl);
 	if (pRixPlayer->rix == NULL)
 	{
