@@ -20,6 +20,7 @@
 //
 
 #include "main.h"
+#include "vclock.h"
 
 double fmax(double a, double b) {
 	return (a > b) ? a : b;
@@ -129,6 +130,7 @@ UTIL_Platform_Init(
 )
 {
 	gConfig.fLaunchSetting = FALSE;
+	vclock_setup(gConfig.dwVClockHz, gConfig.fVClockUseISR, gConfig.fVClockRdtscForce);
 	return 0;
 }
 

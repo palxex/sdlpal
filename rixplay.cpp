@@ -71,7 +71,7 @@ VOID RIX_Update(
 	if (pRixPlayer == NULL || !pRixPlayer->fReady)
 	{
 		//
-		// Not initialized
+		// Not initialized or not ready
 		//
 		return;
 	}
@@ -375,6 +375,13 @@ RIX_Play(
 		pRixPlayer->fLoop = fLoop;
 		return TRUE;
 	}
+	
+	if (iNumRIX == 0)
+	{
+		pRixPlayer->iNextMusic = 0;
+		pRixPlayer->fReady = FALSE;
+		return FALSE;
+	}
 
 	if (pRixPlayer->FadeType != RIXPLAYER::FADE_OUT)
 	{
@@ -394,6 +401,7 @@ RIX_Play(
 	{
 		pRixPlayer->iTotalFadeInSamples = (int)round(flFadeTime / 2.0f * gConfig.iSampleRate) * gConfig.iAudioChannels;
 	}
+	UTIL_LogOutput(LOGLEVEL_ERROR, "RIX_Play: going to play %d.\n", iNumRIX);
 
 	if (gConfig.eOPLCore == OPLCORE_REAL)
 	{
@@ -401,6 +409,7 @@ RIX_Play(
 		pRixPlayer->iMusic = iNumRIX;
 		pRixPlayer->fLoop = fLoop;
 		pRixPlayer->rix->rewind(pRixPlayer->iMusic);
+		SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "RIX_Play: started playing %d.\n", iNumRIX);
 	}
 	else
 	{
@@ -450,9 +459,9 @@ RIX_Init(
 	if (gConfig.eOPLCore == OPLCORE_REAL)
 	{
 		if( vhook_register(RIX_Update, 70, pRixPlayer) != 0) {
-			UTIL_LogOutput(LOGLEVEL_ERROR, "RIX_Play: Failed to register RIX_Update callback.");
+			UTIL_LogOutput(LOGLEVEL_ERROR, "RIX_Play: Failed to register RIX_Update callback.\n");
 		}else {
-			UTIL_LogOutput(LOGLEVEL_DEBUG, "RIX_Play: registered RIX_Update callback!");
+			UTIL_LogOutput(LOGLEVEL_DEBUG, "RIX_Play: registered RIX_Update callback.\n");
 		}
 
 		pRixPlayer->opl = new CRealopl();

@@ -47,6 +47,8 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_ENABLEAVIPLAY,
     PALCFG_ENABLEGLSL,
     PALCFG_ENABLEHDR,
+	PALCFG_VCLOCK_USEISR,
+	PALCFG_VCLOCK_RDTSCFORCE,
 	/* Booleans */
 	PALCFG_BOOLEAN_MAX,
 
@@ -61,6 +63,7 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_UNSIGNED_MIN = PALCFG_INTEGER_MAX,
 	/* Unsigneds */
 	PALCFG_AUDIOBUFFERSIZE = PALCFG_UNSIGNED_MIN,
+	PALCFG_VCLOCK_HZ,
 	PALCFG_OPLSAMPLERATE,
 	PALCFG_RESAMPLEQUALITY,
 	PALCFG_SAMPLERATE,
@@ -222,6 +225,9 @@ typedef struct tagCONFIGURATION
 	BOOL             fEnableAviPlay;
 	BOOL             fEnableGLSL;
     BOOL             fEnableHDR;
+	BOOL             fVClockUseISR;
+	BOOL             fVClockRdtscForce;
+	DWORD            dwVClockHz;
 #if USE_RIX_EXTRA_INIT
 	uint32_t        *pExtraFMRegs;
 	uint8_t         *pExtraFMVals;

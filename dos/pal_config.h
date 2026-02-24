@@ -64,6 +64,8 @@ PAL_C_LINKAGE char* strcasestr(const char *, const char *);
 # define PAL_HAS_OPUS          0
 # define PAL_HAS_NATIVEMIDI    0 //388!
 
+#define USE_RIX_MKF_FILE_BUFFER
+
 #include <malloc.h>
 #include <stdbool.h>
 #include <unistd.h>
