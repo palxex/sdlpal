@@ -55,7 +55,6 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_ENABLEGLSL,        PALCFG_BOOLEAN,  "EnableGLSL",        10, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
     { PALCFG_ENABLEHDR,         PALCFG_BOOLEAN,  "EnableHDR",          9, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
 	{ PALCFG_VCLOCK_USEISR,     PALCFG_BOOLEAN,  "VClockUseISR",      12, MAKE_BOOLEAN(TRUE,                          FALSE,                 TRUE) },
-	{ PALCFG_VCLOCK_RDTSCFORCE, PALCFG_BOOLEAN,  "VClockRdtscForce",  17, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
 
 	{ PALCFG_SURROUNDOPLOFFSET, PALCFG_INTEGER,  "SurroundOPLOffset", 17, MAKE_INTEGER(384,                           INT32_MIN,             INT32_MAX) },
 	{ PALCFG_LOGLEVEL,          PALCFG_INTEGER,  "LogLevel",           8, MAKE_INTEGER(PAL_DEFAULT_LOGLEVEL,          LOGLEVEL_MIN,          LOGLEVEL_MAX) },
@@ -68,6 +67,7 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_SAMPLERATE,        PALCFG_UNSIGNED, "SampleRate",        10, MAKE_UNSIGNED(DEFAULT_SAMPLERATE,            0,                     PAL_MAX_SAMPLERATE) },
 	{ PALCFG_MUSICVOLUME,       PALCFG_UNSIGNED, "MusicVolume",       11, MAKE_UNSIGNED(PAL_MAX_VOLUME,                0,                     PAL_MAX_VOLUME) },        // Default for maximum volume
 	{ PALCFG_SOUNDVOLUME,       PALCFG_UNSIGNED, "SoundVolume",       11, MAKE_UNSIGNED(PAL_MAX_VOLUME,                0,                     PAL_MAX_VOLUME) },        // Default for maximum volume
+	{ PALCFG_VHOOKOPLRATE,      PALCFG_UNSIGNED, "VHookOPLRate",      12, MAKE_UNSIGNED(50,                            0,                     UINT32_MAX) },
 	{ PALCFG_WINDOWHEIGHT,      PALCFG_UNSIGNED, "WindowHeight",      12, MAKE_UNSIGNED(PAL_DEFAULT_WINDOW_HEIGHT,     0,                     UINT32_MAX) },
 	{ PALCFG_WINDOWWIDTH,       PALCFG_UNSIGNED, "WindowWidth",       11, MAKE_UNSIGNED(PAL_DEFAULT_WINDOW_WIDTH,      0,                     UINT32_MAX) },
     { PALCFG_TEXTUREHEIGHT,     PALCFG_UNSIGNED, "TextureHeight",     13, MAKE_UNSIGNED(PAL_DEFAULT_TEXTURE_HEIGHT,    0,                     UINT32_MAX) },
@@ -586,7 +586,6 @@ PAL_LoadConfig(
 	gConfig.fEnableGLSL = values[PALCFG_ENABLEGLSL].bValue;
     gConfig.fEnableHDR = values[PALCFG_ENABLEHDR].bValue;
 	gConfig.fVClockUseISR = values[PALCFG_VCLOCK_USEISR].bValue;
-	gConfig.fVClockRdtscForce = values[PALCFG_VCLOCK_RDTSCFORCE].bValue;
 	gConfig.iAudioChannels = values[PALCFG_STEREO].bValue ? 2 : 1;
 
 	gConfig.iSurroundOPLOffset = values[PALCFG_SURROUNDOPLOFFSET].iValue;
@@ -600,6 +599,7 @@ PAL_LoadConfig(
 	gConfig.wAudioBufferSize = (WORD)values[PALCFG_AUDIOBUFFERSIZE].uValue;
 	gConfig.iMusicVolume = values[PALCFG_MUSICVOLUME].uValue;
 	gConfig.iSoundVolume = values[PALCFG_SOUNDVOLUME].uValue;
+	gConfig.iVHookOPLRate = values[PALCFG_VHOOKOPLRATE].uValue;
 
 	gConfig.dwTextureWidth  = values[PALCFG_TEXTUREWIDTH].uValue;
 	gConfig.dwTextureHeight = values[PALCFG_TEXTUREHEIGHT].uValue;
@@ -653,7 +653,6 @@ PAL_SaveConfig(
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEGLSL), gConfig.fEnableGLSL); fputs(buf, fp);
         sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEHDR), gConfig.fEnableHDR); fputs(buf, fp);
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_VCLOCK_USEISR), gConfig.fVClockUseISR); fputs(buf, fp);
-		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_VCLOCK_RDTSCFORCE), gConfig.fVClockRdtscForce); fputs(buf, fp);
 
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_SURROUNDOPLOFFSET), gConfig.iSurroundOPLOffset); fputs(buf, fp);
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_LOGLEVEL), gConfig.iLogLevel); fputs(buf, fp);
@@ -666,6 +665,7 @@ PAL_SaveConfig(
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_SAMPLERATE), gConfig.iSampleRate); fputs(buf, fp);
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_MUSICVOLUME), gConfig.iMusicVolume); fputs(buf, fp);
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_SOUNDVOLUME), gConfig.iSoundVolume); fputs(buf, fp);
+		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_VHOOKOPLRATE), gConfig.iVHookOPLRate); fputs(buf, fp);
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_WINDOWHEIGHT), gConfig.dwScreenHeight); fputs(buf, fp);
         sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_WINDOWWIDTH), gConfig.dwScreenWidth); fputs(buf, fp);
         sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_TEXTUREHEIGHT), gConfig.dwTextureHeight); fputs(buf, fp);
@@ -728,6 +728,7 @@ PAL_GetConfigItem(
 		case PALCFG_SAMPLERATE:        value.uValue = gConfig.iSampleRate; break;
 		case PALCFG_MUSICVOLUME:       value.uValue = gConfig.iMusicVolume; break;
 		case PALCFG_SOUNDVOLUME:       value.uValue = gConfig.iSoundVolume; break;
+		case PALCFG_VHOOKOPLRATE:      value.uValue = gConfig.iVHookOPLRate; break;
 		case PALCFG_WINDOWHEIGHT:      value.uValue = gConfig.dwScreenHeight; break;
 		case PALCFG_WINDOWWIDTH:       value.uValue = gConfig.dwScreenWidth; break;
 
@@ -782,6 +783,7 @@ PAL_SetConfigItem(
 	case PALCFG_SAMPLERATE:        gConfig.iSampleRate = value.uValue; break;
 	case PALCFG_MUSICVOLUME:       gConfig.iMusicVolume = value.uValue; break;
 	case PALCFG_SOUNDVOLUME:       gConfig.iSoundVolume = value.uValue; break;
+	case PALCFG_VHOOKOPLRATE:      gConfig.iVHookOPLRate = value.uValue; break;
 	case PALCFG_WINDOWHEIGHT:      gConfig.dwScreenHeight = value.uValue; break;
 	case PALCFG_WINDOWWIDTH:       gConfig.dwScreenWidth = value.uValue; break;
 

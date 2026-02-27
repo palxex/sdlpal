@@ -155,6 +155,7 @@ bool CRealopl::detect() {
 
   } else {
     UTIL_LogOutput(LOGLEVEL_DEBUG, "Adplug: No OPL hardware detected at port 0x%04x\n", adlport);
+    nowrite = true;
     return false;
   }
 }
@@ -191,6 +192,8 @@ void CRealopl::hardwrite(int reg, int val) {
   if (nowrite)
     return;
 
+  UTIL_LogOutput(LOGLEVEL_DEBUG, "CRealopl::hardwrite reg=0x%02X val=0x%02X\n", reg, val);
+
 #if defined(linux) && defined(HAVE_SYS_IO_H) // see whether we can access the port
   if (!gotperms) {
     if ((ioperm(adlport, 2, 1) != 0) || (ioperm(adlport + 2, 2, 1) != 0)) {
@@ -200,13 +203,11 @@ void CRealopl::hardwrite(int reg, int val) {
   }
 #endif
 
-	UTIL_LogOutput(LOGLEVEL_DEBUG, "OUTP port %x for reg %d\n", adp, reg);
   OUTP(adp, reg);   // set register
 
   for (i = 0; i < SHORTDELAY; i++) // wait for adlib
     INP(adp);
 
-	UTIL_LogOutput(LOGLEVEL_DEBUG, "OUTP port %x for value %d\n", adp+1, val);
   OUTP(adp + 1, val); // set value
 
   for (i = 0; i < LONGDELAY; i++) // wait for adlib

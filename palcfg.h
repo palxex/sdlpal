@@ -48,7 +48,7 @@ typedef enum tagPALCFG_ITEM
     PALCFG_ENABLEGLSL,
     PALCFG_ENABLEHDR,
 	PALCFG_VCLOCK_USEISR,
-	PALCFG_VCLOCK_RDTSCFORCE,
+
 	/* Booleans */
 	PALCFG_BOOLEAN_MAX,
 
@@ -69,6 +69,7 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_SAMPLERATE,
 	PALCFG_MUSICVOLUME,
 	PALCFG_SOUNDVOLUME,
+	PALCFG_VHOOKOPLRATE,
 	PALCFG_WINDOWHEIGHT,
 	PALCFG_WINDOWWIDTH,
     PALCFG_TEXTUREHEIGHT,
@@ -206,6 +207,7 @@ typedef struct tagCONFIGURATION
 	INT              iResampleQuality;
 	INT              iMusicVolume;
 	INT              iSoundVolume;
+	INT              iVHookOPLRate;
 	LOGLEVEL         iLogLevel;
 	MUSICTYPE        eMusicType;
 	CDTYPE           eCDType;
@@ -226,7 +228,7 @@ typedef struct tagCONFIGURATION
 	BOOL             fEnableGLSL;
     BOOL             fEnableHDR;
 	BOOL             fVClockUseISR;
-	BOOL             fVClockRdtscForce;
+
 	DWORD            dwVClockHz;
 #if USE_RIX_EXTRA_INIT
 	uint32_t        *pExtraFMRegs;

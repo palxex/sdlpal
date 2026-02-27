@@ -50,6 +50,7 @@
 #include <stdlib.h>
 #include "surroundopl.h"
 
+
 // Number of FNums away from the upper/lower limit before switching to the next
 // block (octave.)  By rights it should be zero, but for some reason this seems
 // to cut it to close and the transposed OPL doesn't hit the right note all the
@@ -161,23 +162,30 @@ CSurroundopl::CSurroundopl(double rate, double offset, Copl* opl1, Copl* opl2)
 {
 	opls[0] = opl1;
 	opls[1] = opl2;
+	UTIL_LogOutput(LOGLEVEL_WARNING, "going to call init.\n");
 	init();
 
+	UTIL_LogOutput(LOGLEVEL_WARNING, "initialised surround OPL wrapper with rate %f and offset %f.\n", rate, offset);
 	if (opl1->gettype() == TYPE_OPL3 || opl1->gettype() == TYPE_DUAL_OPL2)
 	{
+		UTIL_LogOutput(LOGLEVEL_WARNING, "Creating With Surround Path.\n");
 		updater = &CSurroundopl::update_opl3;
 		if (opl1->gettype() == TYPE_OPL3)
 		{
+			UTIL_LogOutput(LOGLEVEL_WARNING, "using OPL3 mode for surround path.\n");
 			writer = &CSurroundopl::write_opl3;
 			opl1->write(OPL3_MODE_REGISTER, 1);
+			opl1->write(OPL3_4OP_REGISTER, 0);
 		}
 		else
 		{
+			UTIL_LogOutput(LOGLEVEL_WARNING, "using dual-OPL2 mode for surround path.\n");
 			writer = &CSurroundopl::write_dual_opl2;
 		}
 	}
 	else
 	{
+		UTIL_LogOutput(LOGLEVEL_WARNING, "Creating Without Surround Path.\n");
 		opl1->setchip(0);
 		opl2->setchip(0);
 		if (opl1->getstereo() && opl2->getstereo())
@@ -193,6 +201,7 @@ CSurroundopl::CSurroundopl(double rate, double offset, Copl* opl1, Copl* opl2)
 		// Disable opl2's OPL3 mode
 		if (opl2->gettype() == TYPE_OPL3)
 		{
+			UTIL_LogOutput(LOGLEVEL_WARNING, "Disabling OPL3 mode for OPL2 chip.\n");
 			opl2->write(OPL3_MODE_REGISTER, 0);
 		}
 	}
@@ -272,6 +281,7 @@ void CSurroundopl::write_dual_opl2(int reg, int val)
 
 void CSurroundopl::write_opl3(int reg, int val)
 {
+	UTIL_LogOutput(LOGLEVEL_DEBUG, "CSurroundopl::write_opl3 reg=0x%02X val=0x%02X\n", reg, val);
 	// Transpose the other channel to produce the harmonic effect
 	int group = reg >> 4;
 

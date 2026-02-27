@@ -52,6 +52,9 @@
 #include <stdint.h>
 #include "opl.h"
 
+//#include "util.h"
+#define UTIL_LogOutput(args...)  
+
 class CSurroundopl : public Copl
 {
 private:
@@ -96,6 +99,14 @@ public:
 		if (opls[0]) opls[0]->init();
 		if (opls[1]) opls[1]->init();
 		percussion = false;
+		UTIL_LogOutput(LOGLEVEL_WARNING, "SurroundOPL Init!.\n");
+		if(opls[0] && opls[0]->gettype() == TYPE_OPL3) {
+			UTIL_LogOutput(LOGLEVEL_WARNING, "Enabling OPL3 mode for OPL chip.\n");
+			opls[0]->write(OPL3_MODE_REGISTER, 1);
+			opls[0]->write(OPL3_4OP_REGISTER, 0);
+		}else {
+			UTIL_LogOutput(LOGLEVEL_WARNING, "OPL chip is not OPL3, cannot enable OPL3 mode.\n");
+		}
 	}
 };
 #endif
