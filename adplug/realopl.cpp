@@ -96,6 +96,11 @@ CRealopl::~CRealopl()
             hardwrite(0xb0 + i, 0);               // key off
             hardwrite(0x80 + op_table[i], 0xff);  // fastest release
         }
+        // Key off all secondary channels
+        for (i = 0; i < 9; i++) {
+            hardwrite(0x1b0 + i, 0);               // key off
+            hardwrite(0x180 + op_table[i], 0xff);  // fastest release
+        }
         // Clear misc register
         hardwrite(0xbd, 0);
         // Optionally clear all registers (full silence)
@@ -139,14 +144,17 @@ bool CRealopl::detect() {
     stat = INP(adlport);
 
     if (stat & 6) {
+    UTIL_LogOutput(LOGLEVEL_DEBUG, "not OPL3, try dual-OPL2\n");
       // not OPL3, try dual-OPL2
       setchip(1);
 
       if (harddetect()) {
+    UTIL_LogOutput(LOGLEVEL_DEBUG, "dual-OPL2 detected\n");
         currType = TYPE_DUAL_OPL2;
       }
 
     } else {
+    UTIL_LogOutput(LOGLEVEL_DEBUG, "OPL3 detected\n");
       currType = TYPE_OPL3;
     }
 
@@ -155,6 +163,7 @@ bool CRealopl::detect() {
 
   } else {
     UTIL_LogOutput(LOGLEVEL_DEBUG, "Adplug: No OPL hardware detected at port 0x%04x\n", adlport);
+    nowrite = true;
     return false;
   }
 }
@@ -187,9 +196,14 @@ void CRealopl::setquiet(bool quiet) {
 void CRealopl::hardwrite(int reg, int val) {
   int i;
   unsigned short adp = (currChip == 0 ? adlport : adlport + 2);
+  //hack!
+  adp += ((reg >> 7) & 0x2);
+  UTIL_LogOutput(LOGLEVEL_DEBUG, "CRealopl::hardwrite adp: 0x%04X\n", adp);
 
   if (nowrite)
     return;
+
+  UTIL_LogOutput(LOGLEVEL_DEBUG, "CRealopl::hardwrite reg=0x%02X val=0x%02X\n", reg, val);
 
 #if defined(linux) && defined(HAVE_SYS_IO_H) // see whether we can access the port
   if (!gotperms) {
@@ -200,13 +214,11 @@ void CRealopl::hardwrite(int reg, int val) {
   }
 #endif
 
-	UTIL_LogOutput(LOGLEVEL_DEBUG, "OUTP port %x for reg %d\n", adp, reg);
   OUTP(adp, reg);   // set register
 
   for (i = 0; i < SHORTDELAY; i++) // wait for adlib
     INP(adp);
 
-	UTIL_LogOutput(LOGLEVEL_DEBUG, "OUTP port %x for value %d\n", adp+1, val);
   OUTP(adp + 1, val); // set value
 
   for (i = 0; i < LONGDELAY; i++) // wait for adlib
@@ -260,6 +272,11 @@ void CRealopl::init() {
     }
 
     hardwrite(0xbd, 0); // clear misc. register
+
+		if (currType == TYPE_OPL3)
+		{
+			hardwrite(OPL3_MODE_REGISTER, 1);
+		}
   }
 
   setchip(0);

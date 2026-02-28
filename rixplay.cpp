@@ -71,7 +71,7 @@ VOID RIX_Update(
 	if (pRixPlayer == NULL || !pRixPlayer->fReady)
 	{
 		//
-		// Not initialized
+		// Not initialized or not ready
 		//
 		return;
 	}
@@ -375,6 +375,13 @@ RIX_Play(
 		pRixPlayer->fLoop = fLoop;
 		return TRUE;
 	}
+	
+	if (iNumRIX == 0)
+	{
+		pRixPlayer->iNextMusic = 0;
+		pRixPlayer->fReady = FALSE;
+		return FALSE;
+	}
 
 	if (pRixPlayer->FadeType != RIXPLAYER::FADE_OUT)
 	{
@@ -447,24 +454,22 @@ RIX_Init(
 		pRixPlayer->Play = RIX_Play;
 	}
 
-	if (gConfig.eOPLCore == OPLCORE_REAL)
-	{
-		if( vhook_register(RIX_Update, 70, pRixPlayer) != 0) {
-			UTIL_LogOutput(LOGLEVEL_ERROR, "RIX_Play: Failed to register RIX_Update callback.");
-		}else {
-			UTIL_LogOutput(LOGLEVEL_DEBUG, "RIX_Play: registered RIX_Update callback!");
-		}
-
-		pRixPlayer->opl = new CRealopl();
-	}else
-	{
 	auto chip = (Copl::ChipType)gConfig.eOPLChip;
 	if (chip == Copl::TYPE_OPL2 && gConfig.fUseSurroundOPL)
 	{
 		chip = Copl::TYPE_DUAL_OPL2;
-	}
+		if (gConfig.eOPLCore == OPLCORE_REAL)
+			chip = Copl::TYPE_OPL3;
 
-	Copl* opl = CEmuopl::CreateEmuopl((OPLCORE::TYPE)gConfig.eOPLCore, chip, gConfig.iOPLSampleRate);
+		UTIL_LogOutput(LOGLEVEL_WARNING, "surround OPL enabled, using %s.\n", (chip == Copl::TYPE_OPL3) ? "OPL3" : "OPL3" );
+	}else
+		UTIL_LogOutput(LOGLEVEL_WARNING, "using %s.\n", (chip == Copl::TYPE_OPL2) ? "OPL2" : "OPL3");
+
+	Copl *opl = nullptr;
+	if (gConfig.eOPLCore == OPLCORE_REAL)
+		opl = new CRealopl();
+	else
+		opl = CEmuopl::CreateEmuopl((OPLCORE::TYPE)gConfig.eOPLCore, chip, gConfig.iOPLSampleRate);
 	if (NULL == opl)
 	{
 		delete pRixPlayer;
@@ -483,6 +488,9 @@ RIX_Init(
 		opl = tmpopl;
 	}
 
+	if (gConfig.eOPLCore == OPLCORE_REAL) {
+		pRixPlayer->opl = opl;
+	}else
 	pRixPlayer->opl = new CConvertopl(opl, true, gConfig.iAudioChannels == 2);
 	if (pRixPlayer->opl == NULL)
 	{
@@ -490,13 +498,18 @@ RIX_Init(
 		delete pRixPlayer;
 		return NULL;
 	}
-	}
+
 	pRixPlayer->rix = new CrixPlayer(pRixPlayer->opl);
 	if (pRixPlayer->rix == NULL)
 	{
 		delete pRixPlayer->opl;
 		delete pRixPlayer;
 		return NULL;
+	}
+
+	if (gConfig.eOPLCore == OPLCORE_REAL) {
+		pRixPlayer->rix->setrefresh(gConfig.iVHookOPLRate);
+		vhook_register(RIX_Update, gConfig.iVHookOPLRate, pRixPlayer);
 	}
 
 	//
