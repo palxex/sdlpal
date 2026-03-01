@@ -141,7 +141,6 @@ UTIL_Platform_Init(
 )
 {
 	gConfig.fLaunchSetting = FALSE;
-	vclock_setup(gConfig.dwVClockHz, gConfig.fVClockUseISR);
 	return 0;
 }
 

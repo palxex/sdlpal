@@ -467,7 +467,7 @@ RIX_Init(
 
 	Copl *opl = nullptr;
 	if (gConfig.eOPLCore == OPLCORE_REAL)
-		opl = new CRealopl();
+		opl = new CRealopl(gConfig.iRealOPLPort);
 	else
 		opl = CEmuopl::CreateEmuopl((OPLCORE::TYPE)gConfig.eOPLCore, chip, gConfig.iOPLSampleRate);
 	if (NULL == opl)
@@ -512,8 +512,8 @@ RIX_Init(
 	}
 
 	if (gConfig.eOPLCore == OPLCORE_REAL) {
-		pRixPlayer->rix->setrefresh(gConfig.iVHookOPLRate);
-		vhook_register(RIX_Update, gConfig.iVHookOPLRate, pRixPlayer);
+		pRixPlayer->rix->setrefresh(gConfig.iRealOPLUpdateFreq);
+		vhook_register(RIX_Update, gConfig.iRealOPLUpdateFreq, pRixPlayer);
 	}
 
 	//
