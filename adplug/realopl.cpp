@@ -54,8 +54,8 @@
 #endif
 
 #include "realopl.h"
-#include "util.h"
-  //#define UTIL_LogOutput(...)  
+//#include "util.h"
+#define UTIL_LogOutput(...)  
 
 #define SHORTDELAY  6   // short delay in I/O port-reads after OPL hardware output
 #define LONGDELAY   35  // long delay in I/O port-reads after OPL hardware output
