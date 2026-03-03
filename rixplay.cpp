@@ -58,8 +58,10 @@ typedef struct tagRIXPLAYER :
 } RIXPLAYER, *LPRIXPLAYER;
 
 extern "C"
-VOID RIX_Update(
-	VOID *object
+UINT32 RIX_Update(
+	VOID *object,
+	UINT32 timer_id,
+	UINT32 interval
 )
 /*++
 	Purpose:
@@ -76,7 +78,7 @@ VOID RIX_Update(
 		//
 		// Not initialized or not ready
 		//
-		return;
+		return 1;
 	}
 	if (!pRixPlayer->rix->update())
 	{
@@ -86,10 +88,11 @@ VOID RIX_Update(
 			// Not loop, simply terminate the music
 			//
 			pRixPlayer->iMusic = -1;
-			return;
+			return -1;
 		}
 		pRixPlayer->rix->rewindReInit(pRixPlayer->iMusic, false);
 	}
+	return 1;
 }
 
 static VOID
@@ -325,15 +328,8 @@ RIX_Shutdown(
 	if (object != NULL)
 	{
 		LPRIXPLAYER pRixPlayer = (LPRIXPLAYER)object;
-		pRixPlayer->fReady = FALSE;
-		for (int i = 0; i < gConfig.iAudioChannels; i++)
-			if (pRixPlayer->resampler[i])
-				resampler_delete(pRixPlayer->resampler[i]);
-		delete pRixPlayer->rix;
-		delete pRixPlayer->opl;
-		delete pRixPlayer;
 
-		if(gConfig.eOPLCore == OPLCORE_REAL)
+		if (gConfig.eOPLCore == OPLCORE_REAL)
 		{
 #ifdef __DJGPP__
 			vhook_unregister(RIX_Update);
@@ -341,6 +337,14 @@ RIX_Shutdown(
 			SDL_RemoveTimer(pRixPlayer->iTimerID);
 #endif
 		}
+
+		pRixPlayer->fReady = FALSE;
+		for (int i = 0; i < gConfig.iAudioChannels; i++)
+			if (pRixPlayer->resampler[i])
+				resampler_delete(pRixPlayer->resampler[i]);
+		delete pRixPlayer->rix;
+		delete pRixPlayer->opl;
+		delete pRixPlayer;
 	}
 }
 
@@ -526,7 +530,7 @@ RIX_Init(
 #ifdef __DJGPP__
 		vhook_register(RIX_Update, gConfig.iRealOPLUpdateFreq, pRixPlayer);
 #else
-		pRixPlayer->iTimerID = SDL_AddTimer(1000 / gConfig.iRealOPLUpdateFreq, RIX_Update);
+		pRixPlayer->iTimerID = SDL_AddTimer(1000 / gConfig.iRealOPLUpdateFreq, RIX_Update, pRixPlayer);
 #endif
 	}
 

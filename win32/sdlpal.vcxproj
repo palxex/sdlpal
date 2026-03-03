@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.props" Condition="Exists('packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.props')" />
+  <Import Project="packages\VC-LTL.5.3.1\build\native\VC-LTL.props" Condition="Exists('packages\VC-LTL.5.3.1\build\native\VC-LTL.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -34,27 +36,32 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
+    <SupportLTL>true</SupportLTL>
+    <WindowsTargetPlatformMinVersion>5.1.2600.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
+    <WindowsTargetPlatformMinVersion>5.1.2600.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
+    <SupportLTL>true</SupportLTL>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
+    <WindowsTargetPlatformMinVersion>5.1.2600.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -92,12 +99,14 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'">
     <IncludePath>..\3rd\SDL\include\SDL3;..\3rd\SDL\include;..\3rd\googletest\googletest\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\3rd\SDL\include\SDL3;..\3rd\SDL\include;$(IncludePath)</IncludePath>
@@ -112,6 +121,7 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\3rd\SDL\include\SDL3;..\3rd\SDL\include;$(IncludePath)</IncludePath>
@@ -134,7 +144,7 @@
       <Culture>0x0804</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;imm32.lib;version.lib;comctl32.lib;winmm.lib;setupapi.lib;sdl3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>inpout32.lib;opengl32.lib;imm32.lib;version.lib;comctl32.lib;winmm.lib;setupapi.lib;sdl3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -189,7 +199,7 @@
       <Culture>0x0804</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;imm32.lib;version.lib;comctl32.lib;winmm.lib;setupapi.lib;sdl3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>inpout32.lib;opengl32.lib;imm32.lib;version.lib;comctl32.lib;winmm.lib;setupapi.lib;sdl3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -217,7 +227,7 @@
       <Culture>0x0804</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;imm32.lib;version.lib;comctl32.lib;winmm.lib;setupapi.lib;sdl3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>inpout32.lib;opengl32.lib;imm32.lib;version.lib;comctl32.lib;winmm.lib;setupapi.lib;sdl3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>
@@ -294,6 +304,7 @@
     <ClCompile Include="..\adplug\dosbox_opls.cpp" />
     <ClCompile Include="..\adplug\mame_opls.cpp" />
     <ClCompile Include="..\adplug\nuked_opl.c" />
+    <ClCompile Include="..\adplug\realopl.cpp" />
     <ClCompile Include="..\audio.c" />
     <ClCompile Include="..\aviplay.c" />
     <ClCompile Include="..\battle.c" />
@@ -564,6 +575,7 @@
     <ClInclude Include="..\adplug\nuked\opl3.h" />
     <ClInclude Include="..\adplug\nuked_opl.h" />
     <ClInclude Include="..\adplug\opltypes.h" />
+    <ClInclude Include="..\adplug\realopl.h" />
     <ClInclude Include="..\ascii.h" />
     <ClInclude Include="..\aviplay.h" />
     <ClInclude Include="..\battle.h" />
@@ -767,6 +779,7 @@
     <None Include="..\libmad\qc_table.dat" />
     <None Include="..\libmad\rq_table.dat" />
     <None Include="..\libmad\sf_table.dat" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="sdlpal.rc">
@@ -787,5 +800,16 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.targets" Condition="Exists('packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.targets')" />
+    <Import Project="packages\YY-Thunks.1.1.9\build\native\YY-Thunks.targets" Condition="Exists('packages\YY-Thunks.1.1.9\build\native\YY-Thunks.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\VC-LTL.5.3.1\build\native\VC-LTL.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\VC-LTL.5.3.1\build\native\VC-LTL.props'))" />
+    <Error Condition="!Exists('packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.props'))" />
+    <Error Condition="!Exists('packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\YY.NuGet.Import.Helper.1.0.2\build\native\YY.NuGet.Import.Helper.targets'))" />
+    <Error Condition="!Exists('packages\YY-Thunks.1.1.9\build\native\YY-Thunks.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\YY-Thunks.1.1.9\build\native\YY-Thunks.targets'))" />
+  </Target>
 </Project>

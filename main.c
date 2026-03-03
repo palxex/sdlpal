@@ -487,8 +487,8 @@ main(
 
 --*/
 {
-   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
-   SDL_LogSetOutputFunction(SDL_LogToFile, NULL);
+   /*SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+   SDL_LogSetOutputFunction(SDL_LogToFile, NULL);*/
    SDL_Log("Logging to file now!\n");
 
 #if !defined( __EMSCRIPTEN__ ) && !defined(__WINRT__) && !defined(__N3DS__)

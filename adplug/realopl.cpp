@@ -23,8 +23,11 @@
 #ifdef _MSC_VER     // Microsoft Visual C++
   #if (_MSC_VER >= 1900) // VS2015+
   // _inp and _outp are no longer part of the C runtime from VS2015/Win8.1
-  int INP(int dummy) { return 0; }
-  void OUTP(int dummy, int dummy2) { return; }
+  //int INP(int dummy) { return 0; }
+  //void OUTP(int dummy, int dummy2) { return; }
+#include <inpout32.h>
+#define INP Inp32
+#define OUTP Out32
   #else // _MSC_VER < 1900
   # include <conio.h>
   # define INP  _inp
@@ -51,8 +54,8 @@
 #endif
 
 #include "realopl.h"
-//#include "util.h"
-#define UTIL_LogOutput(args...)  
+#include "util.h"
+  //#define UTIL_LogOutput(...)  
 
 #define SHORTDELAY  6   // short delay in I/O port-reads after OPL hardware output
 #define LONGDELAY   35  // long delay in I/O port-reads after OPL hardware output
@@ -83,6 +86,8 @@ CRealopl::CRealopl(unsigned short initport)
   }
 
   currType = TYPE_OPL3;
+  int x = IsInpOutDriverOpen();
+  UTIL_LogOutput(LOGLEVEL_DEBUG, "inpout32 loaded!%d\n", x);
   detect();
 }
 // Ensure OPL is silenced on exit

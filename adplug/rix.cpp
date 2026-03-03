@@ -376,12 +376,18 @@ RELEASE_INLINE void CrixPlayer::int_08h_entry()
         if(sustain <= 0)   
         {
             interrupt_mutex ++;
-		        enable();
-            band_sus = rix_proc();   
-		        disable();
+#ifdef __DJGPP__
+            enable();
+#endif
+            band_sus = rix_proc();
+#ifdef __DJGPP__
+            disable();
+#endif
             sustain += band_sus; 
             interrupt_mutex --;
-		        enable(); 
+#ifdef __DJGPP__
+            enable();
+#endif
             if(!sustain)
             {   
                 play_end=1;  
