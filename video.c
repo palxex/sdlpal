@@ -725,6 +725,12 @@ VIDEO_Resize(
 {
 #if SDL_VERSION_ATLEAST(2,0,0)
    SDL_Rect rect;
+   int origW, origH;
+
+   SDL_GetWindowSize(gpWindow, &origW, &origH);
+   if (w == origW && h == origH)
+	   return;
+
 
    if (gpTexture)
    {
