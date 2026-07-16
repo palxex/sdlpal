@@ -338,7 +338,7 @@ PAL_ReadAVIInfo(
 			// Create surface
 			//
 #if __DJGPP__
-			if (gConfig.fDOSForceMode13h && gConfig.fDOSLowEndOpt)
+			if (gConfig.fDOSForceMode13h)
 			{
 				SDL_Palette *palette;
 
@@ -641,18 +641,18 @@ PAL_RenderAVIFrameToSurface(
 	const int blocks_high = lpSurface->h >> 2; // height in 4x4 blocks
 	uint32_t  total_blocks = blocks_wide * blocks_high;
 
-	BOOL fLowEndOpt = FALSE;
+	BOOL fPalette = FALSE;
 	uint8_t *pixels8 = (uint8_t *)lpSurface->pixels;
 	uint16_t color;
 
 #if __DJGPP__
 	const uint8_t *rgb555ToIndexLUT = AVI_GetRGB555ToIndexLUT(gAVIPlayState.aviIndex);
-	fLowEndOpt = (gConfig.fDOSForceMode13h && gConfig.fDOSLowEndOpt);
+	fPalette = (gConfig.fDOSForceMode13h);
 #else
 	const uint8_t *rgb555ToIndexLUT = NULL;
 #endif
 
-	stride = fLowEndOpt ? lpSurface->pitch : (lpSurface->pitch >> 1);
+	stride = fPalette ? lpSurface->pitch : (lpSurface->pitch >> 1);
 	row_dec = stride + 4;
 
     for (int block_y = blocks_high; block_y > 0; block_y--)
@@ -721,7 +721,7 @@ PAL_RenderAVIFrameToSurface(
                         {
                             color = colors[((pixel_y & 0x2) << 1) +
                                            (pixel_x & 0x2) + ((flags & 0x1) ^ 1)];
-                            if (fLowEndOpt)
+                            if (fPalette)
                                 pixels8[pixel_ptr++] = rgb555ToIndexLUT[color & 0x7FFF];
                             else
                                 pixels[pixel_ptr++] = color;
@@ -737,7 +737,7 @@ PAL_RenderAVIFrameToSurface(
                         for (int pixel_x = 0; pixel_x < 4; pixel_x++, flags >>= 1)
                         {
                             color = colors[(flags & 0x1) ^ 1];
-                            if (fLowEndOpt)
+                            if (fPalette)
                                 pixels8[pixel_ptr++] = rgb555ToIndexLUT[color & 0x7FFF];
                             else
                                 pixels[pixel_ptr++] = color;
@@ -755,7 +755,7 @@ PAL_RenderAVIFrameToSurface(
                 {
                     for (int pixel_x = 0; pixel_x < 4; pixel_x++)
                     {
-                        if (fLowEndOpt)
+                        if (fPalette)
                             pixels8[pixel_ptr++] = rgb555ToIndexLUT[solid_color & 0x7FFF];
                         else
                             pixels[pixel_ptr++] = solid_color;
@@ -799,7 +799,7 @@ PAL_PlayAVI(
 	}
 
 #if __DJGPP__
-	if (gConfig.fDOSForceMode13h && gConfig.fDOSLowEndOpt && gAVIPlayState.aviIndex < 0)
+	if (gConfig.fDOSForceMode13h && gAVIPlayState.aviIndex < 0)
 	{
 		UTIL_LogOutput(LOGLEVEL_WARNING, "Unsupported AVI resource name for indexed playback: %s!\n", lpszPath);
 		fclose(fp);
@@ -816,7 +816,7 @@ PAL_PlayAVI(
 #endif
 
 #if __DJGPP__
-	if (gConfig.fDOSForceMode13h && gConfig.fDOSLowEndOpt)
+	if (gConfig.fDOSForceMode13h)
 		VIDEO_SetPalette((SDL_Color *)AVI_PALETTE_TABLE[avi->aviIndex]);
 #endif
 
