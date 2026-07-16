@@ -176,7 +176,7 @@ VIDEO_Startup(
 
 --*/
 {
-   SDL_DisplayMode displayMode13h;
+    SDL_DisplayMode displayMode13h = { -1 };
 
 	extern SDL_Surface* STBIMG_Load(const char* file);
 #ifndef __DJGPP__
@@ -221,11 +221,11 @@ VIDEO_Startup(
          
          int num_modes = 0;
          SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display_id, &num_modes);
-         SDL_DisplayMode *modePtr = SDL_GetDesktopDisplayMode(display_id);
+         SDL_DisplayMode *desktopMode = SDL_GetDesktopDisplayMode(display_id);
          UTIL_LogOutput(LOGLEVEL_DEBUG, "Display %d (ID: %u) desktop mode: fmt %s %dx%d @ %.2fHz\n", i, display_id,
-                        SDL_GetPixelFormatName(modePtr->format),
-                        modePtr->w, modePtr->h,
-                        modePtr->refresh_rate);
+                        SDL_GetPixelFormatName(desktopMode->format),
+                        desktopMode->w, desktopMode->h,
+                        desktopMode->refresh_rate);
          
          if (num_modes > 0 && modes) {
             UTIL_LogOutput(LOGLEVEL_DEBUG, "Display %d (ID: %u) has %d modes\n", i, display_id, num_modes);
@@ -254,6 +254,8 @@ VIDEO_Startup(
             }
             SDL_free(modes);
          }
+         if (displayMode13h.displayID == -1)
+             displayMode13h = *desktopMode;
       }
 
       SDL_free(displays);
@@ -600,13 +602,19 @@ VIDEO_RenderCopy(
 	int bpp_shift = bUseIndex8Path ? 0 : 2;
 
    if( bBypassRenderer ) {
+       // Native palette animation is a DOS/VGA hardware feature. 
+       // On other platforms, we emulate it by blitting.
+#if __DJGPP__
       if( bUseIndex8Path && bColorCycling ) {
          SDL_UpdateWindowSurfaceRects(gpWindow, NULL, 0);
       }else{
+#endif
          SDL_Surface *windowSurface = SDL_GetWindowSurface(gpWindow);
          SDL_BlitScaled(gpScreenReal, NULL, windowSurface, NULL);
          SDL_UpdateWindowSurface(gpWindow);
+#if __DJGPP__
       }
+#endif
       return;
    }
 

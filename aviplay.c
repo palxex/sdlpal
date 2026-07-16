@@ -60,9 +60,7 @@
 #include "riff.h"
 #include "palcfg.h"
 #include "palette.h"
-#if __DJGPP__
-#include "dos/avi_lut.h"
-#endif
+#include "avi_lut.h"
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 
@@ -112,7 +110,6 @@ typedef struct AVIPlayState
 
 static AVIPlayState gAVIPlayState;
 
-#if __DJGPP__
 static SDL_Palette *gAviPalettes[AVI_LUT_FILE_COUNT] = { NULL };
 
 static int
@@ -169,7 +166,6 @@ AVI_GetRGB555ToIndexLUT(int aviIndex)
 
 	return AVI_RGB555_TO_INDEX_LUT[aviIndex];
 }
-#endif
 
 static AVIPlayState *
 PAL_ReadAVIInfo(
@@ -337,7 +333,6 @@ PAL_ReadAVIInfo(
 			//
 			// Create surface
 			//
-#if __DJGPP__
 			if (gConfig.fDOSForceMode13h)
 			{
 				SDL_Palette *palette;
@@ -360,7 +355,6 @@ PAL_ReadAVIInfo(
 				SDL_SetSurfacePalette(avi->surface, palette);
 			}
 			else
-#endif
 			{
 				avi->surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
 					bih.biWidth, bih.biHeight, bih.biBitCount,
@@ -599,9 +593,7 @@ PAL_AVIInit(
 )
 {
     gAVIPlayState.selfMutex = SDL_CreateMutex();
-#if __DJGPP__
 	gAVIPlayState.aviIndex = -1;
-#endif
 }
 
 void
@@ -609,7 +601,6 @@ PAL_AVIShutdown(
 	void
 )
 {
-#if __DJGPP__
 	for (int i = 0; i < AVI_LUT_FILE_COUNT; i++)
 	{
 		if (gAviPalettes[i] != NULL)
@@ -618,7 +609,6 @@ PAL_AVIShutdown(
 			gAviPalettes[i] = NULL;
 		}
 	}
-#endif
 	SDL_DestroyMutex(gAVIPlayState.selfMutex);
 }
 
@@ -645,12 +635,8 @@ PAL_RenderAVIFrameToSurface(
 	uint8_t *pixels8 = (uint8_t *)lpSurface->pixels;
 	uint16_t color;
 
-#if __DJGPP__
 	const uint8_t *rgb555ToIndexLUT = AVI_GetRGB555ToIndexLUT(gAVIPlayState.aviIndex);
 	fPalette = (gConfig.fDOSForceMode13h);
-#else
-	const uint8_t *rgb555ToIndexLUT = NULL;
-#endif
 
 	stride = fPalette ? lpSurface->pitch : (lpSurface->pitch >> 1);
 	row_dec = stride + 4;
@@ -787,9 +773,8 @@ PAL_PlayAVI(
 		return FALSE;
 	}
 
-#if __DJGPP__
 	gAVIPlayState.aviIndex = AVI_GetResourceIndexFromPath(lpszPath);
-#endif
+
 	AVIPlayState *avi = PAL_ReadAVIInfo(fp, &gAVIPlayState);
 	if (avi == NULL)
 	{
@@ -798,14 +783,12 @@ PAL_PlayAVI(
 		return FALSE;
 	}
 
-#if __DJGPP__
 	if (gConfig.fDOSForceMode13h && gAVIPlayState.aviIndex < 0)
 	{
 		UTIL_LogOutput(LOGLEVEL_WARNING, "Unsupported AVI resource name for indexed playback: %s!\n", lpszPath);
 		fclose(fp);
 		return FALSE;
 	}
-#endif
 
     PAL_ClearKeyState();
 
@@ -815,10 +798,8 @@ PAL_PlayAVI(
 	VIDEO_ChangeDepth(avi->surface->format->BitsPerPixel);
 #endif
 
-#if __DJGPP__
 	if (gConfig.fDOSForceMode13h)
 		VIDEO_SetPalette((SDL_Color *)AVI_PALETTE_TABLE[avi->aviIndex]);
-#endif
 
 	BOOL       fEndPlay = FALSE;
 	RIFFChunk *buf = (RIFFChunk *)avi->pChunkBuffer;
