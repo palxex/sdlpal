@@ -37,6 +37,7 @@ typedef struct tagAUDIODEVICE
 #endif
    AUDIOPLAYER              *pSoundPlayer;
    void                     *pSoundBuffer;    /* The output buffer for sound */
+   void                     *pMixingBuffer;
 #if SDL_VERSION_ATLEAST(3,0,0)
    SDL_AudioStream             *stream;
 #endif
@@ -48,6 +49,12 @@ typedef struct tagAUDIODEVICE
    BOOL                      fMusicEnabled; /* Is BGM enabled? */
    BOOL                      fSoundEnabled; /* Is sound effect enabled? */
    BOOL                      fOpened;       /* Is the audio device opened? */
+
+   int                       iOutputBits;
+   BOOL                      fOutputSigned;
+   BOOL                      fIsOutputFloat;
+   BOOL                      fIsOutputLittleEndian;
+   int                       iBufferFrames;
 } AUDIODEVICE;
 
 #if SDL_VERSION_ATLEAST(3,0,0)

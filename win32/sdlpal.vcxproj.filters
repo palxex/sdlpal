@@ -819,8 +819,14 @@
     <ClCompile Include="..\glslp.c">
       <Filter>glsl</Filter>
     </ClCompile>
+    <ClCompile Include="..\paldebug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\adplug\realopl.cpp">
       <Filter>adplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\requant.c">
+      <Filter>requant</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1460,8 +1466,14 @@
     <ClInclude Include="..\glslp.h">
       <Filter>glsl</Filter>
     </ClInclude>
+    <ClInclude Include="..\paldebug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\adplug\realopl.h">
       <Filter>adplug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\requant.h">
+      <Filter>requant</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

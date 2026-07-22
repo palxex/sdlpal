@@ -486,6 +486,7 @@
     <ClCompile Include="..\palcommon.c" />
     <ClCompile Include="..\palette.c" />
     <ClCompile Include="..\play.c" />
+    <ClCompile Include="..\requant.c" />
     <ClCompile Include="..\res.c" />
     <ClCompile Include="..\resampler.c" />
     <ClCompile Include="..\rixplay.cpp" />
@@ -708,6 +709,7 @@
     <ClInclude Include="..\palcommon.h" />
     <ClInclude Include="..\palette.h" />
     <ClInclude Include="..\play.h" />
+    <ClInclude Include="..\requant.h" />
     <ClInclude Include="..\res.h" />
     <ClInclude Include="..\resampler.h" />
     <ClInclude Include="..\players.h" />

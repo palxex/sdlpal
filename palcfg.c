@@ -91,6 +91,7 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_SOUNDBANK,         PALCFG_STRING,   "SoundBank",          9, MAKE_STRING(NULL) },
 	{ PALCFG_SCALEQUALITY,      PALCFG_STRING,   "ScaleQuality",      12, MAKE_STRING("0") },
 	{ PALCFG_SHADER,            PALCFG_STRING,   "Shader",             6, MAKE_STRING(NULL) },
+	{ PALCFG_AUDIOOUTPUTFORMAT, PALCFG_STRING,   "AudioOutputFormat", 17, MAKE_STRING("S16") },
 };
 
 static const char *music_types[] = { "MIDI", "RIX", "MP3", "OGG", "OPUS", "RAW" };
@@ -292,6 +293,8 @@ PAL_FreeConfig(
     free(gConfig.pszShaderPath);
     free(gConfig.pszScaleQuality);
 	free(gConfig.pszLogFile);
+	free(gConfig.pszShader);
+    free(gConfig.pszAudioOutputFormat);
 
 	memset(&gConfig, 0, sizeof(CONFIGURATION));
 }
@@ -559,6 +562,9 @@ PAL_LoadConfig(
 				case PALCFG_SHADER:
 					gConfig.pszShader = ParseStringValue(value.sValue, gConfig.pszShader);
 					break;
+				case PALCFG_AUDIOOUTPUTFORMAT:
+					gConfig.pszAudioOutputFormat = ParseStringValue(value.sValue, gConfig.pszAudioOutputFormat);
+					break;
 				default:
 					values[item->Item] = value;
 					break;
@@ -639,6 +645,11 @@ PAL_LoadConfig(
     gConfig.fEnableGLSL = FALSE;
 #endif
 
+	if (gConfig.pszAudioOutputFormat == NULL) {
+		gConfig.pszAudioOutputFormat = strdup("S16");
+		UTIL_LogOutput(LOGLEVEL_VERBOSE, "AudioOutputFormat not set, using default S16\n");
+	}
+
 	if (gConfig.eMIDISynth != SYNTH_NATIVE && !UTIL_IsFileExist(gConfig.pszSoundBank)) {
 		UTIL_LogOutput(LOGLEVEL_ERROR, "SoftSynth enabled but no valid soundbank file specified. Fallback to native-midi");
 		gConfig.eMIDISynth = SYNTH_NATIVE;
@@ -703,6 +714,7 @@ PAL_SaveConfig(
 		if (gConfig.pszSoundBank && *gConfig.pszSoundBank) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SOUNDBANK), gConfig.pszSoundBank); fputs(buf, fp); }
 		if (gConfig.pszScaleQuality && *gConfig.pszScaleQuality) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SCALEQUALITY), gConfig.pszScaleQuality); fputs(buf, fp); }
 		if (gConfig.pszShader && *gConfig.pszShader) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SHADER), gConfig.pszShader); fputs(buf, fp); }
+		if (gConfig.pszAudioOutputFormat && *gConfig.pszAudioOutputFormat) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_AUDIOOUTPUTFORMAT), gConfig.pszAudioOutputFormat); fputs(buf, fp); }
 
 		fclose(fp);
 
@@ -763,6 +775,7 @@ PAL_GetConfigItem(
 		case PALCFG_SOUNDBANK:         value.sValue = gConfig.pszSoundBank; break;
 		case PALCFG_SCALEQUALITY:      value.sValue = gConfig.pszScaleQuality; break;
 		case PALCFG_SHADER:            value.sValue = gConfig.pszShader; break;
+		case PALCFG_AUDIOOUTPUTFORMAT: value.sValue = gConfig.pszAudioOutputFormat; break;
 		case PALCFG_MUSIC:             value.sValue = music_types[gConfig.eMusicType]; break;
 		case PALCFG_OPL_CORE:          value.sValue = opl_cores[gConfig.eOPLCore]; break;
 		case PALCFG_OPL_CHIP:          value.sValue = opl_chips[gConfig.eOPLChip]; break;
@@ -852,6 +865,10 @@ PAL_SetConfigItem(
 	case PALCFG_SHADER:
 		if (gConfig.pszShader) free(gConfig.pszShader);
 		gConfig.pszShader = value.sValue && value.sValue[0] ? strdup(value.sValue) : NULL;
+		break;
+	case PALCFG_AUDIOOUTPUTFORMAT:
+		if (gConfig.pszAudioOutputFormat) free(gConfig.pszAudioOutputFormat);
+		gConfig.pszAudioOutputFormat = value.sValue && value.sValue[0] ? strdup(value.sValue) : NULL;
 		break;
 	case PALCFG_CD:
 		for (int i = 0; i < sizeof(cd_types) / sizeof(cd_types[0]); i++)

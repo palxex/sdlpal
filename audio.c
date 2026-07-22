@@ -28,6 +28,7 @@
 #include "resampler.h"
 #include "midi.h"
 #include "aviplay.h"
+#include "requant.h"
 #include <math.h>
 
 #include <time.h>
@@ -104,7 +105,27 @@ AUDIO_FillBuffer(
 
 --*/
 {
+   int channels = gAudioDevice.spec.channels;
+   int dst_bytes = (gAudioDevice.iOutputBits + 7) >> 3;
+   int frames = len / (dst_bytes * channels);
+   int sample_count = frames * channels;
+   int sample_bytes = sample_count * sizeof(short);
+
    memset(stream, 0, len);
+
+   if (!gAudioDevice.fOpened || frames == 0)
+      return;
+
+   if (sample_bytes > gAudioDevice.iBufferFrames * channels * sizeof(short)) {
+	   UTIL_LogOutput(LOGLEVEL_ERROR,
+		   "AUDIO_FillBuffer: sample_bytes (%d) exceeds buffer capacity (%zu), truncating.\n",
+		   sample_bytes, gAudioDevice.iBufferFrames * channels * sizeof(short));
+	   frames = gAudioDevice.iBufferFrames;
+	   sample_count = frames * channels;
+	   sample_bytes = sample_count * sizeof(short);
+   }
+
+   memset(gAudioDevice.pMixingBuffer, 0, sample_bytes);
 
    //
    // Play music
@@ -113,18 +134,18 @@ AUDIO_FillBuffer(
    {
       if (gAudioDevice.pMusPlayer)
       {
-         gAudioDevice.pMusPlayer->FillBuffer(gAudioDevice.pMusPlayer, stream, len);
+         gAudioDevice.pMusPlayer->FillBuffer(gAudioDevice.pMusPlayer, (LPBYTE)gAudioDevice.pMixingBuffer, sample_bytes);
       }
 
       if (gAudioDevice.pCDPlayer)
       {
-         gAudioDevice.pCDPlayer->FillBuffer(gAudioDevice.pCDPlayer, stream, len);
+         gAudioDevice.pCDPlayer->FillBuffer(gAudioDevice.pCDPlayer, (LPBYTE)gAudioDevice.pMixingBuffer, sample_bytes);
       }
 
       //
       // Adjust volume for music
       //
-      AUDIO_AdjustVolume((short *)stream, gAudioDevice.iMusicVolume, len >> 1);
+      AUDIO_AdjustVolume((short *)gAudioDevice.pMixingBuffer, gAudioDevice.iMusicVolume, sample_count);
    }
 
    //
@@ -132,25 +153,43 @@ AUDIO_FillBuffer(
    //
    if (gAudioDevice.fSoundEnabled && gAudioDevice.pSoundPlayer && gAudioDevice.iSoundVolume > 0)
    {
-	   memset(gAudioDevice.pSoundBuffer, 0, len);
+	   memset(gAudioDevice.pSoundBuffer, 0, sample_bytes);
 
-	   gAudioDevice.pSoundPlayer->FillBuffer(gAudioDevice.pSoundPlayer, gAudioDevice.pSoundBuffer, len);
+	   gAudioDevice.pSoundPlayer->FillBuffer(gAudioDevice.pSoundPlayer, gAudioDevice.pSoundBuffer, sample_bytes);
 
 	   //
 	   // Adjust volume for sound
 	   //
-	   AUDIO_AdjustVolume((short *)gAudioDevice.pSoundBuffer, gAudioDevice.iSoundVolume, len >> 1);
+	   AUDIO_AdjustVolume((short *)gAudioDevice.pSoundBuffer, gAudioDevice.iSoundVolume, sample_count);
 
 	   //
 	   // Mix sound & music
 	   //
-	   AUDIO_MixNative((short *)stream, gAudioDevice.pSoundBuffer, len >> 1);
+	   AUDIO_MixNative((short*)gAudioDevice.pMixingBuffer, gAudioDevice.pSoundBuffer, sample_count);
    }
 
    //
    // Play sound for AVI
    //
-   AVI_FillAudioBuffer(AVI_GetPlayState(), (LPBYTE)stream, len);
+   AVI_FillAudioBuffer(AVI_GetPlayState(), (LPBYTE)gAudioDevice.pMixingBuffer, sample_bytes);
+
+
+   //
+   // requant to the output format
+   //
+   s16_quant_to_bit(
+	   (const int16_t*)gAudioDevice.pMixingBuffer,
+	   channels,
+	   frames,
+	   stream,
+	   gConfig.iAudioChannels,
+	   len,
+	   gAudioDevice.iOutputBits,
+	   gAudioDevice.fOutputSigned,
+	   gAudioDevice.fIsOutputFloat,
+	   gAudioDevice.fIsOutputLittleEndian,
+	   gConfig.iResampleQuality
+   );
 }
 
 #if SDL_VERSION_ATLEAST(3,0,0)
@@ -195,6 +234,7 @@ AUDIO_OpenDevice(
 --*/
 {
    SDL_AudioSpec spec;
+   SDL_AudioFormat audio_format = AUDIO_S16SYS;
 
    if (gAudioDevice.fOpened)
    {
@@ -211,6 +251,72 @@ AUDIO_OpenDevice(
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
    if(gConfig.eMIDISynth == SYNTH_NATIVE)
    MIDI_SetVolume(gConfig.iMusicVolume);
+
+   const char* fmt = PAL_GetConfigString(PALCFG_AUDIOOUTPUTFORMAT, FALSE);
+   if (!fmt || !*fmt) fmt = "S16";
+   gAudioDevice.iOutputBits = 16;
+   gAudioDevice.fOutputSigned = TRUE;
+   gAudioDevice.fIsOutputFloat = FALSE;
+   gAudioDevice.fIsOutputLittleEndian = TRUE;
+
+   /* Parse format: first char indicates type (U/S/F), rest digits are bit depth */
+   BOOL parse_ok = FALSE;
+   if (fmt && *fmt) {
+	   char type = SDL_toupper(fmt[0]);
+	   int bits;
+	   if (sscanf(fmt + 1, "%d", &bits) == 1 && bits >= 1 && bits <= 32) {
+		   switch (type) {
+		   case 'U':
+			   gAudioDevice.iOutputBits = bits;
+			   gAudioDevice.fOutputSigned = FALSE;
+			   gAudioDevice.fIsOutputFloat = FALSE;
+			   parse_ok = TRUE;
+			   break;
+		   case 'S':
+			   gAudioDevice.iOutputBits = bits;
+			   gAudioDevice.fOutputSigned = TRUE;
+			   gAudioDevice.fIsOutputFloat = FALSE;
+			   parse_ok = TRUE;
+			   break;
+		   case 'F':
+			   /* Float only supported for 32-bit (SDL only has F32) */
+			   gAudioDevice.iOutputBits = 32;
+			   gAudioDevice.fOutputSigned = TRUE; /* ignored */
+			   gAudioDevice.fIsOutputFloat = TRUE;
+			   parse_ok = TRUE;
+			   break;
+		   default:
+			   UTIL_LogOutput(LOGLEVEL_WARNING, "Unknown format type '%c' in AudioOutputFormat '%s', falling back to S16.\n", type, fmt);
+			   break;
+		   }
+	   }
+	   else {
+		   UTIL_LogOutput(LOGLEVEL_WARNING, "Invalid bit depth in AudioOutputFormat '%s', falling back to S16.\n", fmt);
+	   }
+   }
+   if (!parse_ok) {
+	   /* fallback to S16 */
+	   gAudioDevice.iOutputBits = 16;
+	   gAudioDevice.fOutputSigned = TRUE;
+	   gAudioDevice.fIsOutputFloat = FALSE;
+   }
+
+   if (gAudioDevice.fIsOutputFloat) {
+	   audio_format = AUDIO_F32SYS;
+   }
+   else if (gAudioDevice.iOutputBits <= 8 && !gAudioDevice.fOutputSigned) {
+	   audio_format = AUDIO_U8;
+   }
+   else if (gAudioDevice.iOutputBits <= 16 && gAudioDevice.fOutputSigned) {
+	   audio_format = AUDIO_S16SYS;
+   }
+   else {
+	   UTIL_LogOutput(LOGLEVEL_WARNING, "Format %s not directly supported by SDL, forcing S16.\n", fmt);
+	   audio_format = AUDIO_S16SYS;
+	   gAudioDevice.iOutputBits = 16;
+	   gAudioDevice.fOutputSigned = TRUE;
+	   gAudioDevice.fIsOutputFloat = FALSE;
+   }
 
    //
    // Initialize the resampler module
@@ -258,7 +364,7 @@ AUDIO_OpenDevice(
    // Open the audio device.
    //
    gAudioDevice.spec.freq = gConfig.iSampleRate;
-   gAudioDevice.spec.format = AUDIO_S16SYS;
+   gAudioDevice.spec.format = audio_format;
    gAudioDevice.spec.channels = gConfig.iAudioChannels;
 
 #if SDL_VERSION_ATLEAST(3,0,0)
@@ -288,7 +394,9 @@ AUDIO_OpenDevice(
 #else
 # define MULTIPLIER 1
 #endif
-      gAudioDevice.pSoundBuffer = malloc(gConfig.wAudioBufferSize * MULTIPLIER * gConfig.iAudioChannels * sizeof(short));
+      gAudioDevice.iBufferFrames = gConfig.wAudioBufferSize * MULTIPLIER;
+      gAudioDevice.pSoundBuffer = malloc(gAudioDevice.iBufferFrames * gConfig.iAudioChannels * sizeof(short));
+      gAudioDevice.pMixingBuffer = malloc(gAudioDevice.iBufferFrames * gConfig.iAudioChannels * sizeof(short));
    }
 
    gAudioDevice.fOpened = TRUE;
@@ -430,6 +538,12 @@ AUDIO_CloseDevice(
    {
       free(gAudioDevice.pSoundBuffer);
 	  gAudioDevice.pSoundBuffer = NULL;
+   }
+
+   if (gAudioDevice.pMixingBuffer != NULL)
+   {
+      free(gAudioDevice.pMixingBuffer);
+      gAudioDevice.pMixingBuffer = NULL;
    }
 
    if (gConfig.eMIDISynth == SYNTH_NATIVE && gConfig.eMusicType == MUSIC_MIDI)

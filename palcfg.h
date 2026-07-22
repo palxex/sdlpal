@@ -97,6 +97,7 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_SOUNDBANK,
 	PALCFG_SCALEQUALITY,
 	PALCFG_SHADER,
+	PALCFG_AUDIOOUTPUTFORMAT,
 	/* Strings */
 	PALCFG_STRING_MAX,
 
@@ -196,6 +197,7 @@ typedef struct tagCONFIGURATION
 	char            *pszLogFile;
 	char            *pszScaleQuality;
 	char            *pszShader;
+	char            *pszAudioOutputFormat;
 	DWORD            dwWordLength;
 	DWORD            dwScreenWidth;
 	DWORD            dwScreenHeight;

@@ -116,12 +116,14 @@
 		C650609620F653B300397B73 /* glslp.c in Sources */ = {isa = PBXBuildFile; fileRef = C650609420F653B300397B73 /* glslp.c */; };
 		C65BC11D1CFAF1780037E9A2 /* overlay.c in Sources */ = {isa = PBXBuildFile; fileRef = C65BC11C1CFAF1780037E9A2 /* overlay.c */; };
 		C65BC11F1CFAF7790037E9A2 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = C65BC11E1CFAF7790037E9A2 /* audio.c */; };
+		C660A8303013AAAC001C884E /* requant.c in Sources */ = {isa = PBXBuildFile; fileRef = C660A82F3013AAAC001C884E /* requant.c */; };
+		C660A8313013AAAC001C884E /* requant.c in Sources */ = {isa = PBXBuildFile; fileRef = C660A82F3013AAAC001C884E /* requant.c */; };
+		C660A8333013AB71001C884E /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C660A8323013AB71001C884E /* SDL3.framework */; };
+		C660A8343013AB7B001C884E /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C660A8323013AB71001C884E /* SDL3.framework */; };
 		C6972640202E155C00293A73 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697263C202E155C00293A73 /* OpenGL.framework */; };
 		C697DF6C2D97F7C30030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF6B2D97F7C30030B6B2 /* sdl_compat.c */; };
 		C697DF6D2D97F7C30030B6B2 /* sdl_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = C697DF6B2D97F7C30030B6B2 /* sdl_compat.c */; };
 		C6BF8C7420A1498A000AE188 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6BF8C7020A1498A000AE188 /* Metal.framework */; };
-		C6C8BCA42DA19F7800C11697 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */; };
-		C6C8BCA52DA19F7800C11697 /* SDL3.framework in Copy Frameworks into .app bundle */ = {isa = PBXBuildFile; fileRef = C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C6CFDCAB23A858B800DEB8F9 /* kiss_fft.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDB8823A858B700DEB8F9 /* kiss_fft.c */; };
 		C6CFDCAC23A858B800DEB8F9 /* rate.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDB9023A858B700DEB8F9 /* rate.c */; };
 		C6CFDCAD23A858B800DEB8F9 /* opus_mdct.c in Sources */ = {isa = PBXBuildFile; fileRef = C6CFDB9223A858B700DEB8F9 /* opus_mdct.c */; };
@@ -298,18 +300,11 @@
 			remoteGlobalIDString = 8D1107260486CEB800E47090;
 			remoteInfo = Pal;
 		};
-		C697DF7E2D97F9EE0030B6B2 /* PBXContainerItemProxy */ = {
+		C660A83A3013AC03001C884E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C63505AB1EB45F9900186049 /* SDL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BECDF66C0761BA81005FE872;
-			remoteInfo = SDL3;
-		};
-		C6BE8E212DA175A3006AEC57 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C63505AB1EB45F9900186049 /* SDL.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BECDF5FE0761BA81005FE872;
 			remoteInfo = SDL3;
 		};
 /* End PBXContainerItemProxy section */
@@ -321,7 +316,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				C6C8BCA52DA19F7800C11697 /* SDL3.framework in Copy Frameworks into .app bundle */,
 			);
 			name = "Copy Frameworks into .app bundle";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -566,6 +560,9 @@
 		C650609520F653B300397B73 /* glslp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glslp.h; sourceTree = "<group>"; };
 		C65BC11C1CFAF1780037E9A2 /* overlay.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = overlay.c; sourceTree = "<group>"; };
 		C65BC11E1CFAF7790037E9A2 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 3; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; tabWidth = 3; };
+		C660A82E3013AAAC001C884E /* requant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = requant.h; sourceTree = "<group>"; };
+		C660A82F3013AAAC001C884E /* requant.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = requant.c; sourceTree = "<group>"; };
+		C660A8323013AB71001C884E /* SDL3.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SDL3.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C697263C202E155C00293A73 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		C697DF6A2D97F7C30030B6B2 /* sdl_compat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdl_compat.h; sourceTree = "<group>"; };
 		C697DF6B2D97F7C30030B6B2 /* sdl_compat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sdl_compat.c; sourceTree = "<group>"; };
@@ -816,11 +813,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C660A8343013AB7B001C884E /* SDL3.framework in Frameworks */,
 				C6E73CFB24DFA11500A5CE48 /* AudioUnit.framework in Frameworks */,
 				C6BF8C7420A1498A000AE188 /* Metal.framework in Frameworks */,
 				C6972640202E155C00293A73 /* OpenGL.framework in Frameworks */,
 				C63505D41EB4633000186049 /* Carbon.framework in Frameworks */,
-				C6C8BCA42DA19F7800C11697 /* SDL3.framework in Frameworks */,
 				C63505D31EB4631100186049 /* ForceFeedback.framework in Frameworks */,
 				C63505CD1EB462D600186049 /* CoreVideo.framework in Frameworks */,
 				C63505C91EB4629400186049 /* CoreAudio.framework in Frameworks */,
@@ -835,6 +832,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C660A8333013AB71001C884E /* SDL3.framework in Frameworks */,
 				C62600431E620CE700E39DD9 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -872,6 +870,7 @@
 			isa = PBXGroup;
 			children = (
 				C63505AB1EB45F9900186049 /* SDL.xcodeproj */,
+				C660A82B3013AA5D001C884E /* requant */,
 				C697DF662D97F75C0030B6B2 /* sdl_compat */,
 				C6CFDB8123A858B700DEB8F9 /* libopusfile */,
 				5757D21E1B7A3D5800464A74 /* liboggvorbis */,
@@ -953,6 +952,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C660A8323013AB71001C884E /* SDL3.framework */,
 				C6E73CF724DFA11500A5CE48 /* AudioUnit.framework */,
 				C6BF8C7020A1498A000AE188 /* Metal.framework */,
 				C697263C202E155C00293A73 /* OpenGL.framework */,
@@ -1268,6 +1268,24 @@
 			path = PalTests;
 			sourceTree = "<group>";
 		};
+		C660A82B3013AA5D001C884E /* requant */ = {
+			isa = PBXGroup;
+			children = (
+				C660A82E3013AAAC001C884E /* requant.h */,
+				C660A82F3013AAAC001C884E /* requant.c */,
+			);
+			name = requant;
+			path = ..;
+			sourceTree = "<group>";
+		};
+		C660A8353013AC03001C884E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C660A83B3013AC03001C884E /* SDL3.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		C697DF662D97F75C0030B6B2 /* sdl_compat */ = {
 			isa = PBXGroup;
 			children = (
@@ -1276,14 +1294,6 @@
 			);
 			name = sdl_compat;
 			path = ../sdl_compat;
-			sourceTree = "<group>";
-		};
-		C697DF792D97F9EE0030B6B2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		C6CFDB8123A858B700DEB8F9 /* libopusfile */ = {
@@ -1594,7 +1604,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				C6BE8E222DA175A3006AEC57 /* PBXTargetDependency */,
 			);
 			name = Pal;
 			productInstallPath = "$(HOME)/Applications";
@@ -1647,7 +1656,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = C697DF792D97F9EE0030B6B2 /* Products */;
+					ProductGroup = C660A8353013AC03001C884E /* Products */;
 					ProjectRef = C63505AB1EB45F9900186049 /* SDL.xcodeproj */;
 				},
 			);
@@ -1660,11 +1669,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		C697DF7F2D97F9EE0030B6B2 /* SDL3.framework */ = {
+		C660A83B3013AC03001C884E /* SDL3.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = SDL3.framework;
-			remoteRef = C697DF7E2D97F9EE0030B6B2 /* PBXContainerItemProxy */;
+			remoteRef = C660A83A3013AC03001C884E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -1717,6 +1726,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C602B0021CEF3E6C003A7B09 /* palcfg.c in Sources */,
+				C660A8313013AAAC001C884E /* requant.c in Sources */,
 				C6CFDCD723A858B800DEB8F9 /* quant_LTP_gains.c in Sources */,
 				C6CFDCB323A858B800DEB8F9 /* mathops.c in Sources */,
 				C6CFDD5223A858B800DEB8F9 /* opus_analysis.c in Sources */,
@@ -1967,6 +1977,7 @@
 			files = (
 				C6D61D752619A20C000622C2 /* timidity.c in Sources */,
 				C6D61D6F2619A20C000622C2 /* mix.c in Sources */,
+				C660A8303013AAAC001C884E /* requant.c in Sources */,
 				C6D61D5B2619A20C000622C2 /* tables.c in Sources */,
 				C697DF6D2D97F7C30030B6B2 /* sdl_compat.c in Sources */,
 				C6D61D5F2619A20C000622C2 /* readmidi.c in Sources */,
@@ -1991,11 +2002,6 @@
 			isa = PBXTargetDependency;
 			target = 8D1107260486CEB800E47090 /* Pal */;
 			targetProxy = C604BF6C2233857A00E0A4CF /* PBXContainerItemProxy */;
-		};
-		C6BE8E222DA175A3006AEC57 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = SDL3;
-			targetProxy = C6BE8E212DA175A3006AEC57 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
