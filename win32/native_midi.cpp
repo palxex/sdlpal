@@ -49,6 +49,9 @@
 #include "util.h"
 #include "palcfg.h"
 
+#define INPOUT32_DYN_IMPLEMENTATION
+#include "inpout32_dyn.h"
+
 static int native_midi_available = -1;
 static int native_midi_devid = MIDI_MAPPER;
 
@@ -328,29 +331,111 @@ void native_midi_start(NativeMidiSong *song, int looping)
 	song->Playing = true;
 	song->Looping = looping ? true : false;
 	song->Thread = std::move(std::thread([](NativeMidiSong *song)->void {
-		auto time = std::chrono::system_clock::now();
-		while (song->Playing)
-		{
-			do
-			{
-				song->Events[song->Position++].Send(song->Synthesizer);
-			} while (song->Position < song->Size && song->Events[song->Position].deltaTime == 0);
-			if (song->Position < song->Size)
-			{
-				auto mutex = std::unique_lock<std::mutex>(song->Mutex);
-				time += std::chrono::system_clock::duration(song->Events[song->Position].DeltaTimeAsTick(song->ppq));
-				while (song->Playing)
-				{
-					if (song->Stop.wait_until(mutex, time) == std::cv_status::timeout)
-						break;
-				}
-			}
-			else if (song->Playing = song->Looping)
-			{
-				song->Position = 0;
-				midiOutReset(song->Synthesizer);
+		if (!IsInpOutDriverOpen()) {
+			UTIL_LogOutput(LOGLEVEL_ERROR,
+				"MPU-401 probe: InpOut32 driver is not open.\n");
+			song->Playing = false;
+			return;
+		}
+
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: InpOut32 driver is open.\n");
+
+		const unsigned short candidate_ports[] = {
+			0x300, 0x310, 0x320, 0x330, 0xDF40
+		};
+		unsigned short base_port = 0;
+		short raw_status = 0;
+		for (unsigned short candidate : candidate_ports) {
+			short status = Inp32((short)(candidate + 1));
+			UTIL_LogOutput(LOGLEVEL_INFO,
+				"MPU-401 probe: status port 0x%04X read 0x%02X.\n",
+				(unsigned int)(candidate + 1), (unsigned int)(status & 0xFF));
+			if ((status & 0xFF) != 0xFF) {
+				base_port = candidate;
+				raw_status = status;
+				break;
 			}
 		}
+
+		if (base_port == 0) {
+			UTIL_LogOutput(LOGLEVEL_ERROR,
+				"MPU-401 probe: no candidate port responded.\n");
+			song->Playing = false;
+			return;
+		}
+
+		const short status_port = (short)(base_port + 1);
+		const short data_port = (short)base_port;
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: selected base=0x%04X status=0x%02X.\n",
+			(unsigned int)base_port, (unsigned int)(raw_status & 0xFF));
+
+		auto send_byte = [status_port, data_port](const char *label, uint8_t value) {
+			short last_status = 0;
+			for (int attempt = 0; attempt < 1000; ++attempt) {
+				last_status = Inp32(status_port);
+				if (attempt == 0 || (attempt % 100) == 0) {
+					UTIL_LogOutput(LOGLEVEL_DEBUG,
+						"MPU-401 probe: %s byte=0x%02X attempt=%d status=0x%02X.\n",
+						label, (unsigned int)value, attempt,
+						(unsigned int)(last_status & 0xFF));
+				}
+				if ((last_status & 0x40) == 0) {
+					Out32(data_port, value);
+					UTIL_LogOutput(LOGLEVEL_INFO,
+						"MPU-401 probe: %s byte=0x%02X written at attempt=%d.\n",
+						label, (unsigned int)value, attempt);
+					return true;
+				}
+				Sleep(1);
+			}
+			UTIL_LogOutput(LOGLEVEL_ERROR,
+				"MPU-401 probe: %s byte=0x%02X timed out; last status=0x%02X.\n",
+				label, (unsigned int)value, (unsigned int)(last_status & 0xFF));
+			return false;
+		};
+
+		short command_status = Inp32(status_port);
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: before UART command status=0x%02X.\n",
+			(unsigned int)(command_status & 0xFF));
+		if ((command_status & 0x40) != 0) {
+			UTIL_LogOutput(LOGLEVEL_ERROR,
+				"MPU-401 probe: command port not ready; status=0x%02X.\n",
+				(unsigned int)(command_status & 0xFF));
+			song->Playing = false;
+			return;
+		}
+		Out32(status_port, 0x3F);
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: UART command 0x3F written; waiting 20 ms.\n");
+		Sleep(20);
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: after UART command status=0x%02X.\n",
+			(unsigned int)(Inp32(status_port) & 0xFF));
+
+		const uint8_t note_on[] = { 0xC0, 0x00, 0x90, 60, 100 };
+		for (uint8_t value : note_on) {
+			const char *label = value == 0xC0 ? "program" :
+				(value == 0x90 ? "note-status" :
+				(value == 60 ? "note-number" : "velocity"));
+			if (!send_byte(label, value)) {
+				song->Playing = false;
+				return;
+			}
+		}
+
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: C4 note-on sequence complete; holding 800 ms.\n");
+		Sleep(800);
+		send_byte("note-off-status", 0x90);
+		send_byte("note-off-number", 60);
+		send_byte("note-off-velocity", 0);
+		UTIL_LogOutput(LOGLEVEL_INFO,
+			"MPU-401 probe: note-off sequence complete; final status=0x%02X.\n",
+			(unsigned int)(Inp32(status_port) & 0xFF));
+		song->Playing = false;
 	}, song));
 }
 
